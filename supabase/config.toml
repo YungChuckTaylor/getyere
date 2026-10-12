@@ -1,0 +1,49 @@
+project_id = "yere"
+
+[api]
+enabled = true
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+major_version = 15
+
+[studio]
+enabled = true
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/**", "http://127.0.0.1:5173/**", "https://getyere.app/**", "https://*.vercel.app/**"]
+jwt_expiry = 3600
+enable_signup = true
+enable_anonymous_sign_ins = false
+enable_manual_linking = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+secure_password_change = true
+
+[auth.sms]
+enable_signup = false
+
+[functions.create-contact-invite]
+verify_jwt = true
+
+[functions.redeem-contact-invite]
+verify_jwt = true
+
+[functions.revoke-contact-invite]
+verify_jwt = true
+
+[functions.create-delegated-reminder]
+verify_jwt = true
+
+[functions.test-notification]
+verify_jwt = true
+
+[functions.dispatch-reminders]
+verify_jwt = false
