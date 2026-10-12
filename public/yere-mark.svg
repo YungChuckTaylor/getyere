@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Yere</title>
+  <desc id="desc">A clock and check mark, for remembering together.</desc>
+  <defs>
+    <linearGradient id="bg" x1="45" y1="30" x2="452" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="check" x1="310" y1="315" x2="430" y2="410" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#f97316"/>
+    </linearGradient>
+  </defs>
+  <rect x="12" y="12" width="488" height="488" rx="158" fill="url(#bg)"/>
+  <circle cx="238" cy="236" r="142" fill="none" stroke="#fff" stroke-width="24" opacity=".96"/>
+  <path d="M238 151v90l59 36" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="24"/>
+  <circle cx="238" cy="236" r="12" fill="#fff"/>
+  <circle cx="374" cy="372" r="89" fill="url(#check)" stroke="#fff" stroke-width="12"/>
+  <path d="m329 371 31 31 60-66" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="21"/>
+</svg>

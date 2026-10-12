@@ -1,0 +1,81 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+:root { --ring: 99 102 241; color-scheme: light; }
+html.dark { color-scheme: dark; }
+html, body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; min-height: 100%; }
+body { background: #f4f6fb; }
+.dark body, .dark { background: #0e1220; }
+* { -webkit-tap-highlight-color: transparent; }
+button, input, select, textarea { font: inherit; }
+button { touch-action: manipulation; }
+::selection { background: rgba(99,102,241,.25); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: #cdd5e8; border-radius: 99px; }
+.dark ::-webkit-scrollbar-thumb { background: #364468; }
+.glass { background: rgba(255,255,255,.72); backdrop-filter: blur(18px); }
+.dark .glass { background: rgba(26,32,51,.72); }
+.mesh {
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(99,102,241,.18), transparent 50%),
+    radial-gradient(900px 400px at 100% 0%, rgba(249,115,22,.12), transparent 45%),
+    radial-gradient(700px 300px at 50% 100%, rgba(16,185,129,.08), transparent 50%);
+}
+.dark .mesh {
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(99,102,241,.22), transparent 50%),
+    radial-gradient(900px 400px at 100% 0%, rgba(249,115,22,.10), transparent 45%),
+    radial-gradient(700px 300px at 50% 100%, rgba(16,185,129,.06), transparent 50%);
+}
+@keyframes rise { from { opacity:0; transform: translateY(10px) scale(.98); } to { opacity:1; transform:none; } }
+@keyframes pop { 0% { transform: scale(.92); opacity:0; } 100% { transform:none; opacity:1; } }
+@keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,.5); } 70% { box-shadow: 0 0 0 14px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes checkpop { 0% { transform: scale(.4); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
+@keyframes slideup { from { transform: translateY(24px); opacity:0; } to { transform:none; opacity:1; } }
+@keyframes floaty { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-9px) rotate(2deg); } }
+@keyframes orbit { from { transform: rotate(0deg) translateX(9px) rotate(0deg); } to { transform: rotate(360deg) translateX(9px) rotate(-360deg); } }
+@keyframes orbit-reverse { from { transform: rotate(0deg) translateX(16px) rotate(0deg); } to { transform: rotate(-360deg) translateX(16px) rotate(360deg); } }
+.anim-rise { animation: rise .38s cubic-bezier(.2,.8,.2,1) both; }
+.anim-pop { animation: pop .28s cubic-bezier(.2,.9,.2,1) both; }
+.listening { animation: pulse-ring 1.4s infinite; }
+.toast-in { animation: slideup .32s cubic-bezier(.2,.8,.2,1) both; }
+.check-anim { animation: checkpop .28s cubic-bezier(.2,.9,.2,1); }
+.nl-chip { transition: transform .15s ease, background .15s ease; }
+.nl-chip:hover { transform: translateY(-1px); }
+.sidebar-link.active { background: linear-gradient(90deg, rgba(99,102,241,.14), transparent); color: #4f46e5; }
+.dark .sidebar-link.active { background: linear-gradient(90deg, rgba(99,102,241,.22), transparent); color: #a5b4fc; }
+.card-row { transition: transform .18s ease, box-shadow .18s ease; }
+.card-row:hover { transform: translateY(-1px); }
+input[type="checkbox"].pretty { appearance:none; width:20px; height:20px; border:2px solid #cdd5e8; border-radius:6px; cursor:pointer; display:grid; place-items:center; transition:.15s; flex-shrink:0; }
+input[type="checkbox"].pretty:checked { background:#4f46e5; border-color:#4f46e5; }
+input[type="checkbox"].pretty:checked::after { content:''; width:5px; height:9px; border:2px solid #fff; border-top:0; border-left:0; transform: rotate(45deg) translate(-1px,-1px); }
+.dark input[type="checkbox"].pretty { border-color:#41547f; }
+.wave { display:flex; align-items:flex-end; gap:3px; height:18px; }
+.wave span { width:3px; background:#ef4444; border-radius:99px; animation: wave 1s ease-in-out infinite; }
+.wave span:nth-child(2){ animation-delay:.1s } .wave span:nth-child(3){ animation-delay:.2s }
+.wave span:nth-child(4){ animation-delay:.3s } .wave span:nth-child(5){ animation-delay:.15s }
+@keyframes wave { 0%,100% { height:4px; } 50% { height:18px; } }
+.badge-from { background: linear-gradient(135deg, #eef2ff, #fae8ff); }
+.dark .badge-from { background: linear-gradient(135deg, #312e81, #4a1d6a); }
+.overdue-pulse { box-shadow: inset 3px 0 0 #ef4444; }
+.drawer { transform: translateX(-100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+.drawer.open { transform: none; }
+.modal-bg { animation: rise .2s ease both; }
+.hide-scroll { scrollbar-width: none; }
+.hide-scroll::-webkit-scrollbar { display:none; }
+.skeleton { background: linear-gradient(90deg, rgba(148,163,184,.12) 25%, rgba(148,163,184,.26) 50%, rgba(148,163,184,.12) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+.sprite-float { animation: floaty 3s ease-in-out infinite; transform-origin: center; }
+.sprite-orbit { animation: orbit 8s linear infinite; transform-origin: center; }
+.sprite-orbit-reverse { animation: orbit-reverse 11s linear infinite; transform-origin: center; }
+#authGate, #tourOverlay { overscroll-behavior: contain; }
+.safe-bottom { padding-bottom: max(.75rem, env(safe-area-inset-bottom)); }
+.calendar-cell { min-height: 6rem; }
+@media (max-width: 767px) {
+  .desktop-only { display: none !important; }
+  .calendar-cell { min-height: 3.5rem; }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
