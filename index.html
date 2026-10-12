@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yere — Reminders that remember why</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
+      colors: {
+        ink: { 50:'#f4f6fb',100:'#e8ecf6',200:'#cdd5e8',300:'#a3b2d2',400:'#7389b5',500:'#536b9a',600:'#41547f',700:'#364468',800:'#2f3a56',900:'#1a2033',950:'#0e1220' },
+        ember: { 400:'#fb923c',500:'#f97316',600:'#ea580c' }
+      },
+      boxShadow: {
+        glow: '0 0 40px -8px rgba(99,102,241,0.45)',
+        card: '0 1px 2px rgba(15,23,42,.04), 0 8px 24px -8px rgba(15,23,42,.12)'
+      }
+    }
+  }
+}
+</script>
+<style>
+  :root { --ring: 99 102 241; }
+  html, body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+  body { background: #f4f6fb; }
+  .dark body, .dark { background: #0e1220; }
+  * { -webkit-tap-highlight-color: transparent; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: #cdd5e8; border-radius: 99px; }
+  .dark ::-webkit-scrollbar-thumb { background: #364468; }
+  .glass { background: rgba(255,255,255,.72); backdrop-filter: blur(18px); }
+  .dark .glass { background: rgba(26,32,51,.72); }
+  .mesh {
+    background:
+      radial-gradient(1200px 500px at 10% -10%, rgba(99,102,241,.18), transparent 50%),
+      radial-gradient(900px 400px at 100% 0%, rgba(249,115,22,.12), transparent 45%),
+      radial-gradient(700px 300px at 50% 100%, rgba(16,185,129,.08), transparent 50%);
+  }
+  .dark .mesh {
+    background:
+      radial-gradient(1200px 500px at 10% -10%, rgba(99,102,241,.22), transparent 50%),
+      radial-gradient(900px 400px at 100% 0%, rgba(249,115,22,.10), transparent 45%),
+      radial-gradient(700px 300px at 50% 100%, rgba(16,185,129,.06), transparent 50%);
+  }
+  @keyframes rise { from { opacity:0; transform: translateY(10px) scale(.98); } to { opacity:1; transform:none; } }
+  @keyframes pop { 0% { transform: scale(.92); opacity:0; } 100% { transform:none; opacity:1; } }
+  @keyframes pulse-ring { 0% { box-shadow: 0 0 0 0 rgba(239,68,68,.5); } 70% { box-shadow: 0 0 0 14px rgba(239,68,68,0); } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  @keyframes checkpop { 0% { transform: scale(.4); } 50% { transform: scale(1.18); } 100% { transform: scale(1); } }
+  @keyframes slideup { from { transform: translateY(24px); opacity:0; } to { transform:none; opacity:1; } }
+  .anim-rise { animation: rise .38s cubic-bezier(.2,.8,.2,1) both; }
+  .anim-pop { animation: pop .28s cubic-bezier(.2,.9,.2,1) both; }
+  .listening { animation: pulse-ring 1.4s infinite; }
+  .toast-in { animation: slideup .32s cubic-bezier(.2,.8,.2,1) both; }
+  .check-anim { animation: checkpop .28s cubic-bezier(.2,.9,.2,1); }
+  .nl-chip { transition: transform .15s ease, background .15s ease; }
+  .nl-chip:hover { transform: translateY(-1px); }
+  .sidebar-link.active { background: linear-gradient(90deg, rgba(99,102,241,.14), transparent); color: #4f46e5; }
+  .dark .sidebar-link.active { background: linear-gradient(90deg, rgba(99,102,241,.22), transparent); color: #a5b4fc; }
+  .card-row { transition: transform .18s ease, box-shadow .18s ease; }
+  .card-row:hover { transform: translateY(-1px); }
+  input[type="checkbox"].pretty { appearance:none; width:20px; height:20px; border:2px solid #cdd5e8; border-radius:6px; cursor:pointer; display:grid; place-items:center; transition:.15s; flex-shrink:0; }
+  input[type="checkbox"].pretty:checked { background:#4f46e5; border-color:#4f46e5; }
+  input[type="checkbox"].pretty:checked::after { content:''; width:5px; height:9px; border:2px solid #fff; border-top:0; border-left:0; transform: rotate(45deg) translate(-1px,-1px); }
+  .dark input[type="checkbox"].pretty { border-color:#41547f; }
+  .wave { display:flex; align-items:flex-end; gap:3px; height:18px; }
+  .wave span { width:3px; background:#ef4444; border-radius:99px; animation: wave 1s ease-in-out infinite; }
+  .wave span:nth-child(2){ animation-delay:.1s } .wave span:nth-child(3){ animation-delay:.2s }
+  .wave span:nth-child(4){ animation-delay:.3s } .wave span:nth-child(5){ animation-delay:.15s }
+  @keyframes wave { 0%,100% { height:4px; } 50% { height:18px; } }
+  .badge-from { background: linear-gradient(135deg, #eef2ff, #fae8ff); }
+  .dark .badge-from { background: linear-gradient(135deg, #312e81, #4a1d6a); }
+  .overdue-pulse { box-shadow: inset 3px 0 0 #ef4444; }
+  .drawer { transform: translateX(-100%); transition: transform .28s cubic-bezier(.2,.8,.2,1); }
+  .drawer.open { transform: none; }
+  .modal-bg { animation: rise .2s ease both; }
+  textarea, input, select, button { font-family: inherit; }
+  .hide-scroll { scrollbar-width: none; }
+  .hide-scroll::-webkit-scrollbar { display:none; }
+  @media (max-width: 768px) {
+    .desktop-only { display: none !important; }
+  }
+</style>
+</head>
+<body class="text-slate-800 dark:text-slate-100 min-h-screen mesh">
+<div id="app" class="min-h-screen flex">
+
+  <!-- Mobile overlay -->
+  <div id="overlay" class="fixed inset-0 bg-slate-900/40 z-30 hidden md:hidden" onclick="closeDrawer()"></div>
+
+  <!-- Sidebar -->
+  <aside id="drawer" class="drawer md:translate-x-0 fixed md:sticky top-0 z-40 h-screen w-72 shrink-0 border-r border-slate-200/80 dark:border-white/5 bg-white/80 dark:bg-ink-900/80 backdrop-blur-xl flex flex-col">
+    <div class="px-5 pt-6 pb-4 flex items-center gap-3">
+      <div class="h-10 w-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-glow grid place-items-center">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </div>
+      <div>
+        <div class="font-extrabold tracking-tight text-lg leading-none">Yere</div>
+        <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Remember the times, together!</div>
+      </div>
+    </div>
+
+    <nav class="px-3 mt-2 space-y-0.5 flex-1 overflow-y-auto hide-scroll">
+      <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Capture</p>
+      <button class="sidebar-link active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold" data-view="today" onclick="setView('today')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="12" height="12" rx="2"/><path d="M3 8h12M7 2v4M11 2v4"/></svg>
+        Today <span id="todayCount" class="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">0</span>
+      </button>
+      <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="upcoming" onclick="setView('upcoming')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h10M10 6l6 6-6 6"/></svg>
+        Upcoming
+      </button>
+      <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="recurring" onclick="setView('recurring')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a7 7 0 0112-5l2-2v6h-6l2-2a5 5 0 10.5 6"/></svg>
+        Recurring
+      </button>
+      <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="completed" onclick="setView('completed')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12l4 4 8-9"/></svg>
+        Completed
+      </button>
+      <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="pending" onclick="setView('pending')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="9" r="7"/><path d="M9 5v5l3 2"/></svg>
+        Needs approval <span id="pendingCount" class="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 hidden">0</span>
+      </button>
+
+      <p class="px-3 pt-5 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">People</p>
+      <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="contacts" onclick="setView('contacts')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="3"/><path d="M2 16c0-2.5 2.2-4 5-4s5 1.5 5 4"/><circle cx="14" cy="7" r="2.5"/><path d="M14 12c2.4.3 4 1.8 4 4"/></svg>
+        Trusted contacts
+      </button>
+      <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="audit" onclick="setView('audit')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h8l3 3v11a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M6 10h6M6 14h4"/></svg>
+        Audit log
+      </button>
+
+      <p class="px-3 pt-5 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">System</p>
+      <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="insights" onclick="setView('insights')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14l4-4 3 3 6-7"/><path d="M13 6h4v4"/></svg>
+        Pattern insights
+      </button>
+      <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="settings" onclick="setView('settings')">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="9" r="3"/><path d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.4 3.4l1.4 1.4M13.2 13.2l1.4 1.4M3.4 14.6l1.4-1.4M13.2 4.8l1.4-1.4"/></svg>
+        Settings
+      </button>
+    </nav>
+
+    <div class="p-4 border-t border-slate-200/70 dark:border-white/5">
+      <div class="flex items-center gap-3 rounded-2xl bg-slate-100 dark:bg-ink-800 p-3">
+        <div class="h-9 w-9 rounded-full bg-gradient-to-br from-amber-400 to-rose-500 grid place-items-center text-white font-bold text-sm">A</div>
+        <div class="min-w-0">
+          <div class="text-sm font-semibold truncate" id="meName">Daniel Momodu</div>
+          <div class="text-[11px] text-slate-500 truncate">Personal workspace</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 min-w-0 flex flex-col min-h-screen">
+    <!-- Top bar -->
+    <header class="sticky top-0 z-20 glass border-b border-slate-200/70 dark:border-white/5">
+      <div class="px-4 md:px-8 py-3 flex items-center gap-3">
+        <button class="md:hidden p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" onclick="openDrawer()" aria-label="Menu">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h16M3 12h16M3 18h16"/></svg>
+        </button>
+        <div class="relative flex-1 max-w-xl">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5.5"/><path d="M11 11l4 4"/></svg>
+          <input id="search" type="search" placeholder="Search titles, notes, links…" class="w-full pl-10 pr-3 py-2.5 rounded-xl bg-slate-100/80 dark:bg-ink-800 border-0 text-sm outline-none focus:ring-2 focus:ring-indigo-500/40" oninput="onSearch(this.value)">
+        </div>
+        <button onclick="toggleTheme()" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" title="Toggle theme">
+          <svg id="sunIcon" class="hidden dark:block" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="9" r="4"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.2 3.2l1.4 1.4M13.4 13.4l1.4 1.4M3.2 14.8l1.4-1.4M13.4 4.6l1.4-1.4"/></svg>
+          <svg id="moonIcon" class="dark:hidden" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 11.5A7 7 0 118.5 3 5.5 5.5 0 0015 11.5z"/></svg>
+        </button>
+        <button onclick="requestNotif()" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" title="Notifications">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 15h6a4 4 0 004-4V8a5 5 0 00-10 0v3a4 4 0 004 4z"/><path d="M8 15v1a2 2 0 004 0v-1"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 px-4 md:px-8 py-6 max-w-5xl w-full mx-auto">
+      <!-- Quick add -->
+      <section id="quickAddSection" class="mb-8">
+        <h1 id="viewTitle" class="text-3xl md:text-4xl font-extrabold tracking-tight mb-1">Good morning</h1>
+        <p id="viewSub" class="text-slate-500 dark:text-slate-400 mb-5">Capture anything — type or speak. We’ll parse the when.</p>
+
+        <div class="relative rounded-3xl bg-white dark:bg-ink-900 shadow-card border border-slate-200/80 dark:border-white/5 p-2 md:p-2.5">
+          <div class="flex items-end gap-2">
+            <div class="flex-1">
+              <textarea id="quickInput" rows="1" placeholder="Remind me to call Mom tomorrow at 3pm…" class="w-full resize-none bg-transparent px-3 py-3 text-[15px] outline-none max-h-32" oninput="autoGrow(this); liveParse()" onkeydown="onQuickKey(event)"></textarea>
+              <div id="livePreview" class="px-3 pb-2 hidden">
+                <div class="flex flex-wrap gap-1.5 text-xs"></div>
+              </div>
+            </div>
+            <button id="micBtn" onclick="toggleVoice()" class="h-11 w-11 shrink-0 rounded-2xl bg-slate-100 dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 grid place-items-center transition" title="Voice input">
+              <svg id="micIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9a5 5 0 0010 0M9 14v3"/></svg>
+              <div id="micWave" class="wave hidden"><span></span><span></span><span></span><span></span><span></span></div>
+            </button>
+            <button onclick="openConfirmFromInput()" class="h-11 px-4 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-glow hover:opacity-95">
+              Add
+            </button>
+          </div>
+        </div>
+        <p class="mt-2 text-[11px] text-slate-400 px-1">Try “every Monday at 9”, “first Friday of the month”, “in 45 minutes”, or “pay rent on the 1st”.</p>
+      </section>
+
+      <!-- Content views -->
+      <section id="content"></section>
+    </div>
+  </main>
+</div>
+
+<!-- Confirmation / edit modal -->
+<div id="modal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onclick="closeModal()"></div>
+  <div class="relative z-10 min-h-full md:min-h-0 md:absolute md:inset-0 flex items-end md:items-center justify-center p-0 md:p-6">
+    <div id="modalCard" class="anim-pop w-full md:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl md:rounded-3xl shadow-2xl border border-slate-200/70 dark:border-white/10 max-h-[92vh] overflow-y-auto"></div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div id="toasts" class="fixed bottom-20 md:bottom-6 right-4 z-[60] space-y-2 w-[min(360px,calc(100%-2rem))]"></div>
+
+<!-- Mobile bottom nav -->
+<nav class="md:hidden fixed bottom-0 inset-x-0 z-30 glass border-t border-slate-200/80 dark:border-white/5 px-2 py-2 pb-[max(.5rem,env(safe-area-inset-bottom))] grid grid-cols-5">
+  <button onclick="setView('today')" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300" data-mnav="today">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14"/></svg>Today
+  </button>
+  <button onclick="setView('upcoming')" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium text-slate-500" data-mnav="upcoming">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h12M12 6l6 6-6 6"/></svg>Soon
+  </button>
+  <button onclick="document.getElementById('quickInput').focus()" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium text-slate-500">
+    <span class="h-9 w-9 -mt-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white grid place-items-center shadow-glow"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 4v10M4 9h10"/></svg></span>
+  </button>
+  <button onclick="setView('contacts')" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium text-slate-500" data-mnav="contacts">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="7" r="3"/><path d="M2 17c0-2.5 2.5-4 6-4s6 1.5 6 4"/></svg>People
+  </button>
+  <button onclick="setView('settings')" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium text-slate-500" data-mnav="settings">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2"/></svg>More
+  </button>
+</nav>
+
+<script>
+/* ============================================================
+   Yere — client-side reminder OS
+   ============================================================ */
+const WEEKDAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+const WEEKDAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DEFAULT_HOUR = 9, DEFAULT_MIN = 0;
+const US_HOLIDAYS = [ /* mm-dd plus computed */
+  '01-01','07-04','12-25','12-24','11-11','06-19'
+];
+
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+const now = () => new Date();
+const pad = n => String(n).padStart(2,'0');
+const clone = o => JSON.parse(JSON.stringify(o));
+
+function hashCode(str) {
+  let h = 5381;
+  for (let i=0;i<str.length;i++) h = ((h<<5)+h) ^ str.charCodeAt(i);
+  return ('00000000'+(h>>>0).toString(16)).slice(-8) + btoa(unescape(encodeURIComponent(str))).slice(0,16);
+}
+
+function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
+function isSameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function nthWeekdayOfMonth(year, month, weekday, n) {
+  if (n === -1) {
+    const last = new Date(year, month+1, 0);
+    const diff = (last.getDay() - weekday + 7) % 7;
+    last.setDate(last.getDate() - diff);
+    return last;
+  }
+  const first = new Date(year, month, 1);
+  const diff = (weekday - first.getDay() + 7) % 7;
+  const day = 1 + diff + (n-1)*7;
+  const dt = new Date(year, month, day);
+  if (dt.getMonth() !== month) return null;
+  return dt;
+}
+function lastDayOfMonth(y,m){ return new Date(y, m+1, 0); }
+function thanksgiving(year){ return nthWeekdayOfMonth(year, 10, 4, 4); }
+function laborDay(year){ return nthWeekdayOfMonth(year, 8, 1, 1); }
+function memorialDay(year){ return nthWeekdayOfMonth(year, 4, 1, -1); }
+function isHoliday(d) {
+  const md = pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  if (US_HOLIDAYS.includes(md)) return true;
+  const y = d.getFullYear();
+  const list = [thanksgiving(y), laborDay(y), memorialDay(y)];
+  return list.some(h => h && isSameDay(h,d));
+}
+function isWeekend(d){ const x=d.getDay(); return x===0||x===6; }
+
+function applySkips(date, rec) {
+  if (!rec) return date;
+  let d = new Date(date);
+  let guard = 0;
+  while (guard++ < 30) {
+    const skipW = rec.skipWeekends && isWeekend(d);
+    const skipH = rec.skipHolidays && isHoliday(d);
+    if (!skipW && !skipH) break;
+    d = addDays(d, 1);
+  }
+  return d;
+}
+
+/* ---------- Natural language parser ---------- */
+function parseTimeToken(s) {
+  s = s.toLowerCase().trim();
+  let m = s.match(/^(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?$/i);
+  if (!m) return null;
+  let h = +m[1], min = m[2] ? +m[2] : 0;
+  const ap = (m[3]||'').replace(/\./g,'').toLowerCase();
+  if (ap === 'pm' && h < 12) h += 12;
+  if (ap === 'am' && h === 12) h = 0;
+  if (!ap && h <= 7 && s.indexOf(':') === -1) { /* bare 1-7 often pm in reminders? keep as-is if >= 8 morning */ }
+  if (h > 23 || min > 59) return null;
+  return { h, m: min };
+}
+
+function parseNaturalLanguage(raw) {
+  let text = (raw||'').trim();
+  const original = text;
+  const result = {
+    title: text,
+    date: null,
+    time: null,
+    recurrence: null,
+    confidence: 0,
+    consumed: []
+  };
+  if (!text) return result;
+
+  const consume = (re, label) => {
+    const m = text.match(re);
+    if (!m) return null;
+    result.consumed.push({ label, match: m[0] });
+    text = (text.slice(0, m.index) + ' ' + text.slice(m.index + m[0].length)).replace(/\s+/g,' ').trim();
+    result.confidence += 1;
+    return m;
+  };
+
+  // Recurrence: every N units
+  let m;
+  m = consume(/\bevery\s+(\d+)\s+(minutes?|mins?|hours?|hrs?|days?|weeks?|months?|years?)\b/i, 'interval');
+  if (m) {
+    const n = +m[1];
+    const u = m[2].toLowerCase();
+    const unit = u.startsWith('min') ? 'minutes' : u.startsWith('hour')||u.startsWith('hr') ? 'hours' : u.startsWith('day') ? 'days' : u.startsWith('week') ? 'weeks' : u.startsWith('month') ? 'months' : 'years';
+    result.recurrence = { type:'interval', interval:{value:n, unit}, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:0 };
+  }
+  if (!result.recurrence) {
+    m = consume(/\bevery\s+(weekday|workday|day|week|month|year|morning|evening)\b/i, 'preset');
+    if (m) {
+      const k = m[1].toLowerCase();
+      if (k==='day'||k==='morning'||k==='evening') result.recurrence = { type:'interval', interval:{value:1,unit:'days'}, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:0 };
+      else if (k==='weekday'||k==='workday') result.recurrence = { type:'interval', interval:{value:1,unit:'days'}, end:{type:'never'}, adaptive:'original', skipWeekends:true, skipHolidays:false, completedCount:0 };
+      else if (k==='week') result.recurrence = { type:'interval', interval:{value:1,unit:'weeks'}, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:0 };
+      else if (k==='month') result.recurrence = { type:'interval', interval:{value:1,unit:'months'}, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:0 };
+      else result.recurrence = { type:'interval', interval:{value:1,unit:'years'}, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:0 };
+    }
+  }
+  if (!result.recurrence) {
+    m = consume(/\bevery\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)s?\b/i, 'weekly-dow');
+    if (m) {
+      result.recurrence = { type:'interval', interval:{value:1,unit:'weeks'}, weekday: WEEKDAYS.indexOf(m[1].toLowerCase()), end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:0 };
+    }
+  }
+  // Calendar-aware
+  m = consume(/\b(first|last)\s+day\s+of\s+(every\s+)?(the\s+)?month\b/i, 'cal-day');
+  if (m) {
+    result.recurrence = { type:'calendar', calendar:{ pattern: m[1].toLowerCase()==='first' ? 'first-day' : 'last-day' }, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:0 };
+  }
+  m = consume(/\b(first|second|third|fourth|last|1st|2nd|3rd|4th)\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+of\s+(every\s+)?(the\s+)?month\b/i, 'nth-weekday');
+  if (m) {
+    const map = {first:1,second:2,third:3,fourth:4,last:-1,'1st':1,'2nd':2,'3rd':3,'4th':4};
+    result.recurrence = { type:'calendar', calendar:{ pattern:'nth-weekday', n: map[m[1].toLowerCase()], weekday: WEEKDAYS.indexOf(m[2].toLowerCase()) }, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:0 };
+  }
+  m = consume(/\bon\s+the\s+(\d{1,2})(st|nd|rd|th)?(\s+of\s+(every\s+)?month)?\b/i, 'dom');
+  if (m && /month/i.test(m[0])) {
+    result.recurrence = { type:'calendar', calendar:{ pattern:'nth-day', n:+m[1] }, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:0 };
+  }
+
+  // Relative "in X"
+  m = consume(/\bin\s+(\d+)\s+(minutes?|mins?|hours?|hrs?|days?|weeks?|months?|years?)\b/i, 'in');
+  if (m) {
+    const n=+m[1]; const u=m[2].toLowerCase();
+    const d = new Date();
+    if (u.startsWith('min')) d.setMinutes(d.getMinutes()+n);
+    else if (u.startsWith('hour')||u.startsWith('hr')) d.setHours(d.getHours()+n);
+    else if (u.startsWith('day')) d.setDate(d.getDate()+n);
+    else if (u.startsWith('week')) d.setDate(d.getDate()+n*7);
+    else if (u.startsWith('month')) d.setMonth(d.getMonth()+n);
+    else d.setFullYear(d.getFullYear()+n);
+    result.date = d;
+    result.time = { h:d.getHours(), m:d.getMinutes() };
+  }
+
+  // Time of day words
+  m = consume(/\b(at\s+)?(noon|midnight|morning|afternoon|evening|tonight|night)\b/i, 'tod');
+  if (m && !result.time) {
+    const k=m[2].toLowerCase();
+    if (k==='noon') result.time={h:12,m:0};
+    else if (k==='midnight') result.time={h:0,m:0};
+    else if (k==='morning') result.time={h:9,m:0};
+    else if (k==='afternoon') result.time={h:14,m:0};
+    else result.time={h:19,m:0};
+    if ((k==='tonight'||k==='night'||k==='evening'||k==='afternoon'||k==='morning') && !result.date) result.date = new Date();
+  }
+
+  // Explicit time
+  m = consume(/\b(?:at\s+)?(\d{1,2}(?::\d{2})?\s*(?:a\.?m\.?|p\.?m\.?)?)\b/i, 'time');
+  if (m) {
+    const t = parseTimeToken(m[1]);
+    if (t) result.time = t;
+    else { /* restore if false positive */
+      text = (m[0] + ' ' + text).trim();
+    }
+  }
+
+  // today / tomorrow / tonight already / yesterday
+  m = consume(/\b(today|tomorrow|yesterday)\b/i, 'rel-day');
+  if (m) {
+    const k=m[1].toLowerCase();
+    const d=new Date();
+    if (k==='tomorrow') d.setDate(d.getDate()+1);
+    if (k==='yesterday') d.setDate(d.getDate()-1);
+    result.date = startOfDay(d);
+  }
+
+  // next week / next month
+  m = consume(/\bnext\s+(week|month|year)\b/i, 'next-unit');
+  if (m) {
+    const d=new Date(); const k=m[1].toLowerCase();
+    if (k==='week') d.setDate(d.getDate()+7);
+    else if (k==='month') d.setMonth(d.getMonth()+1);
+    else d.setFullYear(d.getFullYear()+1);
+    result.date = startOfDay(d);
+  }
+
+  // next weekday or this weekday
+  m = consume(/\b(next|this)?\s*(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b/i, 'dow');
+  if (m) {
+    const wd = WEEKDAYS.indexOf(m[2].toLowerCase());
+    const d = new Date();
+    let diff = wd - d.getDay();
+    if (diff < 0 || (diff===0 && (m[1]||'').toLowerCase()==='next')) diff += 7;
+    if ((m[1]||'').toLowerCase()==='next' && diff===0) diff = 7;
+    if (diff===0 && d.getHours() >= (result.time?result.time.h:DEFAULT_HOUR)) diff = 7;
+    d.setDate(d.getDate()+diff);
+    result.date = startOfDay(d);
+  }
+
+  // Month day (December 25, Dec 25th, 25 Dec)
+  m = consume(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s*,?\s*(\d{4}))?\b/i, 'md');
+  if (m) {
+    let mon = m[1].toLowerCase();
+    if (mon==='sept') mon='sep';
+    let mi = MONTHS.indexOf(mon);
+    if (mi<0) mi = MONTHS_SHORT.map(x=>x.toLowerCase()).indexOf(mon);
+    const day = +m[2];
+    let year = m[3] ? +m[3] : new Date().getFullYear();
+    let d = new Date(year, mi, day);
+    if (d < startOfDay(new Date()) && !m[3]) d = new Date(year+1, mi, day);
+    result.date = startOfDay(d);
+  }
+  m = consume(/\b(\d{1,2})(?:st|nd|rd|th)?\s+(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)(?:\s*,?\s*(\d{4}))?\b/i, 'dm');
+  if (m) {
+    let mon=m[2].toLowerCase();
+    let mi = MONTHS.indexOf(mon); if (mi<0) mi = MONTHS_SHORT.map(x=>x.toLowerCase()).indexOf(mon);
+    const day=+m[1]; let year=m[3]?+m[3]:new Date().getFullYear();
+    let d=new Date(year,mi,day);
+    if (d < startOfDay(new Date()) && !m[3]) d=new Date(year+1,mi,day);
+    result.date = startOfDay(d);
+  }
+  m = consume(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/, 'slash');
+  if (m) {
+    const mo=+m[1]-1, day=+m[2];
+    let year = m[3] ? (+m[3] < 100 ? 2000+ +m[3] : +m[3]) : new Date().getFullYear();
+    let d=new Date(year,mo,day);
+    if (d < startOfDay(new Date()) && !m[3]) d=new Date(year+1,mo,day);
+    result.date = startOfDay(d);
+  }
+
+  // Clean title leftovers
+  let title = text.replace(/^(remind me to|remind me|remember to|don't forget to|dont forget to|please)\s+/i,'').replace(/\s+(please)$/i,'');
+  title = title.replace(/^[\s,.\-:;]+|[\s,.\-:;]+$/g,'').replace(/\s+/g,' ');
+  if (!title) title = original;
+  result.title = title.charAt(0).toUpperCase() + title.slice(1);
+
+  // Defaults
+  const defH = (state.settings && state.settings.defaultHour != null) ? state.settings.defaultHour : DEFAULT_HOUR;
+  const defM = (state.settings && state.settings.defaultMin != null) ? state.settings.defaultMin : DEFAULT_MIN;
+  if (!result.time) result.time = { h: defH, m: defM };
+  if (!result.date) {
+    const d = new Date();
+    const candidate = new Date();
+    candidate.setHours(result.time.h, result.time.m, 0, 0);
+    if (candidate <= d) d.setDate(d.getDate()+1);
+    result.date = startOfDay(d);
+  }
+
+  // If recurrence weekly with weekday, align date
+  if (result.recurrence && result.recurrence.weekday != null) {
+    const d = new Date(result.date);
+    let diff = result.recurrence.weekday - d.getDay();
+    if (diff < 0) diff += 7;
+    d.setDate(d.getDate()+diff);
+    result.date = startOfDay(d);
+  }
+  if (result.recurrence && result.recurrence.type==='calendar') {
+    result.date = startOfDay(nextCalendarDate(result.recurrence, new Date(), result.time));
+  }
+
+  return result;
+}
+
+function combineDateTime(date, time) {
+  const d = new Date(date);
+  d.setHours(time.h, time.m, 0, 0);
+  return d;
+}
+
+function nextCalendarDate(rec, from, time) {
+  let y = from.getFullYear(), m = from.getMonth();
+  const after = from;
+  for (let i=0;i<24;i++) {
+    let d = null;
+    const cal = rec.calendar;
+    if (cal.pattern==='first-day') d = new Date(y,m,1);
+    else if (cal.pattern==='last-day') d = lastDayOfMonth(y,m);
+    else if (cal.pattern==='nth-day') d = new Date(y,m, Math.min(cal.n, lastDayOfMonth(y,m).getDate()));
+    else if (cal.pattern==='nth-weekday') d = nthWeekdayOfMonth(y,m,cal.weekday,cal.n);
+    if (d) {
+      d.setHours(time?time.h:DEFAULT_HOUR, time?time.m:0, 0, 0);
+      d = applySkips(d, rec);
+      if (d > after) return d;
+    }
+    m++; if (m>11){ m=0; y++; }
+  }
+  return addDays(from, 30);
+}
+
+function nextOccurrence(rem, fromDate, basedOnCompletion) {
+  const rec = rem.recurrence;
+  if (!rec || rec.type==='none') return null;
+  const base = basedOnCompletion && rec.adaptive==='completion' && rem.completedAt
+    ? new Date(rem.completedAt)
+    : new Date(rem.due);
+  let next;
+  if (rec.type==='interval') {
+    next = new Date(base);
+    const n = rec.interval.value, u = rec.interval.unit;
+    if (u==='minutes') next.setMinutes(next.getMinutes()+n);
+    else if (u==='hours') next.setHours(next.getHours()+n);
+    else if (u==='days') next.setDate(next.getDate()+n);
+    else if (u==='weeks') next.setDate(next.getDate()+n*7);
+    else if (u==='months') next.setMonth(next.getMonth()+n);
+    else if (u==='years') next.setFullYear(next.getFullYear()+n);
+    if (rec.weekday != null) {
+      let diff = rec.weekday - next.getDay();
+      if (diff < 0) diff += 7;
+      next.setDate(next.getDate()+diff);
+    }
+  } else if (rec.type==='calendar') {
+    const t = { h: new Date(rem.due).getHours(), m: new Date(rem.due).getMinutes() };
+    next = nextCalendarDate(rec, new Date(Math.max(base.getTime()+1000, Date.now())), t);
+  }
+  if (!next) return null;
+  next = applySkips(next, rec);
+  if (rec.end && rec.end.type==='on' && rec.end.date && next > new Date(rec.end.date)) return null;
+  if (rec.end && rec.end.type==='after' && (rec.completedCount||0) + 1 >= rec.end.count) return null;
+  return next;
+}
+
+function recLabel(rec) {
+  if (!rec || rec.type==='none') return '';
+  if (rec.type==='interval') {
+    const n = rec.interval.value, u = rec.interval.unit;
+    let s = n===1 ? u.replace(/s$/,'') : (n+' '+u);
+    if (rec.weekday != null) s = 'every ' + WEEKDAYS[rec.weekday];
+    else s = 'every ' + (n===1 ? u.replace(/s$/,'') : n+' '+u);
+    if (rec.skipWeekends) s += ' · skip weekends';
+    return s;
+  }
+  const c = rec.calendar;
+  if (c.pattern==='first-day') return 'first day of month';
+  if (c.pattern==='last-day') return 'last day of month';
+  if (c.pattern==='nth-day') return 'day '+c.n+' of month';
+  if (c.pattern==='nth-weekday') {
+    const ord = c.n===-1 ? 'last' : ['','first','second','third','fourth'][c.n];
+    return ord+' '+WEEKDAYS[c.weekday]+' of month';
+  }
+  return 'custom';
+}
+
+function formatDue(iso) {
+  const d = new Date(iso);
+  const t = d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  const today = startOfDay(now());
+  const day = startOfDay(d);
+  const diff = Math.round((day - today)/86400000);
+  let dayLabel;
+  if (diff===0) dayLabel='Today';
+  else if (diff===1) dayLabel='Tomorrow';
+  else if (diff===-1) dayLabel='Yesterday';
+  else if (diff>1 && diff<7) dayLabel = WEEKDAYS_SHORT[d.getDay()];
+  else dayLabel = MONTHS_SHORT[d.getMonth()]+' '+d.getDate();
+  return { dayLabel, t, diff, overdue: d < now() };
+}
+
+function greeting() {
+  const h = now().getHours();
+  if (h < 5) return 'Working late';
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+/* ---------- State ---------- */
+const KEY = 'Yere.v1';
+let state = {
+  reminders: [],
+  contacts: [],
+  invites: [],
+  audit: [],
+  blocklist: [],
+  settings: {
+    defaultHour: 9, defaultMin: 0,
+    skipWeekendsDefault: false,
+    skipHolidaysDefault: false,
+    adaptiveDefault: 'original',
+    approvalMode: 'direct', // direct | approve
+    notif: false,
+    theme: 'dark',
+    rate: { invites: [], fails: [] },
+    suspended: false
+  },
+  user: { name: 'Daniel Momodu', id: 'me' }
+};
+let view = 'today';
+let searchQ = '';
+let draft = null;
+let editingId = null;
+let recognition = null;
+let listening = false;
+let dueTimer = null;
+
+function persist(){ try { localStorage.setItem(KEY, JSON.stringify({ reminders:state.reminders, contacts:state.contacts, invites:state.invites, audit:state.audit, blocklist:state.blocklist, settings:state.settings, user:state.user })); } catch(e){} }
+function load(){
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      Object.assign(state, d);
+    } else seed();
+  } catch(e){ seed(); }
+  if (state.settings.theme==='dark') document.documentElement.classList.add('dark');
+}
+
+function seed() {
+  const t = now();
+  const at = (days, h, m) => { const d=new Date(); d.setDate(d.getDate()+days); d.setHours(h,m,0,0); return d.toISOString(); };
+  const past = (h,m) => { const d=new Date(); d.setHours(h,m,0,0); if (d>now()) d.setDate(d.getDate()-1); return d.toISOString(); };
+  state.contacts = [
+    { id:'c1', name:'Sarah Momodu', email:'sarah@studio.co', status:'approved', mode:'direct', since: addDays(t,-40).toISOString(), avatar:'SC' },
+    { id:'c2', name:'Gideon Momodu', email:'marcus@home.io', status:'approved', mode:'approve', since: addDays(t,-12).toISOString(), avatar:'MR' },
+    { id:'c3', name:'Priya Nair', email:'priya@labs.dev', status:'revoked', mode:'direct', since: addDays(t,-90).toISOString(), avatar:'PN' }
+  ];
+  state.reminders = [
+    { id:uid(), title:'Team standup', notes:'Keep it to 15 minutes. Share blockers first.', link:'https://meet.example.com/standup', due: at(0,9,30), recurrence:{ type:'interval', interval:{value:1,unit:'days'}, end:{type:'never'}, adaptive:'original', skipWeekends:true, skipHolidays:true, completedCount:18 }, completed:false, createdAt: addDays(t,-30).toISOString(), fromContact:null, approved:true },
+    { id:uid(), title:'Call the dentist', notes:'Ask about the crown timeline and night guard.', link:'', due: at(1,14,0), recurrence:null, completed:false, createdAt: addDays(t,-2).toISOString(), fromContact:null, approved:true },
+    { id:uid(), title:'Pay rent', notes:'Transfer to landlord checking. Confirmation goes in the binder.', link:'https://bank.example.com', due: nextCalendarDate({calendar:{pattern:'nth-day',n:1}, skipWeekends:false, skipHolidays:false}, new Date(t.getFullYear(), t.getMonth(), 0), {h:9,m:0}).toISOString(), recurrence:{ type:'calendar', calendar:{pattern:'nth-day', n:1}, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:6 }, completed:false, createdAt: addDays(t,-200).toISOString(), fromContact:null, approved:true },
+    { id:uid(), title:'Review Q3 OKRs', notes:'Sarah asked us to prep comments on growth experiments.', link:'https://docs.example.com/okrs', due: at(4,11,0), recurrence:null, completed:false, createdAt: addDays(t,-1).toISOString(), fromContact:{ id:'c1', name:'Sarah Momodu' }, approved:true },
+    { id:uid(), title:'Water the plants', notes:'Fiddle leaf likes a deep soak. Check saucer.', link:'', due: at(0,18,0), recurrence:{ type:'interval', interval:{value:3,unit:'days'}, end:{type:'never'}, adaptive:'completion', skipWeekends:false, skipHolidays:false, completedCount:11 }, completed:false, createdAt: addDays(t,-40).toISOString(), fromContact:null, approved:true },
+    { id:uid(), title:'Take vitamins', notes:'With breakfast — D3 + omega.', link:'', due: at(0,8,0), recurrence:{ type:'interval', interval:{value:1,unit:'days'}, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:40 }, completed: now().getHours()>8, completedAt: now().getHours()>8 ? at(0,8,12) : null, createdAt: addDays(t,-80).toISOString(), fromContact:null, approved:true },
+    { id:uid(), title:'Submit expense report', notes:'Airport taxi + client dinner. Receipts in Downloads/expenses.', link:'https://expenses.example.com', due: past(17,0), recurrence:null, completed:false, createdAt: addDays(t,-5).toISOString(), fromContact:null, approved:true },
+    { id:uid(), title:'Mom’s birthday gift', notes:'She mentioned the ceramic lamp from that shop in Portland.', link:'', due: at(12,9,0), recurrence:{ type:'interval', interval:{value:1,unit:'years'}, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:false, completedCount:2 }, completed:false, createdAt: addDays(t,-20).toISOString(), fromContact:null, approved:true },
+    { id:uid(), title:'School pickup', notes:'Use the south lot on Fridays.', link:'', due: at(2,15,30), recurrence:{ type:'interval', interval:{value:1,unit:'weeks'}, weekday:5, end:{type:'never'}, adaptive:'original', skipWeekends:false, skipHolidays:true, completedCount:8 }, completed:false, createdAt: addDays(t,-60).toISOString(), fromContact:{ id:'c2', name:'Gideon Momodu' }, approved:false, requiresApproval:true }
+  ];
+  state.audit = [
+    { id:uid(), at: addDays(t,-1).toISOString(), actor:'Sarah Momodu', action:'created reminder', detail:'Review Q3 OKRs' },
+    { id:uid(), at: addDays(t,-12).toISOString(), actor:'You', action:'approved contact', detail:'Gideon Momodu · require approval' },
+    { id:uid(), at: addDays(t,-40).toISOString(), actor:'You', action:'approved contact', detail:'Sarah Momodu · direct set' },
+    { id:uid(), at: addDays(t,-2).toISOString(), actor:'Gideon Momodu', action:'proposed reminder', detail:'School pickup (awaiting approval)' },
+    { id:uid(), at: addDays(t,-90).toISOString(), actor:'You', action:'revoked contact', detail:'Priya Nair' }
+  ];
+  persist();
+}
+
+function logAudit(actor, action, detail) {
+  state.audit.unshift({ id:uid(), at: now().toISOString(), actor, action, detail });
+  state.audit = state.audit.slice(0, 80);
+  persist();
+}
+
+/* ---------- Rendering ---------- */
+function setView(v) {
+  view = v;
+  closeDrawer();
+  document.querySelectorAll('.sidebar-link').forEach(el => {
+    el.classList.toggle('active', el.dataset.view===v);
+    el.classList.toggle('font-semibold', el.dataset.view===v);
+    el.classList.toggle('font-medium', el.dataset.view!==v);
+  });
+  render();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function openDrawer(){ document.getElementById('drawer').classList.add('open'); document.getElementById('overlay').classList.remove('hidden'); }
+function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('overlay').classList.add('hidden'); }
+
+function filteredReminders() {
+  let list = state.reminders.slice();
+  const q = searchQ.trim().toLowerCase();
+  if (q) list = list.filter(r => (r.title+' '+(r.notes||'')+' '+(r.link||'')+' '+(r.fromContact&&r.fromContact.name||'')).toLowerCase().includes(q));
+  return list;
+}
+
+function render() {
+  const h = now().getHours();
+  const titles = {
+    today: [greeting(), 'Capture anything — type or speak. We’ll parse the when.'],
+    upcoming: ['Upcoming', 'Everything on the horizon, grouped by day.'],
+    recurring: ['Recurring', 'Adaptive schedules, calendar-aware patterns, smart skips.'],
+    completed: ['Completed', 'Finished work. Recurring items roll forward automatically.'],
+    pending: ['Needs approval', 'Reminders proposed by trusted contacts.'],
+    contacts: ['Trusted contacts', 'Single-use invite codes. You stay in control.'],
+    audit: ['Audit log', 'Every invite, approval, reminder-from-other, and revocation.'],
+    insights: ['Pattern insights', 'Yere learns how you actually complete work.'],
+    settings: ['Settings', 'Defaults, holidays, security posture.']
+  };
+  const tt = titles[view] || titles.today;
+  document.getElementById('viewTitle').textContent = tt[0];
+  document.getElementById('viewSub').textContent = tt[1];
+  document.getElementById('quickAddSection').classList.toggle('hidden', ['contacts','audit','settings','insights'].includes(view));
+
+  const todayN = state.reminders.filter(r => !r.completed && r.approved!==false && isSameDay(new Date(r.due), now()) || (!r.completed && r.approved!==false && new Date(r.due) < startOfDay(now()))).length;
+  document.getElementById('todayCount').textContent = todayN;
+  const pend = state.reminders.filter(r => r.requiresApproval && !r.approved && !r.rejected).length;
+  const pc = document.getElementById('pendingCount');
+  pc.textContent = pend; pc.classList.toggle('hidden', pend===0);
+
+  const root = document.getElementById('content');
+  if (view==='contacts') { root.innerHTML = renderContacts(); return; }
+  if (view==='audit') { root.innerHTML = renderAudit(); return; }
+  if (view==='settings') { root.innerHTML = renderSettings(); return; }
+  if (view==='insights') { root.innerHTML = renderInsights(); return; }
+
+  let items = filteredReminders();
+  if (view==='today') {
+    items = items.filter(r => r.approved!==false && !r.rejected && (!r.completed || (r.completed && isSameDay(new Date(r.completedAt||r.due), now()))) && (isSameDay(new Date(r.due), now()) || (!r.completed && new Date(r.due) < startOfDay(now()))));
+    items.sort((a,b)=> new Date(a.due)-new Date(b.due));
+    root.innerHTML = renderGrouped(items, true);
+  } else if (view==='upcoming') {
+    items = items.filter(r => !r.completed && r.approved!==false && new Date(r.due) >= startOfDay(now()));
+    items.sort((a,b)=> new Date(a.due)-new Date(b.due));
+    root.innerHTML = renderByDay(items);
+  } else if (view==='recurring') {
+    items = items.filter(r => r.recurrence && r.recurrence.type && r.recurrence.type!=='none' && !r.rejected);
+    items.sort((a,b)=> new Date(a.due)-new Date(b.due));
+    root.innerHTML = renderList(items);
+  } else if (view==='completed') {
+    items = items.filter(r => r.completed);
+    items.sort((a,b)=> new Date(b.completedAt||b.due)-new Date(a.completedAt||a.due));
+    root.innerHTML = renderList(items);
+  } else if (view==='pending') {
+    items = items.filter(r => r.requiresApproval && !r.approved && !r.rejected);
+    root.innerHTML = renderPending(items);
+  }
+}
+
+function emptyState(title, sub) {
+  return `<div class="text-center py-16 px-6">
+    <div class="mx-auto h-16 w-16 rounded-3xl bg-indigo-50 dark:bg-indigo-500/10 grid place-items-center mb-4">
+      <svg width="28" height="28" fill="none" stroke="#6366f1" stroke-width="1.8"><circle cx="14" cy="14" r="10"/><path d="M14 8v6l3 2"/></svg>
+    </div>
+    <h3 class="font-bold text-lg">${esc(title)}</h3>
+    <p class="text-slate-500 text-sm mt-1 max-w-sm mx-auto">${esc(sub)}</p>
+  </div>`;
+}
+
+function renderGrouped(items, splitOverdue) {
+  if (!items.length) return emptyState('Inbox zero for today', 'Type above or tap the mic. “Tomorrow at 9” just works.');
+  const overdue = splitOverdue ? items.filter(r => !r.completed && new Date(r.due) < startOfDay(now())) : [];
+  const rest = splitOverdue ? items.filter(r => !overdue.includes(r)) : items;
+  const buckets = { Morning:[], Afternoon:[], Evening:[] };
+  rest.forEach(r => {
+    const h = new Date(r.due).getHours();
+    if (h < 12) buckets.Morning.push(r);
+    else if (h < 17) buckets.Afternoon.push(r);
+    else buckets.Evening.push(r);
+  });
+  let html = '';
+  if (overdue.length) {
+    html += `<div class="mb-6"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-rose-500">Overdue</span><span class="h-px flex-1 bg-rose-200 dark:bg-rose-900/50"></span></div>${overdue.map((r,i)=>reminderCard(r,i)).join('')}</div>`;
+  }
+  for (const [name, arr] of Object.entries(buckets)) {
+    if (!arr.length) continue;
+    html += `<div class="mb-6"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-slate-400">${name}</span><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span></div>${arr.map((r,i)=>reminderCard(r,i)).join('')}</div>`;
+  }
+  return html || emptyState('All clear', 'Nothing left on today’s board.');
+}
+
+function renderByDay(items) {
+  if (!items.length) return emptyState('Nothing upcoming', 'Add a reminder with a date and it will land here.');
+  const groups = {};
+  items.forEach(r => {
+    const d = startOfDay(new Date(r.due)).toISOString();
+    (groups[d] = groups[d]||[]).push(r);
+  });
+  return Object.keys(groups).sort().map(k => {
+    const d = new Date(k);
+    const f = formatDue(groups[k][0].due);
+    const label = f.diff===0 ? 'Today' : f.diff===1 ? 'Tomorrow' : WEEKDAYS_SHORT[d.getDay()] + ', ' + MONTHS_SHORT[d.getMonth()] + ' ' + d.getDate();
+    return `<div class="mb-6"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-slate-400">${label}</span><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span></div>${groups[k].map((r,i)=>reminderCard(r,i)).join('')}</div>`;
+  }).join('');
+}
+
+function renderList(items) {
+  if (!items.length) return emptyState('Nothing here yet', 'Try a different filter, or capture something new.');
+  return `<div class="space-y-0">${items.map((r,i)=>reminderCard(r,i)).join('')}</div>`;
+}
+
+function reminderCard(r, i) {
+  const f = formatDue(r.due);
+  const rec = recLabel(r.recurrence);
+  const overdue = !r.completed && new Date(r.due) < now();
+  return `<article class="card-row anim-rise bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 shadow-sm mb-2 p-3.5 flex gap-3 ${overdue && !r.completed ? 'overdue-pulse' : ''}" style="animation-delay:${Math.min(i,8)*40}ms">
+    <input type="checkbox" class="pretty mt-1" ${r.completed?'checked':''} onchange="toggleComplete('${r.id}')" ${r.approved===false?'disabled':''}>
+    <div class="min-w-0 flex-1 cursor-pointer" onclick="openDetail('${r.id}')">
+      <div class="flex items-start gap-2">
+        <h3 class="font-semibold text-[15px] leading-snug ${r.completed?'line-through text-slate-400':''}">${esc(r.title)}</h3>
+      </div>
+      <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
+        <span class="${overdue && !r.completed ? 'text-rose-500 font-semibold' : ''}">${f.dayLabel} · ${f.t}</span>
+        ${rec ? `<span class="text-indigo-500">↻ ${esc(rec)}</span>` : ''}
+        ${r.fromContact ? `<span class="badge-from text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200">From ${esc(r.fromContact.name)}</span>` : ''}
+      </div>
+      ${r.notes ? `<p class="mt-1.5 text-[13px] text-slate-600 dark:text-slate-300 line-clamp-2">${esc(r.notes)}</p>` : ''}
+      ${r.link ? `<a href="${esc(r.link)}" target="_blank" rel="noopener" class="mt-1 inline-flex items-center gap-1 text-[12px] text-indigo-600 dark:text-indigo-300 hover:underline" onclick="event.stopPropagation()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7l5-5M7 2h4v4M10 8v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h4"/></svg>${esc(prettyUrl(r.link))}</a>` : ''}
+    </div>
+    <button class="self-start p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 text-slate-400" onclick="openDetail('${r.id}')" aria-label="Open">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l5 4-5 4"/></svg>
+    </button>
+  </article>`;
+}
+
+function renderPending(items) {
+  if (!items.length) return emptyState('No pending proposals', 'When a contact’s mode is “require approval”, their reminders land here.');
+  return items.map((r,i) => {
+    const f = formatDue(r.due);
+    return `<article class="anim-rise bg-white dark:bg-ink-900 rounded-2xl border border-amber-200 dark:border-amber-500/30 p-4 mb-3" style="animation-delay:${i*40}ms">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="badge-from text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200">From ${esc(r.fromContact && r.fromContact.name)}</span>
+        <span class="text-xs text-slate-500">${f.dayLabel} · ${f.t}</span>
+      </div>
+      <h3 class="font-bold text-lg">${esc(r.title)}</h3>
+      ${r.notes?`<p class="text-sm text-slate-600 dark:text-slate-300 mt-1">${esc(r.notes)}</p>`:''}
+      <div class="mt-4 flex gap-2">
+        <button onclick="approveRem('${r.id}')" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Approve</button>
+        <button onclick="rejectRem('${r.id}')" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Decline</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function renderContacts() {
+  const active = state.contacts.filter(c => c.status==='approved');
+  const others = state.contacts.filter(c => c.status!=='approved');
+  const invites = state.invites.filter(i => !i.used && new Date(i.expires) > now());
+  return `<div class="space-y-6 pb-16">
+    <div class="flex flex-wrap gap-2">
+      <button onclick="openInviteModal()" class="px-4 py-2.5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-glow">Generate invite code</button>
+      <button onclick="openSimulateContact()" class="px-4 py-2.5 rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-white/10 font-semibold text-sm">Simulate inbound reminder</button>
+    </div>
+    ${state.settings.suspended ? `<div class="p-3 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 text-sm font-medium">Workspace auto-suspended after repeated failed invite attempts. Generate a fresh code after cooldown, or clear in Settings.</div>`:''}
+    <div>
+      <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Approved · ${active.length}</h3>
+      ${active.length? active.map(c => contactRow(c)).join('') : `<p class="text-sm text-slate-500">No approved contacts yet.</p>`}
+    </div>
+    ${invites.length? `<div><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Open invite codes</h3>${invites.map(inv => `
+      <div class="bg-white dark:bg-ink-900 rounded-2xl border border-dashed border-indigo-300 dark:border-indigo-500/40 p-4 mb-2 flex items-center gap-3">
+        <div class="font-mono text-lg font-extrabold tracking-widest text-indigo-600">${esc(inv.display)}</div>
+        <div class="text-xs text-slate-500">Expires ${new Date(inv.expires).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'})} · single use</div>
+        <button onclick="revokeInvite('${inv.id}')" class="ml-auto text-xs font-semibold text-rose-500">Revoke</button>
+      </div>`).join('')}</div>`:''}
+    ${others.length? `<div><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Revoked / inactive</h3>${others.map(c => contactRow(c)).join('')}</div>`:''}
+    <div class="rounded-2xl bg-slate-100 dark:bg-ink-800 p-4 text-xs text-slate-500 leading-relaxed">
+      <strong class="text-slate-700 dark:text-slate-200">Security model (simulated locally):</strong> invite codes are hashed at rest, expire in 24 hours, and are single-use. Failed redemptions are rate-limited; a block list and auto-suspend protect the workspace. Contacts never see your other reminders.
+    </div>
+  </div>`;
+}
+
+function contactRow(c) {
+  const st = c.status==='approved' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10' : 'text-slate-500 bg-slate-100 dark:bg-ink-800';
+  return `<div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-4 mb-2 flex items-center gap-3">
+    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-400 to-fuchsia-500 text-white grid place-items-center font-bold text-sm">${esc(c.avatar||c.name.slice(0,2).toUpperCase())}</div>
+    <div class="min-w-0 flex-1">
+      <div class="font-semibold">${esc(c.name)}</div>
+      <div class="text-xs text-slate-500">${esc(c.email)} · ${c.mode==='direct'?'can set directly':'requires your approval'}</div>
+    </div>
+    <span class="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg ${st}">${esc(c.status)}</span>
+    ${c.status==='approved' ? `<button onclick="revokeContact('${c.id}')" class="text-xs font-semibold text-rose-500">Revoke</button>` : `<button onclick="reinstateContact('${c.id}')" class="text-xs font-semibold text-indigo-600">Reinstate</button>`}
+  </div>`;
+}
+
+function renderAudit() {
+  if (!state.audit.length) return emptyState('Log is quiet', 'Approvals, invites, and delegated reminders appear here.');
+  return `<div class="relative pl-4 border-l-2 border-slate-200 dark:border-white/10 space-y-4 pb-16">
+    ${state.audit.map(a => `
+      <div class="relative">
+        <span class="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
+        <div class="text-[11px] text-slate-400">${new Date(a.at).toLocaleString()}</div>
+        <div class="text-sm"><span class="font-semibold">${esc(a.actor)}</span> ${esc(a.action)}</div>
+        <div class="text-xs text-slate-500">${esc(a.detail)}</div>
+      </div>`).join('')}
+  </div>`;
+}
+
+function renderInsights() {
+  const completed = state.reminders.filter(r => r.completed && r.completedAt);
+  const delays = completed.map(r => (new Date(r.completedAt) - new Date(r.due))/60000);
+  const avg = delays.length ? Math.round(delays.reduce((a,b)=>a+b,0)/delays.length) : 0;
+  const rec = state.reminders.filter(r => r.recurrence);
+  const adaptive = rec.filter(r => r.recurrence && r.recurrence.adaptive==='completion').length;
+  const hours = completed.map(r => new Date(r.completedAt).getHours());
+  const hist = Array(24).fill(0); hours.forEach(h => hist[h]++);
+  const max = Math.max(1, ...hist);
+  const peak = hist.indexOf(Math.max(...hist));
+  return `<div class="grid md:grid-cols-3 gap-3 mb-6">
+    <div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-4">
+      <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Avg. completion delta</div>
+      <div class="text-3xl font-extrabold mt-1">${avg>0?'+':''}${avg}<span class="text-base font-semibold text-slate-400"> min</span></div>
+      <p class="text-xs text-slate-500 mt-1">Positive means you usually finish after the due time. Adaptive recurrence can follow you.</p>
+    </div>
+    <div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-4">
+      <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Peak completion hour</div>
+      <div class="text-3xl font-extrabold mt-1">${completed.length? formatHour(peak): '—'}</div>
+      <p class="text-xs text-slate-500 mt-1">Future reminders in this window are slightly more likely to stick.</p>
+    </div>
+    <div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-4">
+      <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Adaptive series</div>
+      <div class="text-3xl font-extrabold mt-1">${adaptive}<span class="text-base font-semibold text-slate-400"> / ${rec.length}</span></div>
+      <p class="text-xs text-slate-500 mt-1">Next occurrence based on completion date, not the original clock.</p>
+    </div>
+  </div>
+  <div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-5">
+    <h3 class="font-bold mb-3">When you actually finish</h3>
+    <div class="flex items-end gap-1 h-28">${hist.map((v,i)=>`<div class="flex-1 bg-indigo-500/80 rounded-t" style="height:${(v/max)*100}%" title="${formatHour(i)} · ${v}"></div>`).join('')}</div>
+    <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
+  </div>
+  <p class="text-xs text-slate-500 mt-4 pb-10">Yere does not train on content of notes. Pattern learning is on-device: completion timestamps only.</p>`;
+}
+
+function formatHour(h){ const ap=h>=12?'PM':'AM'; const x=((h+11)%12)+1; return x+' '+ap; }
+
+function renderSettings() {
+  const s = state.settings;
+  return `<div class="space-y-5 max-w-xl pb-16">
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-4">
+      <h3 class="font-bold">Capture defaults</h3>
+      <label class="block text-sm">Default time when none is given
+        <input type="time" value="${pad(s.defaultHour)}:${pad(s.defaultMin)}" onchange="setDefaultTime(this.value)" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2 outline-none">
+      </label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${s.skipWeekendsDefault?'checked':''} onchange="state.settings.skipWeekendsDefault=this.checked;persist()"> Skip weekends by default</label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${s.skipHolidaysDefault?'checked':''} onchange="state.settings.skipHolidaysDefault=this.checked;persist()"> Skip US holidays by default</label>
+      <label class="block text-sm">Adaptive recurrence default
+        <select onchange="state.settings.adaptiveDefault=this.value;persist()" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2 outline-none">
+          <option value="original" ${s.adaptiveDefault==='original'?'selected':''}>From original due date</option>
+          <option value="completion" ${s.adaptiveDefault==='completion'?'selected':''}>From completion date</option>
+        </select>
+      </label>
+    </div>
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-4">
+      <h3 class="font-bold">Delegated reminders</h3>
+      <p class="text-sm text-slate-500">When an approved contact sets a reminder on your behalf:</p>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='direct'?'checked':''} onchange="state.settings.approvalMode='direct';persist()"> Direct set (they can write immediately)</label>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='approve'?'checked':''} onchange="state.settings.approvalMode='approve';persist()"> Require my approval (global default for new contacts)</label>
+    </div>
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-3">
+      <h3 class="font-bold">Security posture</h3>
+      <ul class="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-disc pl-5">
+        <li>Invite codes hashed at rest (never stored in plaintext besides the 24h display copy)</li>
+        <li>Max 5 invite generations / hour</li>
+        <li>Max 8 failed redemptions / hour · auto-suspend after 12</li>
+        <li>Block list size: ${state.blocklist.length}</li>
+        <li>Status: ${s.suspended ? '<span class="text-rose-500 font-semibold">suspended</span>' : '<span class="text-emerald-600 font-semibold">healthy</span>'}</li>
+      </ul>
+      <button onclick="state.settings.suspended=false;state.settings.rate.fails=[];persist();toast('Workspace unsuspended');render()" class="text-sm font-semibold text-indigo-600">Clear suspend & fail window</button>
+    </div>
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5">
+      <h3 class="font-bold mb-2">Data</h3>
+      <button onclick="if(confirm('Reset demo data?')){localStorage.removeItem(KEY);location.reload()}" class="text-sm font-semibold text-rose-500">Reset workspace</button>
+    </div>
+  </div>`;
+}
+
+function setDefaultTime(v){
+  const [h,m] = v.split(':').map(Number);
+  state.settings.defaultHour=h; state.settings.defaultMin=m; persist();
+}
+
+/* ---------- Cards / modal ---------- */
+function esc(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function prettyUrl(u){ try { const x=new URL(u); return x.hostname.replace(/^www\./,'')+x.pathname.replace(/\/$/,''); } catch(e){ return u; } }
+
+function openConfirmFromInput() {
+  const val = document.getElementById('quickInput').value.trim();
+  if (!val) { document.getElementById('quickInput').focus(); return; }
+  const parsed = parseNaturalLanguage(val);
+  draft = {
+    id: null,
+    title: parsed.title,
+    notes: '',
+    link: '',
+    due: combineDateTime(parsed.date, parsed.time).toISOString(),
+    recurrence: parsed.recurrence,
+    fromContact: null,
+    approved: true,
+    parsed
+  };
+  showConfirmModal();
+}
+
+function showConfirmModal() {
+  const r = draft;
+  const due = new Date(r.due);
+  const rec = r.recurrence;
+  const dateVal = due.getFullYear()+'-'+pad(due.getMonth()+1)+'-'+pad(due.getDate());
+  const timeVal = pad(due.getHours())+':'+pad(due.getMinutes());
+  const chips = (r.parsed && r.parsed.consumed || []).map(c => `<span class="nl-chip px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold">${esc(c.match)}</span>`).join('');
+  document.getElementById('modalCard').innerHTML = `
+    <div class="p-5 md:p-6">
+      <div class="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-widest text-indigo-500">Confirm capture</div>
+          <h2 class="text-xl font-extrabold mt-0.5">Does this look right?</h2>
+        </div>
+        <button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800">✕</button>
+      </div>
+      ${chips?`<div class="flex flex-wrap gap-1.5 mb-3">${chips}</div>`:''}
+      <label class="block text-xs font-semibold text-slate-500 mb-1">Title</label>
+      <input id="dTitle" value="${esc(r.title)}" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/40">
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Date</label>
+          <input id="dDate" type="date" value="${dateVal}" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">Time <span class="font-normal text-slate-400">(defaults 9:00 AM)</span></label>
+          <input id="dTime" type="time" value="${timeVal}" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none">
+        </div>
+      </div>
+      <label class="block text-xs font-semibold text-slate-500 mb-1">Why / notes</label>
+      <textarea id="dNotes" rows="2" placeholder="Context you’ll thank yourself for later" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none resize-none">${esc(r.notes||'')}</textarea>
+      <label class="block text-xs font-semibold text-slate-500 mb-1">Link</label>
+      <input id="dLink" value="${esc(r.link||'')}" placeholder="https://" class="w-full mb-4 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none">
+      ${recurrenceEditor(rec)}
+      <div class="mt-5 flex gap-2">
+        <button onclick="saveDraft()" class="flex-1 py-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-glow">Save reminder</button>
+        <button onclick="closeModal()" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-ink-800 font-semibold">Cancel</button>
+      </div>
+    </div>`;
+  openModal();
+}
+
+function recurrenceEditor(rec) {
+  rec = rec || { type:'none' };
+  const type = rec.type || 'none';
+  const iv = rec.interval || { value:1, unit:'days' };
+  const cal = rec.calendar || { pattern:'first-day', n:1, weekday:1 };
+  const end = rec.end || { type:'never', count:10, date:'' };
+  const adaptive = rec.adaptive || state.settings.adaptiveDefault;
+  return `<details class="rounded-2xl border border-slate-200 dark:border-white/10 p-3" ${type!=='none'?'open':''}>
+    <summary class="cursor-pointer font-semibold text-sm">Recurrence ${type!=='none'?'<span class="text-indigo-500 font-bold">· '+esc(recLabel(rec))+'</span>':''}</summary>
+    <div class="mt-3 space-y-3 text-sm">
+      <div class="flex flex-wrap gap-1.5">
+        ${['none','daily','weekdays','weekly','monthly','yearly','custom'].map(p => `<button type="button" onclick="applyPreset('${p}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold ${presetActive(type,rec,p)?'bg-indigo-600 text-white':'bg-slate-100 dark:bg-ink-800'}">${p}</button>`).join('')}
+      </div>
+      <div id="recCustom" class="${type==='none'?'hidden':''} space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <label>Every
+            <input id="rVal" type="number" min="1" value="${iv.value}" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
+          </label>
+          <label>Unit
+            <select id="rUnit" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
+              ${['minutes','hours','days','weeks','months','years'].map(u=>`<option ${iv.unit===u?'selected':''}>${u}</option>`).join('')}
+            </select>
+          </label>
+        </div>
+        <label class="block">Calendar-aware pattern
+          <select id="rCal" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
+            <option value="">Use interval above</option>
+            <option value="first-day" ${type==='calendar'&&cal.pattern==='first-day'?'selected':''}>First day of month</option>
+            <option value="last-day" ${type==='calendar'&&cal.pattern==='last-day'?'selected':''}>Last day of month</option>
+            <option value="nth-day" ${type==='calendar'&&cal.pattern==='nth-day'?'selected':''}>Nth day of month</option>
+            <option value="nth-weekday" ${type==='calendar'&&cal.pattern==='nth-weekday'?'selected':''}>Nth weekday of month</option>
+          </select>
+        </label>
+        <div class="grid grid-cols-2 gap-2">
+          <label>N
+            <input id="rN" type="number" value="${cal.n||1}" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
+          </label>
+          <label>Weekday
+            <select id="rWd" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
+              ${WEEKDAYS.map((w,i)=>`<option value="${i}" ${(cal.weekday??1)===i?'selected':''}>${w}</option>`).join('')}
+            </select>
+          </label>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-slate-500 mb-1">Ends</div>
+          <select id="rEnd" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
+            <option value="never" ${end.type==='never'?'selected':''}>Never</option>
+            <option value="after" ${end.type==='after'?'selected':''}>After N occurrences</option>
+            <option value="on" ${end.type==='on'?'selected':''}>On date</option>
+          </select>
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <input id="rEndN" type="number" min="1" value="${end.count||10}" class="rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
+            <input id="rEndD" type="date" value="${end.date? end.date.slice(0,10):''}" class="rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
+          </div>
+        </div>
+        <label class="flex items-center gap-2"><input id="rSkipW" type="checkbox" ${rec.skipWeekends?'checked':''}> Skip weekends</label>
+        <label class="flex items-center gap-2"><input id="rSkipH" type="checkbox" ${rec.skipHolidays?'checked':''}> Skip holidays</label>
+        <div>
+          <div class="text-xs font-semibold text-slate-500 mb-1">Next occurrence based on</div>
+          <label class="flex items-center gap-2"><input type="radio" name="adapt" value="original" ${adaptive==='original'?'checked':''}> Original due date</label>
+          <label class="flex items-center gap-2"><input type="radio" name="adapt" value="completion" ${adaptive==='completion'?'checked':''}> Completion date (adaptive)</label>
+        </div>
+      </div>
+    </div>
+  </details>`;
+}
+
+function presetActive(type, rec, p) {
+  if (p==='none') return type==='none'||!type;
+  if (p==='daily') return type==='interval' && rec.interval && rec.interval.unit==='days' && rec.interval.value===1 && !rec.skipWeekends;
+  if (p==='weekdays') return rec.skipWeekends && type==='interval' && rec.interval && rec.interval.unit==='days';
+  if (p==='weekly') return type==='interval' && rec.interval && rec.interval.unit==='weeks';
+  if (p==='monthly') return (type==='interval' && rec.interval && rec.interval.unit==='months') || type==='calendar';
+  if (p==='yearly') return type==='interval' && rec.interval && rec.interval.unit==='years';
+  return false;
+}
+
+function applyPreset(p) {
+  if (!draft) return;
+  const base = { end:{type:'never'}, adaptive: state.settings.adaptiveDefault, skipWeekends:state.settings.skipWeekendsDefault, skipHolidays:state.settings.skipHolidaysDefault, completedCount:0 };
+  if (p==='none') draft.recurrence = null;
+  else if (p==='daily') draft.recurrence = { type:'interval', interval:{value:1,unit:'days'}, ...base };
+  else if (p==='weekdays') draft.recurrence = { type:'interval', interval:{value:1,unit:'days'}, ...base, skipWeekends:true };
+  else if (p==='weekly') draft.recurrence = { type:'interval', interval:{value:1,unit:'weeks'}, ...base };
+  else if (p==='monthly') draft.recurrence = { type:'interval', interval:{value:1,unit:'months'}, ...base };
+  else if (p==='yearly') draft.recurrence = { type:'interval', interval:{value:1,unit:'years'}, ...base };
+  else draft.recurrence = { type:'interval', interval:{value:1,unit:'days'}, ...base };
+  collectDraftFields();
+  showConfirmModal();
+}
+
+function collectDraftFields() {
+  const t = document.getElementById('dTitle');
+  if (!t || !draft) return;
+  draft.title = t.value.trim() || draft.title;
+  draft.notes = document.getElementById('dNotes').value;
+  draft.link = document.getElementById('dLink').value.trim();
+  const date = document.getElementById('dDate').value;
+  const time = document.getElementById('dTime').value || '09:00';
+  draft.due = new Date(date+'T'+time+':00').toISOString();
+  const rCal = document.getElementById('rCal');
+  const rVal = document.getElementById('rVal');
+  if (rVal) {
+    const endType = document.getElementById('rEnd').value;
+    const adapt = (document.querySelector('input[name="adapt"]:checked')||{}).value || 'original';
+    const skipW = document.getElementById('rSkipW').checked;
+    const skipH = document.getElementById('rSkipH').checked;
+    if (rCal && rCal.value) {
+      draft.recurrence = {
+        type:'calendar',
+        calendar: { pattern:rCal.value, n:+document.getElementById('rN').value||1, weekday:+document.getElementById('rWd').value },
+        end: { type:endType, count:+document.getElementById('rEndN').value||10, date: document.getElementById('rEndD').value? new Date(document.getElementById('rEndD').value+'T23:59:00').toISOString(): null },
+        adaptive: adapt, skipWeekends: skipW, skipHolidays: skipH, completedCount: (draft.recurrence&&draft.recurrence.completedCount)||0
+      };
+    } else if (draft.recurrence && draft.recurrence.type!=='none') {
+      draft.recurrence = {
+        type:'interval',
+        interval: { value:+rVal.value||1, unit: document.getElementById('rUnit').value },
+        weekday: draft.recurrence.weekday,
+        end: { type:endType, count:+document.getElementById('rEndN').value||10, date: document.getElementById('rEndD').value? new Date(document.getElementById('rEndD').value+'T23:59:00').toISOString(): null },
+        adaptive: adapt, skipWeekends: skipW, skipHolidays: skipH, completedCount: (draft.recurrence&&draft.recurrence.completedCount)||0
+      };
+    }
+  }
+}
+
+function saveDraft() {
+  collectDraftFields();
+  if (!draft.title) { toast('Give it a title'); return; }
+  if (editingId) {
+    const i = state.reminders.findIndex(r => r.id===editingId);
+    if (i>=0) {
+      const prev = state.reminders[i];
+      state.reminders[i] = { ...prev, title:draft.title, notes:draft.notes, link:draft.link, due:draft.due, recurrence:draft.recurrence, updatedAt: now().toISOString() };
+      logAudit('You', 'edited reminder', draft.title);
+    }
+    editingId = null;
+    toast('Reminder updated');
+  } else {
+    state.reminders.unshift({
+      id: uid(), title: draft.title, notes: draft.notes, link: draft.link, due: draft.due,
+      recurrence: draft.recurrence, completed:false, createdAt: now().toISOString(),
+      fromContact: draft.fromContact, approved: true
+    });
+    logAudit('You', 'created reminder', draft.title);
+    toast('Saved · '+ formatDue(draft.due).dayLabel + ' ' + formatDue(draft.due).t);
+  }
+  document.getElementById('quickInput').value='';
+  document.getElementById('livePreview').classList.add('hidden');
+  persist(); closeModal(); render();
+}
+
+function openDetail(id) {
+  const r = state.reminders.find(x => x.id===id);
+  if (!r) return;
+  const f = formatDue(r.due);
+  const rec = recLabel(r.recurrence);
+  document.getElementById('modalCard').innerHTML = `
+    <div class="p-5 md:p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          ${r.fromContact?`<div class="badge-from inline-block text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200 mb-2">From ${esc(r.fromContact.name)}</div>`:''}
+          <h2 class="text-2xl font-extrabold leading-tight ${r.completed?'line-through text-slate-400':''}">${esc(r.title)}</h2>
+          <p class="text-sm text-slate-500 mt-1">${f.dayLabel} · ${f.t}${rec?' · ↻ '+esc(rec):''}</p>
+        </div>
+        <button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800">✕</button>
+      </div>
+      ${r.notes?`<div class="rounded-2xl bg-slate-50 dark:bg-ink-800 p-4 mb-3"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Why</div><p class="text-sm leading-relaxed">${esc(r.notes)}</p></div>`:`<p class="text-sm text-slate-400 mb-3">No notes yet — the why is empty.</p>`}
+      ${r.link?`<a class="text-sm text-indigo-600 dark:text-indigo-300 font-semibold break-all" href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.link)}</a>`:''}
+      ${r.recurrence && r.recurrence.adaptive==='completion' ? `<p class="text-xs text-amber-600 mt-3">Adaptive · next occurrence follows completion, not the original clock.</p>`:''}
+      <div class="mt-6 flex flex-wrap gap-2">
+        ${!r.completed?`<button onclick="toggleComplete('${r.id}');closeModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Mark done</button>`:`<button onclick="toggleComplete('${r.id}');closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Undo</button>`}
+        ${r.recurrence?`<button onclick="skipOnce('${r.id}')" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Skip once</button>`:''}
+        <button onclick="snooze('${r.id}', 60)" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Snooze 1h</button>
+        <button onclick="editReminder('${r.id}')" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Edit</button>
+        <button onclick="deleteReminder('${r.id}')" class="px-4 py-2.5 rounded-xl text-rose-500 text-sm font-semibold ml-auto">Delete</button>
+      </div>
+    </div>`;
+  openModal();
+}
+
+function editReminder(id) {
+  const r = state.reminders.find(x => x.id===id);
+  if (!r) return;
+  editingId = id;
+  draft = clone(r);
+  draft.parsed = { consumed: [] };
+  showConfirmModal();
+}
+
+function deleteReminder(id) {
+  const r = state.reminders.find(x=>x.id===id);
+  state.reminders = state.reminders.filter(x => x.id!==id);
+  logAudit('You', 'deleted reminder', r? r.title : id);
+  persist(); closeModal(); render(); toast('Deleted');
+}
+
+function toggleComplete(id) {
+  const r = state.reminders.find(x => x.id===id);
+  if (!r) return;
+  if (!r.completed) {
+    r.completed = true;
+    r.completedAt = now().toISOString();
+    if (r.recurrence && r.recurrence.type && r.recurrence.type!=='none') {
+      const next = nextOccurrence(r, now(), true);
+      r.recurrence.completedCount = (r.recurrence.completedCount||0)+1;
+      if (next) {
+        const series = clone(r);
+        series.id = uid();
+        series.completed = false;
+        series.completedAt = null;
+        series.due = next.toISOString();
+        series.createdAt = now().toISOString();
+        state.reminders.unshift(series);
+        toast('Completed · next ' + formatDue(next.toISOString()).dayLabel + ' ' + formatDue(next.toISOString()).t);
+      } else toast('Series finished');
+    } else toast('Completed');
+  } else {
+    r.completed = false; r.completedAt = null;
+  }
+  persist(); render();
+}
+
+function skipOnce(id) {
+  const r = state.reminders.find(x => x.id===id);
+  if (!r || !r.recurrence) return;
+  const next = nextOccurrence({ ...r, completedAt: now().toISOString(), recurrence:{...r.recurrence, adaptive:'original'} }, now(), false);
+  if (next) { r.due = next.toISOString(); toast('Skipped · next '+formatDue(r.due).dayLabel); }
+  persist(); closeModal(); render();
+}
+
+function snooze(id, mins) {
+  const r = state.reminders.find(x => x.id===id);
+  if (!r) return;
+  const d = new Date(); d.setMinutes(d.getMinutes()+mins);
+  r.due = d.toISOString(); r.completed=false;
+  persist(); closeModal(); render(); toast('Snoozed 1 hour');
+}
+
+function approveRem(id) {
+  const r = state.reminders.find(x=>x.id===id);
+  if (!r) return;
+  r.approved = true; r.requiresApproval=false;
+  logAudit('You', 'approved reminder', r.title + ' from ' + (r.fromContact&&r.fromContact.name));
+  persist(); render(); toast('Approved');
+}
+function rejectRem(id) {
+  const r = state.reminders.find(x=>x.id===id);
+  if (!r) return;
+  r.rejected = true; r.requiresApproval=false;
+  logAudit('You', 'declined reminder', r.title);
+  persist(); render(); toast('Declined');
+}
+
+function openModal(){ document.getElementById('modal').classList.remove('hidden'); document.body.style.overflow='hidden'; }
+function closeModal(){ document.getElementById('modal').classList.add('hidden'); document.body.style.overflow=''; draft=null; editingId=null; }
+
+/* ---------- Contacts / invites ---------- */
+function openInviteModal() {
+  if (state.settings.suspended) { toast('Workspace suspended'); return; }
+  const hourAgo = Date.now()-3600000;
+  state.settings.rate.invites = (state.settings.rate.invites||[]).filter(t => t>hourAgo);
+  if (state.settings.rate.invites.length >= 5) { toast('Rate limit: max 5 invites / hour'); return; }
+  const raw = makeCode();
+  const inv = { id:uid(), display: raw, hash: hashCode(raw.replace('-','')), expires: new Date(Date.now()+24*3600000).toISOString(), used:false, createdAt: now().toISOString() };
+  state.invites.unshift(inv);
+  state.settings.rate.invites.push(Date.now());
+  logAudit('You', 'generated invite code', inv.display + ' · 24h · single-use');
+  persist();
+  document.getElementById('modalCard').innerHTML = `
+    <div class="p-6 text-center">
+      <div class="text-[11px] font-bold uppercase tracking-widest text-indigo-500">Single-use · 24 hours</div>
+      <h2 class="text-xl font-extrabold mt-1 mb-4">Share this code</h2>
+      <div class="font-mono text-3xl font-extrabold tracking-[0.25em] text-indigo-600 py-5 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10">${esc(inv.display)}</div>
+      <p class="text-xs text-slate-500 mt-3">Hashed at rest as ${esc(inv.hash.slice(0,12))}… · cannot be reused after redemption.</p>
+      <button onclick="navigator.clipboard.writeText('${inv.display}').then(()=>toast('Copied'))" class="mt-5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm">Copy code</button>
+      <button onclick="closeModal();setView('contacts')" class="block mx-auto mt-3 text-sm text-slate-500">Done</button>
+    </div>`;
+  openModal();
+  render();
+}
+function makeCode(){
+  const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s=''; for(let i=0;i<8;i++) s+=a[Math.floor(Math.random()*a.length)];
+  return s.slice(0,4)+'-'+s.slice(4);
+}
+function revokeInvite(id){ state.invites = state.invites.map(i => i.id===id?{...i, used:true, revoked:true}:i); logAudit('You','revoked invite', id); persist(); render(); toast('Invite revoked'); }
+function revokeContact(id){
+  const c = state.contacts.find(x=>x.id===id); if(!c) return;
+  c.status='revoked'; logAudit('You','revoked contact', c.name); persist(); render(); toast('Access revoked');
+}
+function reinstateContact(id){
+  const c = state.contacts.find(x=>x.id===id); if(!c) return;
+  c.status='approved'; logAudit('You','reinstated contact', c.name); persist(); render();
+}
+
+function openSimulateContact() {
+  const approved = state.contacts.filter(c=>c.status==='approved');
+  if (!approved.length) { toast('Approve a contact first'); return; }
+  document.getElementById('modalCard').innerHTML = `
+    <div class="p-6">
+      <h2 class="text-xl font-extrabold mb-1">Set a reminder on your behalf</h2>
+      <p class="text-sm text-slate-500 mb-4">Simulates an approved contact writing into your list. Server would auth the hashed relationship first.</p>
+      <label class="text-xs font-semibold text-slate-500">Contact</label>
+      <select id="simC" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5">${approved.map(c=>`<option value="${c.id}">${esc(c.name)} · ${c.mode}</option>`).join('')}</select>
+      <label class="text-xs font-semibold text-slate-500">Natural language</label>
+      <input id="simT" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5" placeholder="Review contract Friday at 11">
+      <label class="text-xs font-semibold text-slate-500">Notes (the why)</label>
+      <textarea id="simN" rows="2" class="w-full mb-4 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5"></textarea>
+      <button onclick="simulateInbound()" class="w-full py-3 rounded-2xl bg-indigo-600 text-white font-bold">Send to workspace</button>
+    </div>`;
+  openModal();
+}
+function simulateInbound() {
+  const cid = document.getElementById('simC').value;
+  const c = state.contacts.find(x=>x.id===cid);
+  if (c.status!=='approved') { toast('Contact not approved'); return; }
+  if (state.blocklist.includes(c.id)) { toast('Contact is blocked'); return; }
+  const parsed = parseNaturalLanguage(document.getElementById('simT').value || 'Follow up tomorrow');
+  const needs = c.mode==='approve' || state.settings.approvalMode==='approve' && c.mode!=='direct';
+  const rem = {
+    id: uid(), title: parsed.title, notes: document.getElementById('simN').value,
+    link:'', due: combineDateTime(parsed.date, parsed.time).toISOString(),
+    recurrence: parsed.recurrence, completed:false, createdAt: now().toISOString(),
+    fromContact: { id:c.id, name:c.name }, approved: !needs, requiresApproval: needs
+  };
+  state.reminders.unshift(rem);
+  logAudit(c.name, needs?'proposed reminder':'created reminder', rem.title);
+  persist(); closeModal(); render();
+  toast(needs ? 'Waiting for your approval' : 'Added from '+c.name);
+}
+
+function redeemDemo() {
+  /* exposed conceptually — invite redemption would happen on another device */
+}
+
+/* ---------- Voice ---------- */
+function toggleVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Speech recognition not supported in this browser'); return; }
+  if (listening) { try{ recognition.stop(); }catch(e){} listening=false; setMicUI(false); return; }
+  recognition = new SR();
+  recognition.lang = navigator.language || 'en-US';
+  recognition.interimResults = true;
+  recognition.continuous = false;
+  recognition.onresult = (ev) => {
+    let final='', interim='';
+    for (let i=ev.resultIndex; i<ev.results.length; i++) {
+      const t = ev.results[i][0].transcript;
+      if (ev.results[i].isFinal) final += t; else interim += t;
+    }
+    document.getElementById('quickInput').value = (final || interim).trim();
+    autoGrow(document.getElementById('quickInput'));
+    liveParse();
+    if (final) { listening=false; setMicUI(false); openConfirmFromInput(); }
+  };
+  recognition.onerror = () => { listening=false; setMicUI(false); toast('Mic error or permission denied'); };
+  recognition.onend = () => { listening=false; setMicUI(false); };
+  try { recognition.start(); listening=true; setMicUI(true); } catch(e){ toast('Could not start microphone'); }
+}
+function setMicUI(on) {
+  document.getElementById('micBtn').classList.toggle('listening', on);
+  document.getElementById('micBtn').classList.toggle('bg-rose-500', on);
+  document.getElementById('micBtn').classList.toggle('text-white', on);
+  document.getElementById('micIcon').classList.toggle('hidden', on);
+  document.getElementById('micWave').classList.toggle('hidden', !on);
+}
+
+/* ---------- Live parse chips ---------- */
+function liveParse() {
+  const v = document.getElementById('quickInput').value.trim();
+  const box = document.getElementById('livePreview');
+  if (!v) { box.classList.add('hidden'); return; }
+  const p = parseNaturalLanguage(v);
+  const due = combineDateTime(p.date, p.time);
+  const f = formatDue(due.toISOString());
+  const rec = recLabel(p.recurrence);
+  box.classList.remove('hidden');
+  box.querySelector('div').innerHTML = `
+    <span class="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-slate-300 font-medium">${esc(p.title)}</span>
+    <span class="px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-semibold">${f.dayLabel} · ${f.t}</span>
+    ${rec?`<span class="px-2 py-0.5 rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300 font-semibold">↻ ${esc(rec)}</span>`:''}
+  `;
+}
+
+function autoGrow(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight, 128)+'px'; }
+function onQuickKey(e){ if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); openConfirmFromInput(); } }
+function onSearch(q){ searchQ=q; render(); }
+
+function toast(msg) {
+  const host = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast-in rounded-2xl bg-ink-900 dark:bg-white text-white dark:text-ink-900 px-4 py-3 text-sm font-semibold shadow-xl';
+  el.textContent = msg;
+  host.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 2600);
+}
+
+function toggleTheme(){
+  const dark = document.documentElement.classList.toggle('dark');
+  state.settings.theme = dark?'dark':'light'; persist();
+}
+
+function requestNotif(){
+  if (!('Notification' in window)) { toast('Notifications not supported'); return; }
+  Notification.requestPermission().then(p => {
+    state.settings.notif = p==='granted'; persist();
+    toast(p==='granted' ? 'Notifications on' : 'Permission '+p);
+  });
+}
+
+function tickDue() {
+  if (!state.settings.notif || Notification.permission!=='granted') return;
+  const t = now();
+  state.reminders.forEach(r => {
+    if (r.completed || r.approved===false || r.notified) return;
+    const d = new Date(r.due);
+    if (Math.abs(d - t) < 35000 && d <= t) {
+      r.notified = true;
+      try { new Notification('Yere · '+r.title, { body: (r.notes||'Due now') + (r.fromContact? ' · from '+r.fromContact.name : ''), tag: r.id }); } catch(e){}
+    }
+  });
+  persist();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key==='Escape') closeModal();
+  if ((e.key==='/' ) && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='TEXTAREA') {
+    e.preventDefault(); document.getElementById('search').focus();
+  }
+  if ((e.key==='n' || e.key==='N') && document.activeElement.tagName!=='INPUT' && document.activeElement.tagName!=='TEXTAREA' && !e.metaKey && !e.ctrlKey) {
+    document.getElementById('quickInput').focus();
+  }
+});
+
+/* boot */
+load();
+document.getElementById('meName').textContent = state.user.name;
+render();
+dueTimer = setInterval(tickDue, 15000);
+</script>
+</body>
+</html>
