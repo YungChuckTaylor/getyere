@@ -802,7 +802,7 @@ async function submitAuth(event, mode) {
   try {
     let result;
     if (mode==='signup') {
-      const redirectUrl=new URL('/',window.location.origin);
+      const redirectUrl=new URL('/',window.YERE_ENV?.publicAppUrl||window.location.origin);
       const inviteToken=new URLSearchParams(window.location.search).get('invite');
       if(inviteToken)redirectUrl.searchParams.set('invite',inviteToken);
       result=await supabase.auth.signUp({email,password,options:{data:{display_name:name},emailRedirectTo:redirectUrl.href}});
@@ -810,7 +810,7 @@ async function submitAuth(event, mode) {
     } else if (mode==='signin') {
       result=await supabase.auth.signInWithPassword({email,password});
     } else if (mode==='reset') {
-      result=await supabase.auth.resetPasswordForEmail(email,{redirectTo:`${window.location.origin}/?reset=1`});
+      result=await supabase.auth.resetPasswordForEmail(email,{redirectTo:new URL('/?reset=1',window.YERE_ENV?.publicAppUrl||window.location.origin).href});
       if (!result.error) { setAuthMode('signin','If an account exists for that email, a secure reset link is on its way.'); return; }
     } else if (mode==='recovery') {
       result=await supabase.auth.updateUser({password});

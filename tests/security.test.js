@@ -20,6 +20,35 @@ test('browser bootstrap exposes only public Supabase and Web Push configuration'
   assert.doesNotMatch(envExample, /^VITE_SUPABASE_SERVICE_ROLE_KEY=/m);
 });
 
+test('sign-up and password recovery callbacks use the canonical getyere.com origin', async () => {
+  const [bootstrap, html, http, authConfig, envExample, vercelConfig] = await Promise.all([
+    read('src/bootstrap.js'), read('index.html'), read('supabase/functions/_shared/http.ts'),
+    read('supabase/config.toml'), read('.env.example'), read('vercel.json')
+  ]);
+  const vercel = JSON.parse(vercelConfig);
+  assert.match(bootstrap, /import\.meta\.env\.DEV \? window\.location\.origin : 'https:\/\/getyere\.com'/);
+  assert.match(bootstrap, /VITE_PUBLIC_APP_URL/);
+  assert.match(html, /new URL\('\/',window\.YERE_ENV\?\.publicAppUrl\|\|window\.location\.origin\)/);
+  assert.match(html, /emailRedirectTo:redirectUrl\.href/);
+  assert.match(html, /resetPasswordForEmail\(email,\{redirectTo:new URL\('\/\?reset=1',window\.YERE_ENV\?\.publicAppUrl/);
+  assert.match(http, /Deno\.env\.get\('PUBLIC_APP_URL'\) \|\| 'https:\/\/getyere\.com'/);
+  assert.match(authConfig, /site_url = "https:\/\/getyere\.com"/);
+  assert.equal(envExample.includes('VITE_PUBLIC_APP_URL=https://getyere.com'), true);
+  assert.ok(vercel.redirects.some(rule => rule.has?.some(item => item.type === 'host' && item.value === 'getyere.vercel.app') && rule.destination === 'https://getyere.com/:path*'));
+  assert.doesNotMatch([bootstrap, html, http, authConfig, envExample].join('\n'), /getyere\.app/);
+});
+
+test('Supabase confirmation template is Yere-branded and uses the generated confirmation URL', async () => {
+  const [template, deployment] = await Promise.all([
+    read('supabase/email-templates/confirm-signup.html'), read('DEPLOYMENT.md')
+  ]);
+  assert.match(template, /https:\/\/getyere\.com\/icons\/icon-192\.png/);
+  assert.match(template, /\{\{ \.ConfirmationURL \}\}/);
+  assert.match(template, /Confirm your Yere account/);
+  assert.match(deployment, /smtp\.resend\.com/);
+  assert.match(deployment, /Authentication → Email Templates → Confirm signup/);
+});
+
 test('sensitive invite and dispatch tables stay behind RLS without browser policies', async () => {
   const sql = await read('supabase/migrations/202610120001_yere_core.sql');
   for (const table of ['contact_invites', 'rate_limit_buckets', 'reminder_fires']) {

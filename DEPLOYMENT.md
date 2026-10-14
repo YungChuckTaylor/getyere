@@ -19,8 +19,8 @@ Yere is a Vite-built, installable PWA. The browser uses the Supabase **publishab
 ## 2. Create and configure Supabase
 
 1. Create a Supabase project and keep its project URL, project reference, publishable/anon key, and service-role key in a secure password manager.
-2. In **Authentication → Providers → Email**, enable email/password sign-up. For production, enable email confirmation and configure a verified custom SMTP provider; the built-in test mail service is not intended for production traffic.
-3. In **Authentication → URL Configuration**, set the production Site URL (for example `https://getyere.app`) and add redirect URLs for local development, the production domain, and Vercel preview URLs. Keep the list limited to domains you control.
+2. In **Authentication → Providers → Email**, enable email/password sign-up and email confirmation. Configure Resend as the custom SMTP provider and apply the branded confirmation template in **Authentication → Email Templates** (steps below). The built-in test mail service is not intended for production traffic.
+3. In **Authentication → URL Configuration**, set the production **Site URL** to `https://getyere.com`. Add `https://getyere.com/**` as a redirect URL; keep localhost URLs only if you use local development. The exact legacy URL `https://getyere.vercel.app/**` may stay temporarily so already-sent links still work; `vercel.json` forwards that host to `getyere.com`. Do not allow every `*.vercel.app` host.
 4. Apply the versioned schema in `supabase/migrations/`:
 
    ```bash
@@ -44,6 +44,21 @@ Yere is a Vite-built, installable PWA. The browser uses the Supabase **publishab
 
    `dispatch-reminders` intentionally has JWT verification disabled in `supabase/config.toml`; it verifies a separate high-entropy cron secret on every request. All other functions verify the caller’s Supabase JWT and re-check the user server-side. The delegated-reminder form lets an approved contact set the recipient's due date/time, recurrence, notes, link, list, reminder type, delivery channel, and cost. Private file attachments remain account-owner-only.
 
+### Send Supabase Auth emails through Resend
+
+Supabase Auth creates the secure confirmation token, while Resend delivers the message. This uses Resend SMTP; it does not expose a provider key to the browser. In the Supabase Dashboard:
+
+1. Open **Authentication → SMTP Settings**, enable custom SMTP, and enter:
+   - Host: `smtp.resend.com`
+   - Port: `465`
+   - Username: `resend`
+   - Password: a Resend API key with email-sending permission (the key is private; enter it only in the Supabase dashboard).
+2. Set **Sender name** to `Yere` and **Sender email** to the same verified address used by `RESEND_FROM_EMAIL` in the Edge Function secrets. The sending domain must be verified in Resend.
+3. Open **Authentication → Email Templates → Confirm signup**. Set the subject to `Confirm your Yere account` and paste the HTML from `supabase/email-templates/confirm-signup.html` into the message body. The template uses Supabase’s `{{ .ConfirmationURL }}` variable and loads Yere’s public icon from `https://getyere.com`.
+4. Send a test sign-up and check the Resend email logs. The confirmation link should redirect to `getyere.com`.
+
+Custom SMTP is the delivery provider for **all Supabase Auth emails** (including password reset and email-change messages), not just sign-up confirmations. Their content remains controlled by the corresponding Supabase Email Templates. Invitation and reminder emails from Edge Functions continue to use the Resend API.
+
 ### Supabase Edge Function secrets
 
 Set server-side secrets in **Supabase → Edge Functions → Secrets** (or with `npx supabase secrets set NAME=value`). Never prefix a secret with `VITE_`, and never add the service-role key to Vercel or the browser bundle.
@@ -53,16 +68,16 @@ Set server-side secrets in **Supabase → Edge Functions → Secrets** (or with 
 | `SUPABASE_URL` | Supabase-provided | Supabase project URL for Edge Functions. |
 | `SUPABASE_ANON_KEY` | Supabase-provided | Validates caller sessions inside the functions. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase-provided, server only | Admin access used only after Edge Function authorization checks. |
-| `PUBLIC_APP_URL` | Yes | Canonical HTTPS app origin used in secure invite and reminder links, e.g. `https://getyere.app`. |
+| `PUBLIC_APP_URL` | Yes | Canonical HTTPS app origin used in secure invite and reminder links, e.g. `https://getyere.com`. |
 | `YERE_CRON_SECRET` | Yes for scheduled delivery | Random secret shared with the pg_cron Vault entry. Generate with `openssl rand -hex 32`. |
-| `RESEND_API_KEY` | For email invites/reminders | Resend API key for sending messages. |
+| `RESEND_API_KEY` | For Edge Function email invites/reminders | Resend API key for sending messages; Auth SMTP credentials are configured separately in the Supabase dashboard. |
 | `RESEND_FROM_EMAIL` | For email invites/reminders | A sender identity verified with Resend, e.g. `Yere <reminders@your-domain.ng>`. |
 | `TWILIO_ACCOUNT_SID` | For SMS invitations | Twilio account SID. |
 | `TWILIO_AUTH_TOKEN` | For SMS invitations | Twilio auth token. |
 | `TWILIO_FROM_NUMBER` | For SMS invitations | Twilio-enabled number in E.164 format. |
 | `VAPID_PUBLIC_KEY` | For background web push | Public Web Push application-server key. It must match the browser value below. |
 | `VAPID_PRIVATE_KEY` | For background web push | Private Web Push key; server only. |
-| `VAPID_SUBJECT` | Recommended for web push | Contact URI, e.g. `mailto:hello@getyere.app`. |
+| `VAPID_SUBJECT` | Recommended for web push | Contact URI, e.g. `mailto:hello@getyere.com`. |
 
 Supabase automatically provides its project URL and keys to Edge Functions in hosted projects. Check **Edge Functions → Secrets** before adding duplicate values. The service-role key bypasses RLS; restrict it to these functions and rotate it if it is ever exposed.
 
@@ -98,13 +113,13 @@ Set these in `.env.local` for local work and in **Vercel → Project → Setting
 | `VITE_SUPABASE_URL` | Public | `https://YOUR_PROJECT_REF.supabase.co` |
 | `VITE_SUPABASE_ANON_KEY` | Public | Supabase publishable/anon key (never the service-role key). |
 | `VITE_VAPID_PUBLIC_KEY` | Public, optional | Matching VAPID public key for push subscriptions. |
-| `VITE_PUBLIC_APP_URL` | Public, optional | `https://getyere.app`; used as the displayed canonical origin. |
+| `VITE_PUBLIC_APP_URL` | Public, canonical | `https://getyere.com`; used for sign-up confirmation and password-reset redirects. Set it in every Vercel environment. |
 
 The browser variables are embedded at build time. A change requires a new Vercel deployment. If Supabase variables are missing, Yere deliberately starts in local-demo mode and clearly warns that demo invitations are not safe to share. Nigeria holiday skipping includes fixed-date holidays and calculated Easter dates; Islamic-calendar dates are estimates and may differ from the Federal Government’s moon-sighting announcement, so adjust a recurrence when an official date is published.
 
 ### Server-only values
 
-`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `YERE_CRON_SECRET`, and `PUBLIC_APP_URL` belong in Supabase Edge Function secrets only. Do **not** put them in `.env.local` with a `VITE_` prefix, Vercel browser variables, checked-in files, or client-side source.
+`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `YERE_CRON_SECRET`, and `PUBLIC_APP_URL` are server-side configuration. Put Edge Function values in **Supabase → Edge Functions → Secrets**; enter the Resend SMTP password separately in **Supabase → Authentication → SMTP Settings**. Do **not** put secrets in `.env.local` with a `VITE_` prefix, Vercel browser variables, checked-in files, or client-side source.
 
 ## 4. Vercel and automatic GitHub deployment
 
@@ -115,11 +130,11 @@ The browser variables are embedded at build time. A change requires a new Vercel
    - Build command: `npm run build`
    - Output directory: `dist`
    - Development command: `npm run dev`
-4. Add the four browser variables from the table above. Put the VAPID public key in the build environment if push will be enabled. Do not add a Supabase service-role key to Vercel.
+4. Add the browser variables from the table above. Set `VITE_PUBLIC_APP_URL` to exactly `https://getyere.com` for Production, Preview, and Development. Put the VAPID public key in the build environment if push will be enabled. Do not add a Supabase service-role key to Vercel.
 5. In **Settings → Git**, set `main` as the Production Branch and leave Preview Deployments enabled. Vercel’s Git integration will create preview deployments for pull requests and production deployments for pushes/merges to `main`.
 6. Verify **Deployments** shows a successful build after the first import. Push a harmless documentation change to a PR to confirm a preview deployment; merge it to the production branch to confirm an automatic production build. No GitHub Actions secret or manually copied deployment token is required.
 7. To roll back, open **Deployments**, select the last known-good production deployment, and choose **Promote to Production** or use Vercel’s instant rollback control. Fix the branch and redeploy after the rollback.
-8. Optional: add `getyere.app` (or the domain you control) under **Settings → Domains**, configure the DNS records Vercel provides, then update Supabase Auth URLs and `PUBLIC_APP_URL` to the final HTTPS origin.
+8. In **Settings → Domains**, confirm `getyere.com` is verified, has HTTPS enabled, and is set as the Primary Domain. The checked-in Vercel host redirect forwards `getyere.vercel.app` requests to `https://getyere.com` while preserving invite query parameters.
 
 `vercel.json` serves the Vite output with service-worker/manifest cache headers. Vercel redeploys only after Git integration is configured in the project dashboard; this repository file alone cannot authorize a Vercel project.
 
@@ -137,9 +152,10 @@ Run the deployed app over HTTPS (or localhost for development), then verify:
 
 ## 6. Troubleshooting
 
-- **Auth fails or redirects to the wrong place:** verify the project URL/key, email provider settings, Site URL, and exact allowed redirect URLs in Supabase Auth. Vercel preview domains must be allowed if you test sign-up there.
+- **Auth fails or redirects to the wrong domain:** verify Supabase Auth Site URL is `https://getyere.com`, the allowed redirect includes `https://getyere.com/**`, Vercel has `VITE_PUBLIC_APP_URL=https://getyere.com`, and Supabase Edge Function Secrets has `PUBLIC_APP_URL=https://getyere.com`. Redeploy Vercel after changing its build variable.
 - **Cloud setup warning or empty signed-in workspace:** run `npx supabase db push`, confirm migrations are applied and RLS is enabled, then sign out/in. Check the browser console and Supabase API logs for table/RPC errors.
 - **RLS/permission errors:** do not disable RLS as a workaround. Check that the matching `owner_id` policy and migration are present. Invite hashes, rate-limit buckets, and fire ledgers should remain inaccessible to anon/authenticated table queries.
+- **Sign-up confirmation is not delivered by Resend:** check Supabase **Authentication → SMTP Settings** for `smtp.resend.com`, port `465`, username `resend`, the private Resend API key, and a sender address verified in Resend. Check the Confirm signup template and Resend email logs.
 - **Email invites do not send:** verify Resend API key, verified sender, domain DNS, and `RESEND_FROM_EMAIL` in Edge Function secrets. Review the `create-contact-invite` logs.
 - **SMS invites do not send:** verify Twilio account SID, auth token, enabled sender number, recipient E.164 format, and account country/number permissions.
 - **Push is permission-granted but no notification arrives:** install the PWA where required, check the browser subscription and `push_subscriptions` row, confirm public/private VAPID keys are a pair, confirm `VAPID_SUBJECT`, and inspect `test-notification`/`dispatch-reminders` logs. iOS push does not behave like a normal Safari tab.
@@ -151,12 +167,12 @@ Run the deployed app over HTTPS (or localhost for development), then verify:
 
 ## 7. Security checklist
 
-- [ ] Supabase email confirmation and a production SMTP sender are configured.
+- [ ] Supabase Auth custom SMTP uses Resend, and the branded Confirm signup template is saved.
 - [ ] Every application table has RLS enabled; service-role access exists only inside Edge Functions.
 - [ ] Invite codes and link tokens are hashed in Postgres, single-use, expire after 24 hours, and are rate-limited server-side.
 - [ ] `contact_blocks` and workspace auto-suspension remain server-enforced.
 - [ ] Attachments are in a private bucket with user-scoped object paths and signed download URLs.
 - [ ] `YERE_CRON_SECRET` and Web Push private key are stored in Supabase secrets/Vault only.
 - [ ] Vercel contains only public browser values; no service-role, provider, or VAPID private key.
-- [ ] Production and preview Auth redirect URLs and `PUBLIC_APP_URL` match the intended HTTPS origins.
+- [ ] Supabase Auth Site URL, Vercel `VITE_PUBLIC_APP_URL`, and Edge Function `PUBLIC_APP_URL` use `https://getyere.com`.
 - [ ] Cron, Edge Function logs, and delivery failures are reviewed before enabling real reminders.

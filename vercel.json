@@ -4,6 +4,14 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "getyere.vercel.app" }],
+      "destination": "https://getyere.com/:path*",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",

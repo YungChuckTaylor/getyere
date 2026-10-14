@@ -14,8 +14,8 @@ enabled = true
 
 [auth]
 enabled = true
-site_url = "http://localhost:5173"
-additional_redirect_urls = ["http://localhost:5173/**", "http://127.0.0.1:5173/**", "https://getyere.app/**", "https://*.vercel.app/**"]
+site_url = "https://getyere.com"
+additional_redirect_urls = ["https://getyere.com/**", "https://getyere.vercel.app/**", "http://localhost:5173/**", "http://127.0.0.1:5173/**"]
 jwt_expiry = 3600
 enable_signup = true
 enable_anonymous_sign_ins = false

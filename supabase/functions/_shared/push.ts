@@ -12,7 +12,7 @@ function prepareVapid() {
   if (vapidReady) return true;
   const publicKey = Deno.env.get('VAPID_PUBLIC_KEY');
   const privateKey = Deno.env.get('VAPID_PRIVATE_KEY');
-  const subject = Deno.env.get('VAPID_SUBJECT') || 'mailto:hello@getyere.app';
+  const subject = Deno.env.get('VAPID_SUBJECT') || 'mailto:hello@getyere.com';
   if (!publicKey || !privateKey) return false;
   webpush.setVapidDetails(subject, publicKey, privateKey);
   vapidReady = true;
