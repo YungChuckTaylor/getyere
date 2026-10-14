@@ -1035,7 +1035,7 @@ async function handleInviteLink() {
   try {
     const {error}=await supabase.functions.invoke('redeem-contact-invite',{body:{token}});
     if (error) throw error;
-    toast('Invite accepted. The person who invited you will see your request.');
+    toast('Invite accepted. You are now connected.');
     await pullCloudSnapshot(false);
   } catch(error) { toast(error?.message||'That invite link is invalid or has expired.'); }
 }
@@ -1448,9 +1448,9 @@ function renderSettings() {
       <p class="text-xs text-slate-400">Permission status: ${'Notification' in window?esc(Notification.permission):'not supported'} · Delivery can also be selected on each reminder.</p>
     </div>
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-4">
-      <h3 class="font-bold">Delegated reminders</h3><p class="text-sm text-slate-500">When an approved contact sets a reminder on your behalf:</p>
-      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='direct'?'checked':''} onchange="state.settings.approvalMode='direct';persist()"> Direct set (they can write immediately)</label>
-      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='approve'?'checked':''} onchange="state.settings.approvalMode='approve';persist()"> Require my approval (global default for new contacts)</label>
+      <h3 class="font-bold">Trusted-contact reminders</h3><p class="text-sm text-slate-500">Accepting an invitation connects the trusted contact automatically. Choose whether their reminders are added immediately or wait for your review:</p>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='direct'?'checked':''} onchange="state.settings.approvalMode='direct';persist()"> Add their reminders immediately (global default for new contacts)</label>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='approve'?'checked':''} onchange="state.settings.approvalMode='approve';persist()"> Require my approval for each reminder (global default for new contacts)</label>
     </div>
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-3"><h3 class="font-bold">Privacy & security</h3>${cloudSecurity}<p class="text-xs text-slate-400">Your notes are not used to train a model. Pattern insights use completion timing only.</p></div>
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-3">
@@ -1502,19 +1502,24 @@ function safeLink(value) {
 
 function showConfirmModal() {
   const r = draft;
+  const isDelegated = Boolean(r.delegatedOwnerId);
   const due = new Date(r.due);
   const rec = r.recurrence;
   const dateVal = due.getFullYear()+'-'+pad(due.getMonth()+1)+'-'+pad(due.getDate());
   const timeVal = pad(due.getHours())+':'+pad(due.getMinutes());
   const chips = (r.parsed && r.parsed.consumed || []).map(c => `<span class="nl-chip px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold">${esc(c.match)}</span>`).join('');
-  const listOptions=(state.lists||[]).map(l=>`<option value="${esc(l.id)}" ${r.listId===l.id?'selected':''}>${esc(l.name)}</option>`).join('');
+  const listSource=isDelegated?(r.targetLists||[]):(state.lists||[]);
+  const listOptions=listSource.map(l=>`<option value="${esc(l.id)}" ${r.listId===l.id?'selected':''}>${esc(l.name)}</option>`).join('');
   const savedFiles=(r.attachments||[]).map(a=>`<button type="button" onclick="openAttachment('${esc(a.id)}')" class="text-xs text-indigo-600 dark:text-indigo-300 underline">${esc(a.name)}</button>`).join(' · ');
+  const saveAction=isDelegated?'submitDelegatedReminder()':'saveDraft()';
+  const saveLabel=isDelegated?`Send reminder to ${esc(r.delegatedName)}`:'Save reminder';
   document.getElementById('modalCard').innerHTML = `
     <div class="p-5 md:p-6">
       <div class="flex items-start justify-between gap-3 mb-4">
-        <div><div class="text-[11px] font-bold uppercase tracking-widest text-indigo-500">Confirm capture</div><h2 class="text-xl font-extrabold mt-0.5">Does this look right?</h2></div>
+        <div><div class="text-[11px] font-bold uppercase tracking-widest text-indigo-500">${isDelegated?`For ${esc(r.delegatedName)}`:'Confirm capture'}</div><h2 class="text-xl font-extrabold mt-0.5">${isDelegated?'Set reminder details':'Does this look right?'}</h2></div>
         <button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Close">✕</button>
       </div>
+      ${isDelegated?`<p class="text-sm text-slate-500 mb-4">This reminder will be added to ${esc(r.delegatedName)}’s account. Their reminder-approval setting determines whether it appears immediately or waits for review.</p>`:''}
       ${chips?`<div class="flex flex-wrap gap-1.5 mb-3">${chips}</div>`:''}
       <div class="flex flex-wrap items-center gap-2 mb-3 text-xs"><span class="font-semibold text-slate-400">Quick set</span><button type="button" onclick="setQuickDate('today')" class="nl-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 font-semibold">Today · 9:00</button><button type="button" onclick="setQuickDate('tomorrow')" class="nl-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 font-semibold">Tomorrow · 9:00</button><button type="button" onclick="setQuickDate('evening')" class="nl-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 font-semibold">This evening</button></div>
       <label class="block text-xs font-semibold text-slate-500 mb-1">Title</label>
@@ -1543,13 +1548,13 @@ function showConfirmModal() {
           <input id="dCost" type="number" min="0" step="0.01" value="${r.cost??''}" placeholder="0" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none">
         </label>
       </div>
-      <div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-3 mb-4">
+      ${isDelegated?`<div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-3 mb-4 text-xs text-slate-500">File attachments stay private to the account owner. They can add an attachment after this reminder appears in their Yere account.</div>`:`<div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-3 mb-4">
         <label class="block text-xs font-semibold text-slate-500">Photo or attachment <input id="dAttachment" type="file" accept="image/*,.pdf,.doc,.docx" class="mt-2 block w-full text-xs" onchange="setDraftAttachment(this.files[0])"></label>
         ${savedFiles?`<div class="mt-2 text-xs">Attached: ${savedFiles}</div>`:''}
         <p class="mt-1 text-[10px] text-slate-400">Files are stored privately with your Yere account. Local demo can save notes and links only.</p>
-      </div>
+      </div>`}
       ${recurrenceEditor(rec)}
-      <div class="mt-5 flex gap-2"><button onclick="saveDraft()" class="flex-1 py-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-glow">Save reminder</button><button onclick="closeModal()" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-ink-800 font-semibold">Cancel</button></div>
+      <div class="mt-5 flex gap-2"><button onclick="${saveAction}" class="flex-1 py-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-glow">${saveLabel}</button><button onclick="closeModal()" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-ink-800 font-semibold">Cancel</button></div>
     </div>`;
   openModal();
 }
@@ -1961,19 +1966,43 @@ async function unblockContact(id){
   state.blocklist=state.blocklist.filter(value=>value!==blockedId);logAudit('You','unblocked contact',c.name);persist();render();toast('Contact unblocked.');
 }
 
-function openSetOnBehalfModal(ownerId){
+async function openSetOnBehalfModal(ownerId){
   const relationship=(state.relationships||[]).find(c=>c.ownerId===ownerId); if(!relationship)return;
-  document.getElementById('modalCard').innerHTML=`<div class="p-6"><div class="badge-from inline-block text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200 mb-2">For ${esc(relationship.name)}</div><h2 class="text-xl font-extrabold mb-1">Remember something for them</h2><p class="text-sm text-slate-500 mb-4">Their approval settings decide whether this appears immediately or waits for review.</p><label class="text-xs font-semibold text-slate-500">What should Yere remember?<input id="delegatedText" maxlength="240" class="w-full mt-1 mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5" placeholder="Pick up the parcel tomorrow at 4pm"></label><label class="text-xs font-semibold text-slate-500">Why / notes<textarea id="delegatedNotes" rows="2" maxlength="4000" class="w-full mt-1 mb-4 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5"></textarea></label><button onclick="submitDelegatedReminder('${esc(ownerId)}')" class="w-full py-3 rounded-2xl bg-indigo-600 text-white font-bold">Send reminder</button></div>`;
+  if(!supabase||!currentSession){toast('Sign in to set a reminder for a trusted contact.');return;}
+  document.getElementById('modalCard').innerHTML='<div class="p-6 text-sm text-slate-500">Loading their reminder lists…</div>';
   openModal();
+  const {data,error}=await supabase.rpc('list_delegated_lists',{p_owner_id:ownerId});
+  if(document.getElementById('modal').classList.contains('hidden'))return;
+  if(error){closeModal();toast(error.message||'Could not load their reminder lists.');return;}
+  const due=new Date();
+  due.setSeconds(0,0);
+  due.setHours(state.settings.defaultHour??9,state.settings.defaultMin??0,0,0);
+  if(due<=new Date())due.setDate(due.getDate()+1);
+  draft={
+    id:null,title:'',notes:'',link:'',due:due.toISOString(),recurrence:null,fromContact:null,
+    approved:true,parsed:null,listId:null,channel:'push',type:'standard',cost:'',attachments:[],
+    delegatedOwnerId:ownerId,delegatedName:relationship.name,targetLists:data||[]
+  };
+  draftAttachment=null;
+  showConfirmModal();
 }
-async function submitDelegatedReminder(ownerId){
+async function submitDelegatedReminder(){
   if(!supabase||!currentSession){toast('Real shared reminders need a signed-in Yere account.');return;}
-  const text=document.getElementById('delegatedText').value.trim(); if(!text){toast('Add a reminder first.');return;}
-  const parsed=parseNaturalLanguage(text), due=combineDateTime(parsed.date,parsed.time);
-  const notes=document.getElementById('delegatedNotes').value.trim();
-  const {data,error}=await supabase.functions.invoke('create-delegated-reminder',{body:{ownerId,title:parsed.title,notes,dueAt:due.toISOString(),recurrence:parsed.recurrence,deliveryChannel:'push'}});
+  if(!draft?.delegatedOwnerId){toast('Choose the trusted contact first.');return;}
+  collectDraftFields();
+  if(!draft.title){toast('Give the reminder a title.');return;}
+  if(Number.isNaN(new Date(draft.due).getTime())){toast('Choose a valid date and time.');return;}
+  const cost=draft.cost===''||draft.cost==null?null:Number(draft.cost);
+  if(cost!==null&&(!Number.isFinite(cost)||cost<0)){toast('Enter a valid non-negative cost.');return;}
+  const {data,error}=await supabase.functions.invoke('create-delegated-reminder',{body:{
+    ownerId:draft.delegatedOwnerId,title:draft.title,notes:draft.notes||'',url:draft.link||'',
+    dueAt:draft.due,recurrence:draft.recurrence,deliveryChannel:draft.channel||'push',
+    reminderType:draft.type||'standard',cost,listId:draft.listId||null
+  }});
   if(error){toast(error.message||'Could not send that reminder.');return;}
-  closeModal(); await pullCloudSnapshot(false); toast(data?.approvalStatus==='pending'?'Sent for approval.':'Reminder shared.');
+  const recipient=draft.delegatedName;
+  closeModal(); await pullCloudSnapshot(false);
+  toast(data?.approvalStatus==='pending'?`Sent to ${recipient} for approval.`:`Reminder shared with ${recipient}.`);
 }
 
 function openSimulateContact() {

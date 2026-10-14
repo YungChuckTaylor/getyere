@@ -29,7 +29,7 @@ Yere is a Vite-built, installable PWA. The browser uses the Supabase **publishab
    npx supabase db push
    ```
 
-   The migration creates profiles, reminders, contacts, custom lists, audit events, private attachment metadata, push subscriptions, rate-limit/security tables, RLS policies, the private `yere-attachments` bucket, and helper RPCs. Do not replace the migration with client-side table creation.
+   The migrations create profiles, reminders, contacts, custom lists, audit events, private attachment metadata, push subscriptions, rate-limit/security tables, RLS policies, the private `yere-attachments` bucket, and helper RPCs. The later invitation/delegated-controls migration automatically approves an accepted invitation and securely exposes only the recipient's list names to an approved contact creating a reminder. The recipient's reminder-review preference still controls whether each delegated reminder is added immediately or waits for review. Do not replace the migrations with client-side table creation.
 5. Confirm **Database → Tables** has the Yere tables and that RLS is enabled. The service-only invite hashes, rate-limit buckets, and reminder-fire ledger intentionally have no browser policies. The public storage bucket must remain private.
 6. Deploy the Edge Functions:
 
@@ -42,7 +42,7 @@ Yere is a Vite-built, installable PWA. The browser uses the Supabase **publishab
    npx supabase functions deploy dispatch-reminders
    ```
 
-   `dispatch-reminders` intentionally has JWT verification disabled in `supabase/config.toml`; it verifies a separate high-entropy cron secret on every request. All other functions verify the caller’s Supabase JWT and re-check the user server-side.
+   `dispatch-reminders` intentionally has JWT verification disabled in `supabase/config.toml`; it verifies a separate high-entropy cron secret on every request. All other functions verify the caller’s Supabase JWT and re-check the user server-side. The delegated-reminder form lets an approved contact set the recipient's due date/time, recurrence, notes, link, list, reminder type, delivery channel, and cost. Private file attachments remain account-owner-only.
 
 ### Supabase Edge Function secrets
 
