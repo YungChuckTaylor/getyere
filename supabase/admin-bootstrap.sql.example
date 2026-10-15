@@ -1,0 +1,25 @@
+-- One-time bootstrap only. Replace the email with the Auth account created/invited in Supabase.
+-- Run only after 202610140001_admin_backend.sql has been applied, using the Supabase SQL Editor.
+BEGIN;
+DO $$
+DECLARE target_user uuid;
+BEGIN
+  SELECT id INTO target_user
+  FROM auth.users
+  WHERE lower(email) = lower('REPLACE_WITH_FIRST_ADMIN_EMAIL@example.com')
+  LIMIT 1;
+
+  IF target_user IS NULL THEN
+    RAISE EXCEPTION 'No Auth user found for the configured first-admin email';
+  END IF;
+
+  INSERT INTO public.admin_users(user_id, role, is_active, created_by)
+  VALUES (target_user, 'super_admin', true, target_user)
+  ON CONFLICT (user_id) DO UPDATE SET role = 'super_admin', is_active = true;
+
+  INSERT INTO public.admin_audit_logs(admin_id, action, target_table, target_id, metadata)
+  VALUES (target_user, 'admin_bootstrap', 'admin_users', target_user::text,
+    jsonb_build_object('reason', 'Initial super administrator configured by the project owner'));
+END;
+$$;
+COMMIT;

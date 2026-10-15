@@ -30,6 +30,13 @@ secure_password_change = true
 [auth.sms]
 enable_signup = false
 
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
 [functions.create-contact-invite]
 verify_jwt = true
 
@@ -47,3 +54,60 @@ verify_jwt = true
 
 [functions.dispatch-reminders]
 verify_jwt = false
+
+[functions.admin-session-create]
+verify_jwt = true
+
+[functions.admin-session-revoke]
+verify_jwt = true
+
+[functions.admin-me]
+verify_jwt = true
+
+[functions.admin-overview]
+verify_jwt = true
+
+[functions.admin-users-list]
+verify_jwt = true
+
+[functions.admin-user-detail]
+verify_jwt = true
+
+[functions.admin-reminders-list]
+verify_jwt = true
+
+[functions.admin-reminder-detail]
+verify_jwt = true
+
+[functions.admin-audit-list]
+verify_jwt = true
+
+[functions.admin-notification-list]
+verify_jwt = true
+
+[functions.admin-admin-list]
+verify_jwt = true
+
+[functions.admin-admin-invite]
+verify_jwt = true
+
+[functions.admin-admin-role-update]
+verify_jwt = true
+
+[functions.admin-admin-session-revoke]
+verify_jwt = true
+
+[functions.admin-user-action]
+verify_jwt = true
+
+[functions.admin-reminder-action]
+verify_jwt = true
+
+[functions.admin-support-list]
+verify_jwt = true
+
+[functions.admin-support-update]
+verify_jwt = true
+
+[functions.admin-settings]
+verify_jwt = true

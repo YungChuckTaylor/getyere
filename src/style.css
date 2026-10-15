@@ -59,10 +59,6 @@ input[type="checkbox"].pretty:checked::after { content:''; width:5px; height:9px
 .badge-from { background: linear-gradient(135deg, #eef2ff, #fae8ff); }
 .dark .badge-from { background: linear-gradient(135deg, #312e81, #4a1d6a); }
 .overdue-pulse { box-shadow: inset 3px 0 0 #ef4444; }
-<<<<<<< HEAD
-
-=======
->>>>>>> 10656ef (Auto-approve accepted invites and expand delegated reminders)
 .drawer { transition: transform .28s cubic-bezier(.2,.8,.2,1); }
 @media (max-width: 767px) {
   .drawer { transform: translateX(-100%); }
@@ -71,10 +67,6 @@ input[type="checkbox"].pretty:checked::after { content:''; width:5px; height:9px
 @media (min-width: 768px) {
   .drawer { transform: none; }
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 10656ef (Auto-approve accepted invites and expand delegated reminders)
 .modal-bg { animation: rise .2s ease both; }
 .hide-scroll { scrollbar-width: none; }
 .hide-scroll::-webkit-scrollbar { display:none; }
