@@ -6,5 +6,16 @@ dist/
 .vercel/
 .DS_Store
 coverage/
+artifacts/
+*.apk
+*.aab
+*.ipa
+*.p8
+*.jks
+*.keystore
+*.mobileprovision
+*.xcarchive
+android/app/google-services.json
+android/keystore.properties
 
 supabase/.temp/

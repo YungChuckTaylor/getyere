@@ -1,6 +1,6 @@
 import { adminClient, env, escapeHtml, jsonResponse, safeAppOrigin } from '../_shared/http.ts';
 import { sendYereEmail } from '../_shared/email.ts';
-import { sendWebPush } from '../_shared/push.ts';
+import { sendPush } from '../_shared/push.ts';
 
 function constantTimeEqual(a: string, b: string) {
   if (a.length !== b.length) return false;
@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
         || (reminder.delivery_channel === 'push' && profileByOwner.get(reminder.owner_id)?.settings?.emailReminders === true);
 
       if (wantsPush) {
-        const { data: subscriptions, error: subsError } = await admin.from('push_subscriptions').select('id,endpoint,p256dh,auth').eq('owner_id', reminder.owner_id);
+        const { data: subscriptions, error: subsError } = await admin.from('push_subscriptions').select('id,endpoint,p256dh,auth,device_token,platform,provider').eq('owner_id', reminder.owner_id);
         if (subsError) errors.push(subsError.message);
         else if (subscriptions?.length) {
           const payload = {
@@ -64,14 +64,14 @@ Deno.serve(async (req) => {
             url: `/?reminder=${encodeURIComponent(reminder.id)}`,
             tag: `yere-${reminder.id}-${reminder.due_at}`
           };
-          const results = await Promise.allSettled(subscriptions.map((subscription) => sendWebPush(subscription, payload)));
+          const results = await Promise.allSettled(subscriptions.map((subscription) => sendPush(subscription, payload)));
           pushSent = results.some((result) => result.status === 'fulfilled');
           for (let i = 0; i < results.length; i++) {
             const result = results[i];
             if (result.status === 'rejected') {
               const message = String(result.reason?.message || result.reason);
               errors.push(message.slice(0, 160));
-              if (/410|404|expired/i.test(message)) await admin.from('push_subscriptions').delete().eq('id', subscriptions[i].id);
+              if (/410|404|expired|unregistered|baddevicetoken|device token.*inactive/i.test(message)) await admin.from('push_subscriptions').delete().eq('id', subscriptions[i].id);
             }
           }
         } else errors.push('No active push subscription.');

@@ -70,6 +70,11 @@ input[type="checkbox"].pretty:checked::after { content:''; width:5px; height:9px
 .sprite-orbit-reverse { animation: orbit-reverse 11s linear infinite; transform-origin: center; }
 #authGate, #tourOverlay { overscroll-behavior: contain; }
 .safe-bottom { padding-bottom: max(.75rem, env(safe-area-inset-bottom)); }
+.native-app body { overscroll-behavior: none; }
+.native-app .drawer { height: 100dvh; }
+.native-app button, .native-app nav, .native-app aside { -webkit-user-select: none; user-select: none; }
+.native-app input, .native-app textarea, .native-app [contenteditable="true"] { -webkit-user-select: text; user-select: text; }
+.native-ios .safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
 .calendar-cell { min-height: 6rem; }
 @media (max-width: 767px) {
   .desktop-only { display: none !important; }
