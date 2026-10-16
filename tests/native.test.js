@@ -86,5 +86,5 @@ test('Android CI produces an APK and checksum artifact', async () => {
   assert.match(workflow, /assembleDebug/);
   assert.match(workflow, /app-debug\.apk/);
   assert.match(workflow, /sha256sum/);
-  assert.match(workflow, /actions\/upload-artifact@v4/);
+  assert.match(workflow, /actions\/upload-artifact@v5/);
 });
