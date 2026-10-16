@@ -140,7 +140,7 @@ export function classifyTableProbe(result) {
   if (result.status === 200 || result.status === 206) return 'ok';
   if (result.status === 0) return 'unreachable';
   if (/permission denied|42501/i.test(body)) return 'exists-no-grant';
-  if (/PGRST204|could not find the '?[a-z_]+'? column/i.test(body)) return 'missing-column';
+  if (/PGRST204|could not find the '?[a-z_]+'? column|42703|column [a-z_.]+ does not exist/i.test(body)) return 'missing-column';
   if (result.status === 404 || /PGRST205|could not find the table|does not exist|42P01/i.test(body)) return 'missing-table';
   return 'inconclusive';
 }

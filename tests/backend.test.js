@@ -230,6 +230,8 @@ test('table probes are classified from PostgREST error codes', () => {
   assert.equal(classifyTableProbe({ status: 206, body: '[]' }), 'ok');
   assert.equal(classifyTableProbe({ status: 404, body: '{"code":"PGRST205","message":"Could not find the table"}' }), 'missing-table');
   assert.equal(classifyTableProbe({ status: 400, body: '{"code":"PGRST204","message":"Could not find the \'device_token\' column of \'push_subscriptions\'"}' }), 'missing-column');
+  // Postgres itself reports an unknown column as 42703 when the select list is resolved server-side.
+  assert.equal(classifyTableProbe({ status: 400, body: '{"code":"42703","message":"column push_subscriptions.device_token does not exist"}' }), 'missing-column');
   assert.equal(classifyTableProbe({ status: 403, body: '{"message":"permission denied for table reminders"}' }), 'exists-no-grant');
   assert.equal(classifyTableProbe({ status: 0, body: '' }), 'unreachable');
   assert.equal(classifyTableProbe({ status: 500, body: 'boom' }), 'inconclusive');
