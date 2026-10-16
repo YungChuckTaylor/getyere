@@ -2,6 +2,7 @@ import './style.css';
 import { createClient } from '@supabase/supabase-js';
 import { nativeBridge } from './native.js';
 import { resolveRuntimeConfig } from './config.js';
+import { SPEECH_ERROR_COPY } from './speech.js';
 
 // Vite inlines these public VITE_ values at build time. Nothing else from the environment is read.
 const runtime = resolveRuntimeConfig({
@@ -47,6 +48,10 @@ window.YERE_ENV = {
   platform: nativeBridge.platform
 };
 window.YERE_NATIVE = nativeBridge;
+// Shared wording for voice-capture failures so the browser Web Speech fallback reports the same
+// specific problems (denied permission, unavailable recognizer, no speech, network, missing
+// language model) as the native recognizer instead of one generic message.
+window.YERE_SPEECH_COPY = SPEECH_ERROR_COPY;
 
 window.yereNativeReady = nativeBridge.initialize({
   supabaseUrl: client ? runtime.url : '',

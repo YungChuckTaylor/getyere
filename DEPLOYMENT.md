@@ -192,11 +192,53 @@ The native bridge in `src/native.js` provides:
 
 - native Supabase email/password auth and Sign in with Apple initiation through `@capgo/capacitor-supabase`, with its JWT mirrored into `supabase-js` for Realtime, Storage, and Edge Functions;
 - APNs/FCM registration, foreground delivery, notification taps, and reminder intents;
+- native speech recognition for voice capture (see below);
 - Android system-back handling, app/universal links, haptics, status-bar styling, and splash control;
 - connectivity monitoring with `@capacitor/network`; and
 - a private no-cloud Filesystem snapshot. Existing `cloudPending` state is the offline write queue, and Supabase remains authoritative after reconnect.
 
 Only the Supabase publishable/anon key is embedded. Never place a service-role key, Firebase service-account private key, APNs `.p8` key, release keystore, or signing password in the app bundle.
+
+### Native voice capture
+
+`window.SpeechRecognition` does not exist in Android WebView, so the old browser-only code always
+failed in the APK with a generic microphone error even when `RECORD_AUDIO` was granted. The
+installed apps now use [`@capgo/capacitor-speech-recognition`](https://github.com/Cap-go/capacitor-speech-recognition)
+(Capacitor 8 compatible, `^8.4.4`) and the browser Web Speech API remains only as the PWA fallback.
+
+- `src/speech.js` owns the session: availability check, on-demand permissions, streaming partials,
+  exactly one terminal outcome (final transcript or one specific error), stop/cancel, and listener
+  cleanup. It has no DOM or Capacitor imports, so `tests/speech.test.js` drives it with a fake plugin.
+- `src/native.js` exposes it as `window.YERE_NATIVE.speech`; `toggleVoice()` in `index.html` picks the
+  native path first and only falls back to `window.SpeechRecognition` when there is no native
+  recognizer. Partials stream into `#quickInput` through the existing live parser, and the final
+  transcript goes through the existing `openConfirmFromInput()` confirmation sheet. The mic animation
+  (`#micBtn.listening`, `#micWave`) is unchanged, and tapping the mic again stops the session.
+- Permissions are checked and requested **only** inside `start()`, i.e. after the user taps the mic.
+  Nothing asks for the microphone at launch, which keeps the store privacy declarations honest.
+- Android needs the `<queries>` block in `android/app/src/main/AndroidManifest.xml`:
+
+  ```xml
+  <queries>
+      <intent>
+          <action android:name="android.speech.RecognitionService" />
+      </intent>
+  </queries>
+  ```
+
+  Without it, Android 11+ package visibility hides the recognition service,
+  `SpeechRecognizer.isRecognitionAvailable()` returns false, and the plugin rejects every session as
+  unavailable. `RECORD_AUDIO` stays in the manifest; iOS keeps `NSMicrophoneUsageDescription` and
+  `NSSpeechRecognitionUsageDescription` in `ios/App/App/Info.plist`.
+- **No audio is retained.** Only transcript text reaches the app; nothing is written to the offline
+  snapshot, Storage, or Supabase. Recognition runs through the OS recognizer (Google on Android,
+  `SFSpeechRecognizer` on iOS), so device-level speech settings apply.
+- Devices without Google speech services (some AOSP/China-market builds, emulators without Google
+  APIs) have no recognizer at all. The app says so explicitly instead of failing silently.
+
+`npm test` covers routing, permissions, partial/final transcripts, stopping, listener cleanup, and
+error wording; CI additionally proves the plugin and manifest entries reached the APK
+(`scripts/verify-native-voice.mjs`).
 
 ### Native Supabase auth and links
 
@@ -339,7 +381,10 @@ The native app includes more than a web wrapper: native auth/token storage, push
 - **Workflow fails at “Validate cloud configuration”:** add the missing repository variable(s) named in the log, then re-run. The log names the variable, never its value.
 - **Installed app says “Yere can’t connect yet”:** this build was produced without a valid Supabase configuration. Install the APK from a successful cloud-configured run.
 - **The app shows sample people such as Tunde or Amina:** that APK was built before this fix (it was a demo build). Uninstall it, then install the new artifact. The app now removes legacy demo storage on launch.
-- **Sign-in works but reminders do not sync:** confirm the Supabase migrations and Edge Functions in the backend checklist below are deployed to the same project as `VITE_SUPABASE_URL`.
+- **Sign-in works but reminders do not sync:** confirm the Supabase migrations and Edge Functions in the backend checklist below are deployed to the same project as `VITE_SUPABASE_URL`. Run `npm run verify:backend` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` exported to get an itemised report.
+- **Voice capture says the device has no speech recognition service:** on Android, confirm the `<queries>` block for `android.speech.RecognitionService` is still in the merged manifest (`npx cap sync android`, then rebuild) and that the device has Google speech services installed. Emulators without Google APIs have no recognizer.
+- **Voice capture asks for the microphone every time or is blocked:** Android keeps `RECORD_AUDIO` denied after “Don’t ask again”; enable it under Settings → Apps → Yere → Permissions. iOS needs both the microphone and Speech Recognition prompts accepted, which requires the two usage strings in `Info.plist`.
+- **Voice capture hears nothing or stops immediately:** check the connection (the default recognizers are network-backed), the device language model (`MODEL_DOWNLOAD_SCHEDULED` means the language pack is still downloading), and that no other app holds the microphone. Each case now reports its own message; none of them is a generic mic failure.
 
 - **`Could not find installation of TypeScript`:** run `npm ci`; TypeScript is a checked-in development dependency required to read `capacitor.config.ts`.
 - **Capacitor major-version mismatch:** all `@capacitor/*` and `@capgo/capacitor-supabase` packages must use major version 8. Run `npx cap doctor`, then `npx cap sync`.
@@ -358,9 +403,27 @@ The native app includes more than a web wrapper: native auth/token storage, push
 
 The native app uses the same Supabase project as the web app. Before testing a new APK against production, confirm each item in **Supabase → project for `VITE_SUPABASE_URL`**:
 
+Run the automated read-only check first — it names exactly what is still missing:
+
+```bash
+export VITE_SUPABASE_URL="https://<project-ref>.supabase.co"
+export VITE_SUPABASE_ANON_KEY="<publishable/anon key>"
+npm run verify:backend            # add --strict to exit non-zero on a confirmed gap
+```
+
+It reads the PostgREST schema cache (tables and the columns added by the native migration), probes
+each Edge Function with an empty unauthenticated POST that every function rejects before touching
+data, reads `/auth/v1/settings`, and checks the attachment bucket. It uses only the two public values
+that are already in the client bundle, never writes, never prints the key, and reports anything it
+could not confirm as *unknown* rather than guessing. The Android workflow runs the same check on every
+build and publishes the result in the run summary (non-blocking, so a backend gap never stops an
+otherwise valid APK). Set `YERE_SKIP_BACKEND_CHECK=1` to skip it.
+
 1. **Migrations applied, in order:** `202610120001_yere_core.sql`, then `202610150001_native_mobile.sql` (`npx supabase db push` or the SQL editor). The native migration adds the native push-token RPC `register_native_push_token`, the `detach_deleted_yere_user` account cleanup, and the provider constraint for `webpush`, `fcm`, and `apns`.
 2. **Edge Functions deployed:** `create-contact-invite`, `redeem-contact-invite`, `revoke-contact-invite`, `create-delegated-reminder`, `test-notification`, `delete-account` (required by Settings → Account & data), and `dispatch-reminders` (`--no-verify-jwt`).
 3. **Auth settings:** email/password enabled; Site URL `https://www.getyere.com`; redirect URLs include `yere://**` and `https://www.getyere.com/**`.
 4. **Cron:** run `supabase/schedule-reminders.sql.example` after replacing its placeholders, so reminders are dispatched every minute.
 5. **Edge Function secrets:** `PUBLIC_APP_URL`, `YERE_CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, and for Android push `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`. For iOS push, `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_BUNDLE_ID`, `APNS_USE_SANDBOX`.
 6. **Smoke test on a device:** create an account from the APK, confirm the email if required, create a reminder, toggle airplane mode, edit a reminder, reconnect, and confirm the change appears on the web app.
+7. **Voice capture on a device:** tap the mic, allow the microphone prompt, say “Call Aunty tomorrow at 4pm”, watch the words stream into the field, and confirm the reminder sheet opens. Tap the mic mid-sentence to stop and confirm the captured text is offered. Then test one failure path (airplane mode, or a denied permission) and check the message names the real cause.
+8. **Re-run `npm run verify:backend` after deploying anything.** A report with no `MISSING` lines means the project matches what the APK expects.

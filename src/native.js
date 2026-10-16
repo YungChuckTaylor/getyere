@@ -7,7 +7,9 @@ import { Preferences } from '@capacitor/preferences';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
 import { CapacitorSupabase } from '@capgo/capacitor-supabase';
+import { createSpeechController } from './speech.js';
 
 const enabled = Capacitor.isNativePlatform();
 const platform = Capacitor.getPlatform();
@@ -310,6 +312,17 @@ const nativeAuth = {
   }
 };
 
+// Voice capture for the installed apps. Android WebView exposes no window.SpeechRecognition, so
+// native builds drive the platform recognizer instead. Availability, microphone/speech
+// permissions, streaming partials, the single terminal result, stopping, and listener cleanup all
+// live in src/speech.js; nothing here is requested until the user taps the mic button.
+const speech = createSpeechController({
+  plugin: SpeechRecognition,
+  isNative: enabled,
+  language: typeof navigator === 'undefined' ? '' : (navigator.language || ''),
+  log: console
+});
+
 const nativeBridge = {
   enabled,
   platform,
@@ -318,6 +331,7 @@ const nativeBridge = {
   pendingNotification: null,
   pendingUrl: '',
   auth: nativeAuth,
+  speech,
   initialize: initializeNative,
   saveOfflineSnapshot,
   removeOfflineSnapshot,

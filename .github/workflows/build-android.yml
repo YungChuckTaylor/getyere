@@ -57,6 +57,22 @@ jobs:
       - name: Run tests
         run: npm test
 
+      # Read-only, unauthenticated probe of the live Supabase project: which migrations, Edge
+      # Functions, auth settings, and storage bucket are actually deployed. It never blocks the
+      # APK (that is the configuration gate's job) and it only uses the two public VITE_ values.
+      - name: Verify Supabase backend deployment (read-only, non-blocking)
+        continue-on-error: true
+        run: |
+          report="$(node scripts/verify-backend.mjs)"
+          printf '%s\n' "$report"
+          {
+            echo '### Supabase backend check (read-only)'
+            echo ''
+            echo '```text'
+            printf '%s\n' "$report"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Install Firebase Android config (optional, from encrypted secret)
         # GOOGLE_SERVICES_JSON_B64 is the base64 of the Firebase *Android client* google-services.json
         # for com.getyere.app. It is decoded only on this ephemeral runner and is never uploaded.
@@ -85,12 +101,20 @@ jobs:
       - name: Verify synced native assets
         run: node scripts/verify-bundle.mjs android/app/src/main/assets/public
 
+      # Native voice capture must reach the APK: the Capacitor plugin registry is what bridges
+      # window.YERE_NATIVE.speech to the Android recognizer.
+      - name: Verify the native speech recognizer is registered
+        run: node scripts/verify-native-voice.mjs android/app/src/main/assets/capacitor.plugins.json
+
       - name: Assemble debug APK
         working-directory: android
         run: ./gradlew --no-daemon --stacktrace assembleDebug
 
       - name: Verify APK contents are cloud-configured
         run: node scripts/verify-bundle.mjs android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Verify the APK bundles native voice capture
+        run: node scripts/verify-native-voice.mjs android/app/build/outputs/apk/debug/app-debug.apk --aapt2 "${ANDROID_SDK_ROOT}/build-tools/36.0.0/aapt2"
 
       - name: Create checksum
         run: sha256sum android/app/build/outputs/apk/debug/app-debug.apk > android/app/build/outputs/apk/debug/app-debug.apk.sha256

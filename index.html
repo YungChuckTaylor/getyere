@@ -654,6 +654,12 @@ let draft = null;
 let editingId = null;
 let recognition = null;
 let listening = false;
+let voiceEngine = '';           // 'native' | 'web' while a voice session is running
+let voiceBusy = false;          // ignores extra mic taps while a native start/stop is in flight
+let voiceTranscript = '';       // last transcript streamed into the quick capture field
+let voiceHandledFinal = false;  // guarantees one confirmation screen per voice session
+let lastVoiceError = '';        // de-duplicates repeated voice error notifications
+let lastVoiceErrorAt = 0;
 let dueTimer = null;
 let selectedCalendarDate = startOfDay(now());
 let calendarCursor = new Date(now().getFullYear(), now().getMonth(), 1);
@@ -2076,29 +2082,141 @@ function redeemDemo() {
   /* exposed conceptually — invite redemption would happen on another device */
 }
 
-/* ---------- Voice ---------- */
-function toggleVoice() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { toast('Speech recognition not supported in this browser'); return; }
-  if (listening) { try{ recognition.stop(); }catch(e){} listening=false; setMicUI(false); return; }
-  recognition = new SR();
-  recognition.lang = navigator.language || 'en-US';
-  recognition.interimResults = true;
-  recognition.continuous = false;
-  recognition.onresult = (ev) => {
-    let final='', interim='';
-    for (let i=ev.resultIndex; i<ev.results.length; i++) {
-      const t = ev.results[i][0].transcript;
-      if (ev.results[i].isFinal) final += t; else interim += t;
+/* ---------- Voice ----------
+   The installed Android/iOS apps use the native recognizer exposed by src/native.js → src/speech.js
+   because Android WebView has no window.SpeechRecognition implementation. The browser Web Speech
+   API is kept only as the PWA fallback. Both paths stream partial transcripts into #quickInput, run
+   the same live parser, and hand the final transcript to the existing confirmation flow. */
+const WEB_SPEECH_ERROR_CODES = {
+  'not-allowed': 'PERMISSION_BLOCKED',
+  'service-not-allowed': 'PERMISSION_BLOCKED',
+  'no-speech': 'NO_SPEECH',
+  'audio-capture': 'AUDIO',
+  'network': 'NETWORK',
+  'language-not-supported': 'UNSUPPORTED_LOCALE',
+  'service-not-available': 'RECOGNIZER_UNAVAILABLE',
+  'aborted': 'ABORTED'
+};
+
+function nativeSpeech(){ const speech=window.YERE_NATIVE?.speech; return speech?.supported?speech:null; }
+function webSpeechCtor(){ return window.SpeechRecognition||window.webkitSpeechRecognition||null; }
+function voiceLanguage(){ return navigator.language||document.documentElement.lang||'en-US'; }
+function voiceErrorMessage(code){
+  const speech=window.YERE_NATIVE?.speech;
+  if(typeof speech?.messageFor==='function'){
+    const message=speech.messageFor(code);
+    if(message)return message;
+  }
+  const copy=window.YERE_SPEECH_COPY||{};
+  if(copy[code])return copy[code];
+  return code==='ABORTED'?'':'Voice capture did not work this time. You can type the reminder instead.';
+}
+function notifyVoiceError(code,message){
+  const text=(message||voiceErrorMessage(code)||'').trim();
+  if(!text)return;                                              /* a deliberate cancel stays quiet */
+  const at=Date.now();
+  if(text===lastVoiceError&&at-lastVoiceErrorAt<4000)return;    /* never stack the same notice */
+  lastVoiceError=text;lastVoiceErrorAt=at;
+  toast(text);
+}
+function resetVoiceSession(){ voiceTranscript='';voiceHandledFinal=false; }
+function applyVoiceTranscript(text){
+  const input=document.getElementById('quickInput');
+  const next=String(text||'').trim();
+  if(!input||!next)return;
+  voiceTranscript=next;
+  if(input.value===next)return;
+  input.value=next;
+  autoGrow(input);
+  liveParse();
+}
+function completeVoice(text){
+  const transcript=String(text||'').trim();
+  listening=false;voiceEngine='';setMicUI(false);
+  if(!transcript){notifyVoiceError('NO_SPEECH');return;}
+  applyVoiceTranscript(transcript);
+  if(voiceHandledFinal)return;                                  /* one confirmation per session */
+  voiceHandledFinal=true;
+  openConfirmFromInput();
+}
+function failVoice(code,message){
+  listening=false;voiceEngine='';setMicUI(false);
+  notifyVoiceError(code||'UNKNOWN',message||'');
+}
+async function toggleVoice(){
+  if(voiceBusy)return;
+  if(listening){await stopVoice();return;}
+  const speech=nativeSpeech();
+  if(speech)return startNativeVoice(speech);
+  if(webSpeechCtor())return startWebVoice();
+  notifyVoiceError('RECOGNIZER_UNAVAILABLE');
+}
+async function startNativeVoice(speech){
+  voiceBusy=true;
+  resetVoiceSession();
+  try{
+    const result=await speech.start({
+      language:voiceLanguage(),
+      onState:(state)=>{
+        if(state==='started'){voiceEngine='native';listening=true;setMicUI(true);}
+        else if(state==='stopped'){listening=false;setMicUI(false);}
+      },
+      onPartial:(text)=>applyVoiceTranscript(text),
+      onFinal:(text)=>completeVoice(text),
+      onError:(error)=>failVoice(error?.code,error?.message)
+    });
+    if(result?.started){voiceEngine='native';listening=true;setMicUI(true);}
+  }catch(error){
+    failVoice(error?.code||'UNKNOWN',error?.message||'');
+  }finally{voiceBusy=false;}
+}
+function startWebVoice(){
+  const SR=webSpeechCtor();
+  resetVoiceSession();
+  recognition=new SR();
+  recognition.lang=voiceLanguage();
+  recognition.interimResults=true;
+  recognition.continuous=false;
+  recognition.onstart=()=>{voiceEngine='web';listening=true;setMicUI(true);};
+  recognition.onresult=(ev)=>{
+    let final='',interim='';
+    for(let i=ev.resultIndex;i<ev.results.length;i++){
+      const t=ev.results[i][0].transcript;
+      if(ev.results[i].isFinal)final+=t;else interim+=t;
     }
-    document.getElementById('quickInput').value = (final || interim).trim();
-    autoGrow(document.getElementById('quickInput'));
-    liveParse();
-    if (final) { listening=false; setMicUI(false); openConfirmFromInput(); }
+    applyVoiceTranscript(final||interim);
+    if(final)completeVoice(final);
   };
-  recognition.onerror = () => { listening=false; setMicUI(false); toast('Mic error or permission denied'); };
-  recognition.onend = () => { listening=false; setMicUI(false); };
-  try { recognition.start(); listening=true; setMicUI(true); } catch(e){ toast('Could not start microphone'); }
+  recognition.onerror=(ev)=>{
+    const code=WEB_SPEECH_ERROR_CODES[ev?.error]||'UNKNOWN';
+    if(code==='ABORTED')return;
+    failVoice(code);
+  };
+  recognition.onend=()=>{
+    listening=false;setMicUI(false);voiceEngine='';
+    if(!voiceHandledFinal&&voiceTranscript)completeVoice(voiceTranscript);
+  };
+  try{recognition.start();voiceEngine='web';listening=true;setMicUI(true);}
+  catch(error){failVoice('START_FAILED');}
+}
+async function stopVoice(){
+  const speech=nativeSpeech();
+  if(voiceEngine==='native'||(speech&&speech.listening)){
+    voiceBusy=true;
+    try{await speech.stop();}
+    catch(error){listening=false;setMicUI(false);voiceEngine='';}
+    finally{voiceBusy=false;}
+    return;
+  }
+  if(recognition){try{recognition.stop();}catch(error){}}
+  listening=false;setMicUI(false);voiceEngine='';
+}
+function cancelVoice(){
+  voiceHandledFinal=true;
+  const speech=nativeSpeech();
+  if(speech&&speech.listening){try{speech.cancel();}catch(error){}}
+  if(recognition&&listening){try{recognition.abort?recognition.abort():recognition.stop();}catch(error){}}
+  recognition=null;listening=false;voiceEngine='';setMicUI(false);
 }
 function setMicUI(on) {
   document.getElementById('micBtn').classList.toggle('listening', on);
@@ -2455,6 +2573,7 @@ function syncAfterReconnect(){
   if(cloudReady){toast('Back online · syncing your reminders.');syncCloudSnapshot().then(()=>pullCloudSnapshot(false));}
 }
 function handleNativeBack(){
+  if(listening){cancelVoice();return;}
   const modal=document.getElementById('modal');
   if(modal&&!modal.classList.contains('hidden')){closeModal();return;}
   const tour=document.getElementById('tourOverlay');
