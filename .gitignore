@@ -19,3 +19,12 @@ android/app/google-services.json
 android/keystore.properties
 
 supabase/.temp/
+
+# Firebase / Google Cloud service-account credentials and Apple/Android signing material.
+# google-services.json is ignored in android/app/.gitignore; the rules below cover other locations.
+google-services.json
+*firebase-adminsdk*.json
+*service-account*.json
+*.p12
+*.pem
+*.key
