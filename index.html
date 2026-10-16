@@ -98,10 +98,10 @@
 
     <div class="p-4 border-t border-slate-200/70 dark:border-white/5">
       <div class="flex items-center gap-3 rounded-2xl bg-slate-100 dark:bg-ink-800 p-3">
-        <div class="h-9 w-9 rounded-full bg-gradient-to-br from-amber-400 to-rose-500 grid place-items-center text-white font-bold text-sm" id="meAvatar">T</div>
+        <div class="h-9 w-9 rounded-full bg-gradient-to-br from-amber-400 to-rose-500 grid place-items-center text-white font-bold text-sm" id="meAvatar">Y</div>
         <div class="min-w-0 flex-1">
-          <div class="text-sm font-semibold truncate" id="meName">Tunde Adebayo</div>
-          <div class="text-[11px] text-slate-500 truncate" id="workspaceLabel">Local demo workspace</div>
+          <div class="text-sm font-semibold truncate" id="meName">Yere</div>
+          <div class="text-[11px] text-slate-500 truncate" id="workspaceLabel">Connecting…</div>
         </div>
       </div>
       <div class="flex items-center justify-between px-1 pt-3 text-xs">
@@ -171,6 +171,19 @@
 <!-- Sign-in gate is enabled when Supabase environment variables are configured. -->
 <div id="authGate" class="hidden fixed inset-0 z-[80] overflow-y-auto bg-slate-950/85 backdrop-blur-md p-4 md:p-8" role="dialog" aria-modal="true" aria-labelledby="authTitle">
   <div id="authGateCard" class="min-h-full flex items-center justify-center"></div>
+</div>
+
+<!-- Native builds without valid cloud configuration stop here. They never show demo data. -->
+<div id="nativeConfigError" role="alert" aria-labelledby="nativeConfigErrorTitle" style="display:none" class="fixed inset-0 z-[100] overflow-y-auto bg-[#0e1220] text-slate-100 p-6">
+  <div class="min-h-full flex items-center justify-center">
+    <div class="w-full max-w-md text-center">
+      <img src="/yere-mark.svg" alt="" class="mx-auto h-14 w-14 rounded-2xl mb-4">
+      <h1 id="nativeConfigErrorTitle" class="text-2xl font-extrabold">Yere can’t connect yet</h1>
+      <p class="text-sm text-slate-300 mt-3">This app build is missing its cloud configuration, so it cannot sign you in or sync your reminders. No sample data is shown.</p>
+      <ul id="nativeConfigErrorList" class="text-left text-xs text-amber-200 bg-amber-500/10 rounded-xl p-4 mt-5 space-y-2 list-disc pl-8"></ul>
+      <p class="text-xs text-slate-400 mt-5">Install a build produced with the GitHub repository variables VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY. Developers: run <code>npm run build:native</code> with those variables set.</p>
+    </div>
+  </div>
 </div>
 
 <!-- Animated, skippable feature tour. -->
@@ -633,7 +646,7 @@ const DEFAULT_SETTINGS = {
 let state = {
   reminders: [], contacts: [], relationships: [], invites: [], audit: [], blocklist: [], lists: [],
   settings: { ...DEFAULT_SETTINGS, rate: { invites: [], fails: [] } },
-  user: { name: 'Tunde Adebayo', id: 'local', email: '' }
+  user: { name: '', id: 'local', email: '' }
 };
 let view = 'today';
 let searchQ = '';
@@ -692,6 +705,7 @@ function persist(){
   if (cloudReady) queueCloudSync();
 }
 function load(seedIfEmpty=true){
+  const canSeed=seedIfEmpty&&!isNativeApp();
   try {
     const raw = localStorage.getItem(activeStorageKey()) || (!currentSession ? localStorage.getItem('Yere.v1') : null);
     if (raw) {
@@ -705,8 +719,8 @@ function load(seedIfEmpty=true){
         cloudSnapshot=cached?{reminders:new Set(cached.reminders||[]),contacts:new Set(cached.contacts||[]),lists:new Set(cached.lists||[])}:{reminders:new Set(state.reminders.map(r=>r.id)),contacts:new Set(state.contacts.map(c=>c.id)),lists:new Set(state.lists.map(l=>l.id))};
         cloudPending=Boolean(d.cloudPending);
       }
-    } else if (seedIfEmpty) seed();
-  } catch(e){ console.warn('Starting with fresh demo data.', e); if (seedIfEmpty) seed(); }
+    } else if (canSeed) seed();
+  } catch(e){ console.warn('Starting with fresh demo data.', e); if (canSeed) seed(); }
   let theme = state.settings.theme || 'dark';
   try { theme = localStorage.getItem('Yere.theme') || theme; } catch (_) {}
   state.settings.theme = theme === 'light' ? 'light' : 'dark';
@@ -714,6 +728,7 @@ function load(seedIfEmpty=true){
 }
 
 function seed() {
+  if (isNativeApp()) return;
   const t = now();
   const at = (days, h, m) => { const d=new Date(); d.setDate(d.getDate()+days); d.setHours(h,m,0,0); return d.toISOString(); };
   const past = (h,m) => { const d=new Date(); d.setHours(h,m,0,0); if (d>now()) d.setDate(d.getDate()-1); return d.toISOString(); };
@@ -1019,9 +1034,10 @@ function profileUpsertNeeded(){ const dirty=profileDirty; profileDirty=false; re
 function setAccountLabel() {
   const label=document.getElementById('workspaceLabel');
   const button=document.getElementById('signOutBtn');
-  if(label) label.textContent=currentSession?'Synced workspace':'Local demo workspace';
+  const demo=!supabase;
+  if(label) label.textContent=currentSession?'Synced workspace':(demo?'Local demo workspace':'Sign in to sync');
   if(button) button.classList.toggle('hidden',!currentSession);
-  const name=document.getElementById('meName'); if(name) name.textContent=state.user.name||'Yere member';
+  const name=document.getElementById('meName'); if(name) name.textContent=currentSession||demo?(state.user.name||'Yere member'):'Yere';
   const avatar=document.getElementById('meAvatar'); if(avatar) avatar.textContent=(state.user.name||'Y').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
 }
 
@@ -2470,7 +2486,16 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* boot */
+function showNativeConfigError(errors){
+  const app=document.getElementById('app');
+  if(app)app.style.display='none';
+  const list=document.getElementById('nativeConfigErrorList');
+  if(list){list.innerHTML='';for(const message of (errors&&errors.length?errors:['Cloud configuration is missing.'])){const item=document.createElement('li');item.textContent=message;list.appendChild(item);}}
+  const overlay=document.getElementById('nativeConfigError');
+  if(overlay)overlay.style.display='block';
+}
 async function bootApp(){
+  if(window.YERE_ENV?.mode==='native-blocked'){showNativeConfigError(window.YERE_ENV.errors);return;}
   const content=document.getElementById('content');
   content.addEventListener('touchstart',handleReminderTouchStart,{passive:true});
   content.addEventListener('touchend',handleReminderTouchEnd,{passive:true});
@@ -2488,14 +2513,14 @@ async function bootApp(){
       if(event==='SIGNED_OUT'){
         currentSession=null;cloudReady=false;
         if(realtimeChannel){supabase.removeChannel(realtimeChannel);realtimeChannel=null;}
-        setAuthMode('signin','You have been signed out.');return;
+        setAccountLabel();setAuthMode('signin','You have been signed out.');return;
       }
       if(session&&(!cloudReady||currentSession?.user?.id!==session.user.id))startCloudWorkspace(session);
     });
     const {data,error}=await supabase.auth.getSession();
     if(error)console.warn('Could not restore the Yere session.',error.message);
     if(data?.session)await startCloudWorkspace(data.session);
-    else setAuthMode('signin');
+    else{setAccountLabel();setAuthMode('signin');}
   }else{
     currentSession=null;cloudReady=false;load(true);setAccountLabel();render();
     handleNotificationIntent();maybeStartTour();

@@ -96,8 +96,26 @@ async function applyWebSessionToNative(session) {
   }
 }
 
+// Unscoped keys only ever held the browser demo workspace (seeded sample people and reminders).
+// Native builds never sign in with them, so they are removed rather than restored. Account
+// data is always stored under a user-scoped key such as "Yere.v2.<userId>".
+const LEGACY_DEMO_KEYS = ['Yere.v1', 'Yere.v2'];
+
+function purgeLegacyDemoStorage() {
+  let changed = false;
+  for (const key of LEGACY_DEMO_KEYS) {
+    try { localStorage.removeItem(key); } catch (_) { /* storage unavailable */ }
+    if (key in offlineCache) {
+      delete offlineCache[key];
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 async function hydrateOfflineCache() {
   if (!enabled) return;
+  purgeLegacyDemoStorage();
   try {
     const result = await Filesystem.readFile({
       path: CACHE_PATH,
@@ -107,8 +125,10 @@ async function hydrateOfflineCache() {
     const parsed = JSON.parse(asText(result.data));
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return;
     offlineCache = parsed;
+    if (purgeLegacyDemoStorage()) writeOfflineCache();
     for (const [key, value] of Object.entries(offlineCache)) {
       if (!/^Yere(?:\.|$)/.test(key) || typeof value !== 'string') continue;
+      if (LEGACY_DEMO_KEYS.includes(key)) continue;
       if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
     }
   } catch (error) {

@@ -101,7 +101,7 @@ Set these in `.env.local` for local work and in **Vercel → Project → Setting
 | `VITE_VAPID_PUBLIC_KEY` | Public, optional | Matching VAPID public key for push subscriptions. |
 | `VITE_PUBLIC_APP_URL` | Public, optional | `https://www.getyere.com`; used as the displayed canonical origin. |
 
-The browser variables are embedded at build time. A change requires a new Vercel deployment. If Supabase variables are missing, Yere deliberately starts in local-demo mode and clearly warns that demo invitations are not safe to share. Nigeria holiday skipping includes fixed-date holidays and calculated Easter dates; Islamic-calendar dates are estimates and may differ from the Federal Government’s moon-sighting announcement, so adjust a recurrence when an official date is published.
+The browser variables are embedded at build time. A change requires a new Vercel deployment. If Supabase variables are missing, the **web** build deliberately starts in local-demo mode and clearly warns that demo invitations are not safe to share. **Native (Android/iOS) builds never fall back to demo data**: `npm run build:native` (and `vite build --mode native`) refuses to finish without a valid `VITE_SUPABASE_URL` and publishable/anon key, and an installed app without valid configuration shows a blocking “Yere can’t connect yet” screen instead of sample reminders. Nigeria holiday skipping includes fixed-date holidays and calculated Easter dates; Islamic-calendar dates are estimates and may differ from the Federal Government’s moon-sighting announcement, so adjust a recurrence when an official date is published.
 
 ### Server-only values
 
@@ -170,14 +170,16 @@ Install and sync from the repository root:
 
 ```bash
 npm ci
-npm run build
+npm run build:native   # fails unless VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set
 npx cap sync
 ```
+
+Never use plain `npm run build` for an artifact you will install on a phone; it is the browser build and may contain the demo fallback.
 
 Useful scripts:
 
 ```bash
-npm run cap:sync       # web build + both native projects
+npm run cap:sync       # native web build (cloud-validated) + both native projects
 npm run cap:android    # sync and open Android Studio
 npm run cap:ios        # sync and open Xcode (macOS only)
 npm run android:debug  # build a debug APK
@@ -279,6 +281,27 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 
 The GitHub workflow `.github/workflows/build-android.yml` runs tests, syncs Capacitor, builds the APK, creates a SHA-256 checksum, and uploads both as a 14-day Actions artifact on pushes, pull requests, and manual dispatches.
 
+### Cloud-configured debug APK in GitHub Actions
+
+The workflow `.github/workflows/build-android.yml` builds the APK that testers should install. Configure these **Repository variables** (Settings → Secrets and variables → Actions → **Variables** tab; they are public, browser-safe values):
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `VITE_SUPABASE_URL` | **Yes** | `https://<project-ref>.supabase.co`. The job fails before building if it is missing or invalid. |
+| `VITE_SUPABASE_ANON_KEY` | **Yes** | The Supabase **publishable** (or legacy anon) key. The job rejects service-role and `sb_secret_` keys. |
+| `VITE_PUBLIC_APP_URL` | Recommended | `https://www.getyere.com`. Defaults to that origin for native links. |
+| `VITE_VAPID_PUBLIC_KEY` | Recommended | Same value as the Supabase `VAPID_PUBLIC_KEY` secret. Used for web push only. |
+
+Optional **Repository secret** for Android push:
+
+| Secret | Notes |
+| --- | --- |
+| `GOOGLE_SERVICES_JSON_B64` | Base64 of the Firebase **Android client** `google-services.json` for `com.getyere.app`. Create it locally and store it without printing it: `base64 -w0 android/app/google-services.json \| gh secret set GOOGLE_SERVICES_JSON_B64 --repo YungChuckTaylor/getyere`. Without it the APK still builds, the run summary says push is disabled, and Android push will not work. |
+
+The pipeline runs in this order: validate configuration → tests → optional Firebase config (validated; service-account JSON is rejected) → `npm run build:native` → verify the built web assets contain the Supabase URL and no placeholder or server-only values → `cap sync` → verify synced assets → Gradle `assembleDebug` → verify the APK's bundled assets → SHA-256 → upload. A failed gate stops the run, so no APK is uploaded unless it is cloud-configured.
+
+Never commit `google-services.json`, a Firebase service-account key, a signing keystore, or `keystore.properties`. The ignore rules block these files, and the workflow never uploads them.
+
 ### Signed Play bundle
 
 Do not commit a keystore or `keystore.properties`. Generate and back up the release key outside Git, configure a local/CI Gradle signing config, then run:
@@ -295,7 +318,7 @@ A signed iOS archive requires macOS, the current App Store-supported Xcode (Xcod
 
 ```bash
 npm ci
-npm run build
+npm run build:native   # cloud-configured native bundle (requires VITE_SUPABASE_* variables)
 npx cap sync ios
 npx cap open ios
 ```
@@ -313,6 +336,11 @@ The native app includes more than a web wrapper: native auth/token storage, push
 
 ## 12. Mobile troubleshooting
 
+- **Workflow fails at “Validate cloud configuration”:** add the missing repository variable(s) named in the log, then re-run. The log names the variable, never its value.
+- **Installed app says “Yere can’t connect yet”:** this build was produced without a valid Supabase configuration. Install the APK from a successful cloud-configured run.
+- **The app shows sample people such as Tunde or Amina:** that APK was built before this fix (it was a demo build). Uninstall it, then install the new artifact. The app now removes legacy demo storage on launch.
+- **Sign-in works but reminders do not sync:** confirm the Supabase migrations and Edge Functions in the backend checklist below are deployed to the same project as `VITE_SUPABASE_URL`.
+
 - **`Could not find installation of TypeScript`:** run `npm ci`; TypeScript is a checked-in development dependency required to read `capacitor.config.ts`.
 - **Capacitor major-version mismatch:** all `@capacitor/*` and `@capgo/capacitor-supabase` packages must use major version 8. Run `npx cap doctor`, then `npx cap sync`.
 - **Android asks for Java 21 or fails at `compileSdk`:** select JDK 21 and install Android SDK Platform 36 plus matching build tools. Do not lower SDK values to hide the error.
@@ -325,3 +353,14 @@ The native app includes more than a web wrapper: native auth/token storage, push
 - **Deep/universal link opens a browser:** validate the hosted AASA/asset-links files over HTTPS with no redirect, signing team/fingerprint, entitlements/manifest, and Supabase redirect allowlist. The `yere://` custom scheme remains a fallback.
 - **Xcode archive lacks capabilities:** select the real team and App ID, refresh profiles, ensure `App/App.entitlements` is the Code Signing Entitlements file, and verify the profile includes Push, Associated Domains, and Sign in with Apple.
 - **Store review says “repackaged website”:** include the native functionality above in review notes and give the reviewer working steps for push actions, offline editing, deep links, account deletion, and native authentication.
+
+## 13. Backend deployment checklist for the native apps
+
+The native app uses the same Supabase project as the web app. Before testing a new APK against production, confirm each item in **Supabase → project for `VITE_SUPABASE_URL`**:
+
+1. **Migrations applied, in order:** `202610120001_yere_core.sql`, then `202610150001_native_mobile.sql` (`npx supabase db push` or the SQL editor). The native migration adds the native push-token RPC `register_native_push_token`, the `detach_deleted_yere_user` account cleanup, and the provider constraint for `webpush`, `fcm`, and `apns`.
+2. **Edge Functions deployed:** `create-contact-invite`, `redeem-contact-invite`, `revoke-contact-invite`, `create-delegated-reminder`, `test-notification`, `delete-account` (required by Settings → Account & data), and `dispatch-reminders` (`--no-verify-jwt`).
+3. **Auth settings:** email/password enabled; Site URL `https://www.getyere.com`; redirect URLs include `yere://**` and `https://www.getyere.com/**`.
+4. **Cron:** run `supabase/schedule-reminders.sql.example` after replacing its placeholders, so reminders are dispatched every minute.
+5. **Edge Function secrets:** `PUBLIC_APP_URL`, `YERE_CRON_SECRET`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, and for Android push `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`. For iOS push, `APNS_KEY_ID`, `APNS_TEAM_ID`, `APNS_PRIVATE_KEY`, `APNS_BUNDLE_ID`, `APNS_USE_SANDBOX`.
+6. **Smoke test on a device:** create an account from the APK, confirm the email if required, create a reminder, toggle airplane mode, edit a reminder, reconnect, and confirm the change appears on the web app.

@@ -1,24 +1,21 @@
 import './style.css';
 import { createClient } from '@supabase/supabase-js';
 import { nativeBridge } from './native.js';
+import { resolveRuntimeConfig } from './config.js';
 
-const url = (import.meta.env.VITE_SUPABASE_URL || '').trim();
-const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
-const configured = Boolean(url && anonKey && !url.includes('YOUR_PROJECT_REF') && !anonKey.includes('YOUR_'));
-
-window.YERE_ENV = {
-  supabaseConfigured: configured,
-  vapidPublicKey: (import.meta.env.VITE_VAPID_PUBLIC_KEY || '').trim(),
-  publicAppUrl: (import.meta.env.VITE_PUBLIC_APP_URL || (nativeBridge.enabled ? 'https://www.getyere.com' : window.location.origin)).trim(),
-  native: nativeBridge.enabled,
-  platform: nativeBridge.platform
-};
-window.YERE_NATIVE = nativeBridge;
-
+// Vite inlines these public VITE_ values at build time. Nothing else from the environment is read.
+const runtime = resolveRuntimeConfig({
+  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
+  VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  VITE_VAPID_PUBLIC_KEY: import.meta.env.VITE_VAPID_PUBLIC_KEY,
+  VITE_PUBLIC_APP_URL: import.meta.env.VITE_PUBLIC_APP_URL
+}, { native: nativeBridge.enabled });
 let client = null;
-if (configured) {
+let clientError = '';
+
+if (runtime.configured) {
   try {
-    client = createClient(url, anonKey, {
+    client = createClient(runtime.url, runtime.anonKey, {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
@@ -29,13 +26,31 @@ if (configured) {
     });
     window.yereSupabase = client;
   } catch (error) {
-    console.error('Yere could not initialize Supabase.', error);
+    clientError = 'Yere could not initialize its cloud client.';
+    console.error(clientError, error);
   }
 }
 
+// The mode is derived from the client that actually exists. A native build without a
+// working client must never fall back to demo data.
+const errors = [...runtime.errors, ...(clientError ? [clientError] : [])];
+const mode = client ? runtime.mode : (runtime.native ? 'native-blocked' : 'web-demo');
+
+window.YERE_ENV = {
+  mode,
+  errors,
+  warnings: runtime.warnings,
+  supabaseConfigured: Boolean(client),
+  vapidPublicKey: runtime.vapidPublicKey,
+  publicAppUrl: runtime.publicAppUrl || (nativeBridge.enabled ? 'https://www.getyere.com' : window.location.origin),
+  native: nativeBridge.enabled,
+  platform: nativeBridge.platform
+};
+window.YERE_NATIVE = nativeBridge;
+
 window.yereNativeReady = nativeBridge.initialize({
-  supabaseUrl: configured ? url : '',
-  supabaseKey: configured ? anonKey : '',
+  supabaseUrl: client ? runtime.url : '',
+  supabaseKey: client ? runtime.anonKey : '',
   client
 }).catch((error) => {
   // Keep the web client usable if a native SDK is temporarily unavailable.
