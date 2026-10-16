@@ -10,8 +10,11 @@ import {
   EDGE_FUNCTIONS,
   NATIVE_MIGRATION_COLUMNS,
   describeKeyFormat,
+  isGatewayRejection,
+  snippet,
   verifyBackend
 } from '../scripts/verify-backend.mjs';
+import { resolveRuntimeConfig, supabaseKeyExpiry } from '../src/config.js';
 import { checkManifest, checkPluginRegistry, SPEECH_PLUGIN } from '../scripts/verify-native-voice.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -22,6 +25,7 @@ const URL_OK = `https://${REF}.supabase.co`;
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
 const ANON_KEY = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ iss: 'supabase', ref: REF, role: 'anon', iat: 1700000000, exp: 2000000000 })}.signature`;
 const PUBLISHABLE_KEY = 'sb_publishable_LocalTestOnly0000000';
+const CLOUD_ANON_KEY_NAME = 'VITE_SUPABASE_ANON_KEY';
 
 function cleanEnv(extra = {}) {
   return { PATH: process.env.PATH || '', HOME: process.env.HOME || '', NODE_ENV: 'test', ...extra };
@@ -208,6 +212,45 @@ test('a REST API that refuses both header styles is reported as inconclusive, no
   assert.deepEqual(report.missing, []);
   assert.ok(report.unknown.some((item) => /Postgres REST API answered HTTP 401/.test(item)));
   assert.equal(report.ok, false);
+});
+
+test('response excerpts are redacted and gateway rejections are told apart from a function\'s own 401', () => {
+  assert.equal(snippet('{"message":"Missing JWT","status":401}'), '{"message":"Missing JWT","status":401}');
+  assert.equal(snippet('eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.sig and sb_publishable_AbCd1234'), '[redacted-token].sig and [redacted-key]');
+  assert.ok(snippet('x'.repeat(500)).length <= 140);
+  assert.equal(isGatewayRejection(401, '{"message":"Missing JWT"}'), true);
+  assert.equal(isGatewayRejection(401, '{"message":"JWT expired"}'), true);
+  assert.equal(isGatewayRejection(401, '{"error":"Sign in to create an invitation."}'), false);
+  assert.equal(isGatewayRejection(404, '{"message":"Missing JWT"}'), false);
+});
+
+test('a project that rejects the public key at the gateway reports "unconfirmed", never "deployed"', async () => {
+  const rejecting = async () => ({ status: 401, ok: false, text: async () => '{"message":"Missing JWT","status":401}' });
+  const report = await verifyBackend({ url: URL_OK, anonKey: ANON_KEY, fetchImpl: rejecting });
+  for (const fn of EDGE_FUNCTIONS) {
+    assert.ok(report.unknown.some((item) => item.includes(`Edge Function ${fn.name} answered HTTP 401 at the gateway`)), `${fn.name} is unconfirmed`);
+    assert.ok(!report.present.some((item) => item.includes(`Edge Function ${fn.name} is deployed`)));
+  }
+  assert.ok(report.unknown.some((item) => item.includes('The gateway rejected the public key itself')));
+  assert.equal(report.ok, false);
+});
+
+test('an expired legacy anon key is reported as a blocking gap and as a build warning', async () => {
+  const expiredKey = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ iss: 'supabase', ref: REF, role: 'anon', iat: 1600000000, exp: 1600000001 })}.signature`;
+  const info = supabaseKeyExpiry(expiredKey);
+  assert.equal(info.format, 'jwt');
+  assert.equal(info.expired, true);
+  assert.equal(supabaseKeyExpiry(PUBLISHABLE_KEY).expired, false);
+  assert.equal(supabaseKeyExpiry(PUBLISHABLE_KEY).format, 'publishable');
+
+  const runtime = resolveRuntimeConfig({ VITE_SUPABASE_URL: URL_OK, VITE_SUPABASE_ANON_KEY: expiredKey }, { native: true });
+  assert.equal(runtime.configured, true, 'an expired key is still well-formed, so the build is not blocked silently');
+  assert.ok(runtime.warnings.some((warning) => warning.includes('EXPIRED')), 'but it warns loudly');
+
+  const { fetchImpl } = fakeSupabase();
+  const report = await verifyBackend({ url: URL_OK, anonKey: expiredKey, fetchImpl });
+  assert.ok(report.missing.some((item) => item.includes('EXPIRED') && item.includes(CLOUD_ANON_KEY_NAME)), 'the backend report names the expired key');
+  assert.ok(!JSON.stringify(report).includes(expiredKey), 'the expired key itself is never printed');
 });
 
 // ---------- Native voice bundling ----------

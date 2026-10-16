@@ -17,7 +17,7 @@
 //   node scripts/verify-backend.mjs --summary       # GitHub step-summary markdown
 //   YERE_SKIP_BACKEND_CHECK=1 node scripts/verify-backend.mjs   # opt out (prints a notice)
 
-import { CLOUD_ENV_KEYS, validateSupabaseConfig } from '../src/config.js';
+import { CLOUD_ENV_KEYS, supabaseKeyExpiry, validateSupabaseConfig } from '../src/config.js';
 
 /** Tables created by supabase/migrations/202610120001_yere_core.sql. */
 export const CORE_TABLES = [
@@ -104,6 +104,22 @@ async function probeGet(fetchImpl, url, path, key, init = {}, timeoutMs = 12000,
   return first;
 }
 
+/** A short, safe excerpt of a response body: no tokens, no key material, no long payloads. */
+export function snippet(body) {
+  return String(body || '')
+    .replace(/eyJ[A-Za-z0-9_-]{8,}(\.[A-Za-z0-9_-]{4,}){0,2}/g, '[redacted-token]')
+    .replace(/sb_(publishable|secret)_[A-Za-z0-9_-]+/g, '[redacted-key]')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 140);
+}
+
+/** True when a 401/403 came from Supabase's gateway rather than from a Yere Edge Function. */
+export function isGatewayRejection(status, body) {
+  if (status !== 401 && status !== 403) return false;
+  return /missing jwt|invalid jwt|jwt expired|jwt invalid|no authorization|api ?key|invalid api key|token is expired/i.test(String(body || ''));
+}
+
 function tablesFromSpec(spec) {
   if (!spec || typeof spec !== 'object') return { tables: [], columns: {} };
   const definitions = spec.definitions && typeof spec.definitions === 'object' ? spec.definitions : null;
@@ -142,13 +158,21 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
   // Edge Function probes keep both headers: the platform answers 401 for an unauthorized caller
   // and 404 for a function that is not deployed, which is exactly the difference we need.
   const headers = { apikey: key, authorization: `Bearer ${key}` };
+  const keyInfo = supabaseKeyExpiry(key);
+  if (keyInfo.expired) {
+    report.missing.push(`${CLOUD_ENV_KEYS.anonKey} is a legacy anon JWT that EXPIRED on ${keyInfo.expiresAt.toISOString()}. Every request below (and every request the app makes) will be rejected with 401 until the repository variable is replaced with the current publishable/anon key from Project Settings → API.`);
+  }
 
   // 1. Migrations: tables and native columns from the PostgREST schema cache.
   const spec = await probeGet(fetchImpl, projectUrl, '/rest/v1/', key, { headers: { accept: 'application/json' } }, timeoutMs, 4_000_000);
   if (spec.status === 0) {
     report.unknown.push(`Postgres REST API is unreachable (${spec.error}). Migrations could not be verified from here.`);
   } else if (!spec.ok) {
-    report.unknown.push(`Postgres REST API answered HTTP ${spec.status} for both the apikey+bearer and apikey-only requests, so migrations could not be verified from here. Check them in Supabase → Database → Migrations, or re-run with a legacy anon JWT.`);
+    const detail = snippet(spec.body);
+    report.unknown.push(`Postgres REST API answered HTTP ${spec.status} for both the apikey+bearer and apikey-only requests${detail ? ` (${detail})` : ''}, so migrations could not be verified from here. ` +
+      (isGatewayRejection(spec.status, spec.body)
+        ? 'The gateway rejected the public key itself: it is expired, revoked, or belongs to a different project. Replace VITE_SUPABASE_ANON_KEY, then re-run.'
+        : 'Check them in Supabase → Database → Migrations.'));
   } else {
     let parsed = null;
     try {
@@ -192,8 +216,10 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
       || (result.status >= 400 && /function not found|no such function|edge function.*not found/i.test(result.body));
     if (looksMissing) {
       report.missing.push(`Edge Function ${fn.name} is not deployed (HTTP ${result.status}; ${fn.usedBy}). ${DEPLOY_HINTS.functions}`);
+    } else if (isGatewayRejection(result.status, result.body)) {
+      report.unknown.push(`Edge Function ${fn.name} answered HTTP ${result.status} at the gateway (${snippet(result.body)}), so its deployment could not be confirmed. The public key was rejected; replace it and re-run.`);
     } else {
-      report.present.push(`Edge Function ${fn.name} is deployed (answered HTTP ${result.status} to an unauthenticated probe, as expected).`);
+      report.present.push(`Edge Function ${fn.name} is deployed (answered HTTP ${result.status} to an unauthenticated probe: ${snippet(result.body) || 'rejected before touching data'}).`);
     }
   }
 
@@ -202,7 +228,7 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
   if (auth.status === 0) {
     report.unknown.push(`Auth settings could not be reached (${auth.error}).`);
   } else if (!auth.ok) {
-    report.unknown.push(`Auth settings answered HTTP ${auth.status}; confirm email sign-up manually.`);
+    report.unknown.push(`Auth settings answered HTTP ${auth.status}${snippet(auth.body) ? ` (${snippet(auth.body)})` : ''}; confirm email sign-up manually.`);
   } else {
     try {
       const settings = JSON.parse(auth.body);
@@ -232,7 +258,7 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
   } else if (bucket.status === 404) {
     report.missing.push(`Storage bucket ${ATTACHMENT_BUCKET} is missing; private attachments will fail. ${DEPLOY_HINTS.bucket}`);
   } else {
-    report.unknown.push(`Storage bucket ${ATTACHMENT_BUCKET} answered HTTP ${bucket.status || 'no response'}; it is private, so confirm it in Storage → Buckets.`);
+    report.unknown.push(`Storage bucket ${ATTACHMENT_BUCKET} answered HTTP ${bucket.status || 'no response'}${snippet(bucket.body) ? ` (${snippet(bucket.body)})` : ''}; it is private, so confirm it in Storage → Buckets.`);
   }
 
   report.notes.push(`Public key format: ${describeKeyFormat(key)}. Project URL: ${projectUrl}.`);

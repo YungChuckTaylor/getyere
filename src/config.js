@@ -86,6 +86,28 @@ export function validateSupabaseConfig({ url, anonKey } = {}) {
   return errors;
 }
 
+/**
+ * Inspects the public key's lifetime without exposing it. A legacy Supabase anon JWT carries an
+ * `exp` claim; when it has passed, Postgres/REST calls are rejected with 401 even though the value
+ * still looks correctly configured, so sign-in and sync silently fail in a shipped app.
+ * Publishable keys (sb_publishable_...) do not expire.
+ */
+export function supabaseKeyExpiry(anonKey) {
+  const key = clean(anonKey);
+  if (!key) return { format: 'missing', expiresAt: null, expired: false, role: '' };
+  if (key.startsWith('sb_publishable_')) return { format: 'publishable', expiresAt: null, expired: false, role: '' };
+  if (key.startsWith('sb_secret_')) return { format: 'secret', expiresAt: null, expired: false, role: 'service' };
+  const payload = decodeJwtPayload(key);
+  if (!payload) return { format: 'unknown', expiresAt: null, expired: false, role: '' };
+  const expiresAt = Number.isFinite(payload.exp) ? new Date(payload.exp * 1000) : null;
+  return {
+    format: 'jwt',
+    expiresAt,
+    expired: Boolean(expiresAt && expiresAt.getTime() <= Date.now()),
+    role: typeof payload.role === 'string' ? payload.role : ''
+  };
+}
+
 /** Non-blocking advice for optional browser values. */
 export function optionalConfigWarnings({ vapidPublicKey, publicAppUrl } = {}) {
   const warnings = [];
@@ -124,10 +146,17 @@ export function resolveRuntimeConfig(env = {}, { native = false } = {}) {
     native,
     configured,
     errors,
-    warnings: optionalConfigWarnings({
-      vapidPublicKey: env[CLOUD_ENV_KEYS.vapidPublicKey],
-      publicAppUrl: env[CLOUD_ENV_KEYS.publicAppUrl]
-    }),
+    warnings: [
+      ...optionalConfigWarnings({
+        vapidPublicKey: env[CLOUD_ENV_KEYS.vapidPublicKey],
+        publicAppUrl: env[CLOUD_ENV_KEYS.publicAppUrl]
+      }),
+      ...(supabaseKeyExpiry(anonKey).expired
+        ? [`${CLOUD_ENV_KEYS.anonKey} is a legacy anon JWT that EXPIRED on ${supabaseKeyExpiry(anonKey).expiresAt.toISOString()}. ` +
+           'The build still succeeds, but Supabase will reject every request with 401, so sign-in and sync will not work. ' +
+           'Replace it with the current publishable/anon key from Project Settings → API.']
+        : [])
+    ],
     url: configured ? url : '',
     anonKey: configured ? anonKey : '',
     vapidPublicKey: clean(env[CLOUD_ENV_KEYS.vapidPublicKey]),
