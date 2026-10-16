@@ -62,6 +62,15 @@ function trim(value) {
   return typeof value === 'string' ? value.trim() : '';
 }
 
+/** Names the public key format without ever printing key material. */
+export function describeKeyFormat(key) {
+  const value = trim(key);
+  if (value.startsWith('sb_publishable_')) return 'Supabase publishable key (sb_publishable_...)';
+  if (value.startsWith('sb_secret_')) return 'Supabase SECRET key (must never be used in a client build)';
+  if (value.split('.').length === 3) return 'legacy Supabase anon JWT';
+  return 'unrecognised key format';
+}
+
 async function probe(fetchImpl, url, path, init = {}, timeoutMs = 12000, maxBody = 4000) {
   try {
     const response = await fetchImpl(`${url}${path}`, {
@@ -73,6 +82,26 @@ async function probe(fetchImpl, url, path, init = {}, timeoutMs = 12000, maxBody
   } catch (error) {
     return { status: 0, body: '', ok: false, error: String(error?.message || error) };
   }
+}
+
+/**
+ * GET probe that tolerates both key formats. Supabase's gateway rejects an Authorization header
+ * that is not a JWT, so a new publishable key (sb_publishable_...) sent as a bearer token can be
+ * answered with 401 even though the apikey is valid. Retrying with apikey only turns those
+ * inconclusive 401s into real answers.
+ */
+async function probeGet(fetchImpl, url, path, key, init = {}, timeoutMs = 12000, maxBody = 4000) {
+  const first = await probe(fetchImpl, url, path, {
+    ...init,
+    headers: { apikey: key, authorization: `Bearer ${key}`, ...(init.headers || {}) }
+  }, timeoutMs, maxBody);
+  if (first.status !== 401 && first.status !== 403) return first;
+  const retry = await probe(fetchImpl, url, path, {
+    ...init,
+    headers: { apikey: key, ...(init.headers || {}) }
+  }, timeoutMs, maxBody);
+  if (retry.status !== 401 && retry.status !== 403) return { ...retry, retriedWithoutBearer: true };
+  return first;
 }
 
 function tablesFromSpec(spec) {
@@ -110,21 +139,16 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
     return report;
   }
 
+  // Edge Function probes keep both headers: the platform answers 401 for an unauthorized caller
+  // and 404 for a function that is not deployed, which is exactly the difference we need.
   const headers = { apikey: key, authorization: `Bearer ${key}` };
 
   // 1. Migrations: tables and native columns from the PostgREST schema cache.
-  const spec = await probe(
-    fetchImpl,
-    projectUrl,
-    '/rest/v1/',
-    { headers: { ...headers, accept: 'application/json' } },
-    timeoutMs,
-    4_000_000
-  );
+  const spec = await probeGet(fetchImpl, projectUrl, '/rest/v1/', key, { headers: { accept: 'application/json' } }, timeoutMs, 4_000_000);
   if (spec.status === 0) {
     report.unknown.push(`Postgres REST API is unreachable (${spec.error}). Migrations could not be verified from here.`);
   } else if (!spec.ok) {
-    report.unknown.push(`Postgres REST API answered ${spec.status}; migrations could not be verified with the publishable key.`);
+    report.unknown.push(`Postgres REST API answered HTTP ${spec.status} for both the apikey+bearer and apikey-only requests, so migrations could not be verified from here. Check them in Supabase → Database → Migrations, or re-run with a legacy anon JWT.`);
   } else {
     let parsed = null;
     try {
@@ -174,7 +198,7 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
   }
 
   // 3. Auth settings the sign-in/create-account flow depends on.
-  const auth = await probe(fetchImpl, projectUrl, '/auth/v1/settings', { headers }, timeoutMs);
+  const auth = await probeGet(fetchImpl, projectUrl, '/auth/v1/settings', key, {}, timeoutMs);
   if (auth.status === 0) {
     report.unknown.push(`Auth settings could not be reached (${auth.error}).`);
   } else if (!auth.ok) {
@@ -202,7 +226,7 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
   }
 
   // 4. Private attachment bucket. RLS means an anonymous probe can be refused even when it exists.
-  const bucket = await probe(fetchImpl, projectUrl, `/storage/v1/bucket/${ATTACHMENT_BUCKET}`, { headers }, timeoutMs);
+  const bucket = await probeGet(fetchImpl, projectUrl, `/storage/v1/bucket/${ATTACHMENT_BUCKET}`, key, {}, timeoutMs);
   if (bucket.status === 200) {
     report.present.push(`Storage bucket ${ATTACHMENT_BUCKET} exists.`);
   } else if (bucket.status === 404) {
@@ -211,6 +235,7 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
     report.unknown.push(`Storage bucket ${ATTACHMENT_BUCKET} answered HTTP ${bucket.status || 'no response'}; it is private, so confirm it in Storage → Buckets.`);
   }
 
+  report.notes.push(`Public key format: ${describeKeyFormat(key)}. Project URL: ${projectUrl}.`);
   report.notes.push(DEPLOY_HINTS.cron);
   // "ok" means every probe answered and nothing is missing. A network failure leaves items in
   // `unknown` so a caller can tell "verified" from "could not be verified from here".

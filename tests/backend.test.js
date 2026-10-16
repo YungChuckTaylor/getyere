@@ -9,6 +9,7 @@ import {
   CORE_TABLES,
   EDGE_FUNCTIONS,
   NATIVE_MIGRATION_COLUMNS,
+  describeKeyFormat,
   verifyBackend
 } from '../scripts/verify-backend.mjs';
 import { checkManifest, checkPluginRegistry, SPEECH_PLUGIN } from '../scripts/verify-native-voice.mjs';
@@ -20,13 +21,14 @@ const REF = 'backendcheck00000000';
 const URL_OK = `https://${REF}.supabase.co`;
 const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
 const ANON_KEY = `${encode({ alg: 'HS256', typ: 'JWT' })}.${encode({ iss: 'supabase', ref: REF, role: 'anon', iat: 1700000000, exp: 2000000000 })}.signature`;
+const PUBLISHABLE_KEY = 'sb_publishable_LocalTestOnly0000000';
 
 function cleanEnv(extra = {}) {
   return { PATH: process.env.PATH || '', HOME: process.env.HOME || '', NODE_ENV: 'test', ...extra };
 }
 
 /** Builds a fake fetch that answers like a Supabase project with the given gaps. */
-function fakeSupabase({ missingFunctions = [], tables = CORE_TABLES, nativeColumns = NATIVE_MIGRATION_COLUMNS.columns, signupDisabled = false, bucketStatus = 200 } = {}) {
+function fakeSupabase({ missingFunctions = [], tables = CORE_TABLES, nativeColumns = NATIVE_MIGRATION_COLUMNS.columns, signupDisabled = false, bucketStatus = 200, rejectBearer = false } = {}) {
   const requests = [];
   const spec = {
     definitions: Object.fromEntries(tables.map((table) => [
@@ -36,7 +38,11 @@ function fakeSupabase({ missingFunctions = [], tables = CORE_TABLES, nativeColum
   };
   const respond = (status, body) => ({ status, ok: status >= 200 && status < 300, text: async () => body });
   const fetchImpl = async (url, init = {}) => {
-    requests.push({ url, method: init.method || 'GET', headers: init.headers || {}, body: init.body });
+    const headers = init.headers || {};
+    requests.push({ url, method: init.method || 'GET', headers, body: init.body });
+    const isGet = (init.method || 'GET') === 'GET';
+    // A gateway that refuses a non-JWT bearer token but accepts apikey-only requests.
+    if (rejectBearer && isGet && headers.authorization) return respond(401, JSON.stringify({ message: 'Missing JWT' }));
     if (url.endsWith('/rest/v1/')) return respond(200, JSON.stringify(spec));
     if (url.includes('/functions/v1/')) {
       const name = url.split('/functions/v1/')[1];
@@ -155,6 +161,53 @@ test('CI runs the backend check read-only, before the build, and it cannot block
   assert.match(stepBlock, /GITHUB_STEP_SUMMARY/, 'the result is published on the run summary');
   assert.doesNotMatch(stepBlock, /--strict/);
   assert.doesNotMatch(workflow, /SUPABASE_SERVICE_ROLE_KEY|service_role|ACCESS_TOKEN/);
+});
+
+test('a publishable key that the gateway rejects as a bearer token is retried with apikey only', async () => {
+  const { fetchImpl, requests } = fakeSupabase({ rejectBearer: true });
+  const report = await verifyBackend({ url: URL_OK, anonKey: PUBLISHABLE_KEY, fetchImpl });
+  assert.deepEqual(report.missing, [], JSON.stringify(report.missing));
+  assert.ok(report.present.some((line) => line.includes('Core migration applied')), 'migrations are verified after the retry');
+  assert.ok(report.present.some((line) => line.includes('Native migration applied')));
+  assert.ok(report.present.some((line) => line.includes('Email sign-up is enabled')));
+  const restRequests = requests.filter((request) => request.url.endsWith('/rest/v1/'));
+  assert.equal(restRequests.length, 2, 'exactly one retry');
+  assert.ok(restRequests[0].headers.authorization, 'the first attempt sends both headers');
+  assert.equal(restRequests[1].headers.authorization, undefined, 'the retry uses apikey only');
+  assert.equal(restRequests[1].headers.apikey, PUBLISHABLE_KEY);
+  assert.ok(!JSON.stringify(report).includes(PUBLISHABLE_KEY), 'the key is never echoed back');
+});
+
+test('the key format is named for diagnosis without printing any key material', async () => {
+  assert.equal(describeKeyFormat(PUBLISHABLE_KEY), 'Supabase publishable key (sb_publishable_...)');
+  assert.equal(describeKeyFormat(ANON_KEY), 'legacy Supabase anon JWT');
+  assert.equal(describeKeyFormat('sb_secret_AbCdEf0123456789'), 'Supabase SECRET key (must never be used in a client build)');
+  assert.equal(describeKeyFormat('nonsense'), 'unrecognised key format');
+
+  const { fetchImpl } = fakeSupabase();
+  const report = await verifyBackend({ url: URL_OK, anonKey: PUBLISHABLE_KEY, fetchImpl });
+  const note = report.notes.find((line) => line.includes('Public key format'));
+  assert.ok(note, 'the report names the key format');
+  assert.ok(!note.includes(PUBLISHABLE_KEY));
+  assert.doesNotMatch(JSON.stringify(report), /sb_publishable_[A-Za-z0-9]{5,}/);
+});
+
+test('a REST API that refuses both header styles is reported as inconclusive, not as missing migrations', async () => {
+  const report = await verifyBackend({
+    url: URL_OK,
+    anonKey: PUBLISHABLE_KEY,
+    fetchImpl: async (url, init = {}) => {
+      if (url.endsWith('/rest/v1/')) return { status: 401, ok: false, text: async () => 'Missing JWT' };
+      if (url.includes('/functions/v1/')) return { status: 401, ok: false, text: async () => '' };
+      if (url.includes('/auth/v1/settings')) return { status: 401, ok: false, text: async () => '' };
+      if (url.includes('/storage/v1/bucket/')) return { status: 401, ok: false, text: async () => '' };
+      void init;
+      return { status: 404, ok: false, text: async () => '' };
+    }
+  });
+  assert.deepEqual(report.missing, []);
+  assert.ok(report.unknown.some((item) => /Postgres REST API answered HTTP 401/.test(item)));
+  assert.equal(report.ok, false);
 });
 
 // ---------- Native voice bundling ----------

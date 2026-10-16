@@ -415,7 +415,10 @@ It reads the PostgREST schema cache (tables and the columns added by the native 
 each Edge Function with an empty unauthenticated POST that every function rejects before touching
 data, reads `/auth/v1/settings`, and checks the attachment bucket. It uses only the two public values
 that are already in the client bundle, never writes, never prints the key, and reports anything it
-could not confirm as *unknown* rather than guessing. The Android workflow runs the same check on every
+could not confirm as *unknown* rather than guessing. Read-only GETs are sent with `apikey` plus a
+bearer token and retried with `apikey` alone, because Supabase's gateway rejects a new
+`sb_publishable_...` key presented as a JWT; an Edge Function that answers `404` is genuinely
+undeployed, while `401` means deployed and correctly refusing an anonymous caller. The Android workflow runs the same check on every
 build and publishes the result in the run summary (non-blocking, so a backend gap never stops an
 otherwise valid APK). Set `YERE_SKIP_BACKEND_CHECK=1` to skip it.
 
