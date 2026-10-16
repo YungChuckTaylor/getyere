@@ -15,7 +15,7 @@ enabled = true
 [auth]
 enabled = true
 site_url = "http://localhost:5173"
-additional_redirect_urls = ["http://localhost:5173/**", "http://127.0.0.1:5173/**", "https://getyere.app/**", "https://*.vercel.app/**"]
+additional_redirect_urls = ["http://localhost:5173/**", "http://127.0.0.1:5173/**", "https://www.getyere.com/**", "yere://**", "https://*.vercel.app/**"]
 jwt_expiry = 3600
 enable_signup = true
 enable_anonymous_sign_ins = false
@@ -43,6 +43,9 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.test-notification]
+verify_jwt = true
+
+[functions.delete-account]
 verify_jwt = true
 
 [functions.dispatch-reminders]

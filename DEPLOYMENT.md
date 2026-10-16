@@ -4,7 +4,7 @@ Yere is a Vite-built, installable PWA. The browser uses the Supabase **publishab
 
 ## 1. Run locally
 
-1. Install Node.js 20 or later.
+1. Install Node.js 22 or later.
 2. Copy `.env.example` to `.env.local` and fill the four browser variables described below. Leave the `VITE_*` Supabase values blank to use the local demo.
 3. Run:
 
@@ -20,7 +20,7 @@ Yere is a Vite-built, installable PWA. The browser uses the Supabase **publishab
 
 1. Create a Supabase project and keep its project URL, project reference, publishable/anon key, and service-role key in a secure password manager.
 2. In **Authentication → Providers → Email**, enable email/password sign-up. For production, enable email confirmation and configure a verified custom SMTP provider; the built-in test mail service is not intended for production traffic.
-3. In **Authentication → URL Configuration**, set the production Site URL (for example `https://getyere.app`) and add redirect URLs for local development, the production domain, and Vercel preview URLs. Keep the list limited to domains you control.
+3. In **Authentication → URL Configuration**, set the production Site URL (for example `https://www.getyere.com`) and add redirect URLs for local development, the production domain, and Vercel preview URLs. Keep the list limited to domains you control.
 4. Apply the versioned schema in `supabase/migrations/`:
 
    ```bash
@@ -39,6 +39,7 @@ Yere is a Vite-built, installable PWA. The browser uses the Supabase **publishab
    npx supabase functions deploy revoke-contact-invite
    npx supabase functions deploy create-delegated-reminder
    npx supabase functions deploy test-notification
+   npx supabase functions deploy delete-account
    npx supabase functions deploy dispatch-reminders
    ```
 
@@ -53,7 +54,7 @@ Set server-side secrets in **Supabase → Edge Functions → Secrets** (or with 
 | `SUPABASE_URL` | Supabase-provided | Supabase project URL for Edge Functions. |
 | `SUPABASE_ANON_KEY` | Supabase-provided | Validates caller sessions inside the functions. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase-provided, server only | Admin access used only after Edge Function authorization checks. |
-| `PUBLIC_APP_URL` | Yes | Canonical HTTPS app origin used in secure invite and reminder links, e.g. `https://getyere.app`. |
+| `PUBLIC_APP_URL` | Yes | Canonical HTTPS app origin used in secure invite and reminder links, e.g. `https://www.getyere.com`. |
 | `YERE_CRON_SECRET` | Yes for scheduled delivery | Random secret shared with the pg_cron Vault entry. Generate with `openssl rand -hex 32`. |
 | `RESEND_API_KEY` | For email invites/reminders | Resend API key for sending messages. |
 | `RESEND_FROM_EMAIL` | For email invites/reminders | A sender identity verified with Resend, e.g. `Yere <reminders@your-domain.ng>`. |
@@ -62,7 +63,7 @@ Set server-side secrets in **Supabase → Edge Functions → Secrets** (or with 
 | `TWILIO_FROM_NUMBER` | For SMS invitations | Twilio-enabled number in E.164 format. |
 | `VAPID_PUBLIC_KEY` | For background web push | Public Web Push application-server key. It must match the browser value below. |
 | `VAPID_PRIVATE_KEY` | For background web push | Private Web Push key; server only. |
-| `VAPID_SUBJECT` | Recommended for web push | Contact URI, e.g. `mailto:hello@getyere.app`. |
+| `VAPID_SUBJECT` | Recommended for web push | Contact URI, e.g. `mailto:hello@getyere.com`. |
 
 Supabase automatically provides its project URL and keys to Edge Functions in hosted projects. Check **Edge Functions → Secrets** before adding duplicate values. The service-role key bypasses RLS; restrict it to these functions and rotate it if it is ever exposed.
 
@@ -98,7 +99,7 @@ Set these in `.env.local` for local work and in **Vercel → Project → Setting
 | `VITE_SUPABASE_URL` | Public | `https://YOUR_PROJECT_REF.supabase.co` |
 | `VITE_SUPABASE_ANON_KEY` | Public | Supabase publishable/anon key (never the service-role key). |
 | `VITE_VAPID_PUBLIC_KEY` | Public, optional | Matching VAPID public key for push subscriptions. |
-| `VITE_PUBLIC_APP_URL` | Public, optional | `https://getyere.app`; used as the displayed canonical origin. |
+| `VITE_PUBLIC_APP_URL` | Public, optional | `https://www.getyere.com`; used as the displayed canonical origin. |
 
 The browser variables are embedded at build time. A change requires a new Vercel deployment. If Supabase variables are missing, Yere deliberately starts in local-demo mode and clearly warns that demo invitations are not safe to share. Nigeria holiday skipping includes fixed-date holidays and calculated Easter dates; Islamic-calendar dates are estimates and may differ from the Federal Government’s moon-sighting announcement, so adjust a recurrence when an official date is published.
 
@@ -119,7 +120,7 @@ The browser variables are embedded at build time. A change requires a new Vercel
 5. In **Settings → Git**, set `main` as the Production Branch and leave Preview Deployments enabled. Vercel’s Git integration will create preview deployments for pull requests and production deployments for pushes/merges to `main`.
 6. Verify **Deployments** shows a successful build after the first import. Push a harmless documentation change to a PR to confirm a preview deployment; merge it to the production branch to confirm an automatic production build. No GitHub Actions secret or manually copied deployment token is required.
 7. To roll back, open **Deployments**, select the last known-good production deployment, and choose **Promote to Production** or use Vercel’s instant rollback control. Fix the branch and redeploy after the rollback.
-8. Optional: add `getyere.app` (or the domain you control) under **Settings → Domains**, configure the DNS records Vercel provides, then update Supabase Auth URLs and `PUBLIC_APP_URL` to the final HTTPS origin.
+8. Optional: add `www.getyere.com` (or the domain you control) under **Settings → Domains**, configure the DNS records Vercel provides, then update Supabase Auth URLs and `PUBLIC_APP_URL` to the final HTTPS origin.
 
 `vercel.json` serves the Vite output with service-worker/manifest cache headers. Vercel redeploys only after Git integration is configured in the project dashboard; this repository file alone cannot authorize a Vercel project.
 
@@ -160,3 +161,167 @@ Run the deployed app over HTTPS (or localhost for development), then verify:
 - [ ] Vercel contains only public browser values; no service-role, provider, or VAPID private key.
 - [ ] Production and preview Auth redirect URLs and `PUBLIC_APP_URL` match the intended HTTPS origins.
 - [ ] Cron, Edge Function logs, and delivery failures are reviewed before enabling real reminders.
+
+## 8. Capacitor mobile project
+
+The checked-in `capacitor.config.ts`, `android/`, and `ios/` projects wrap the same Vite application; there is no second mobile UI to keep in sync. Capacitor 8 requires Node 22, Java 21 for Android, Android SDK 36, and iOS 15 or later.
+
+Install and sync from the repository root:
+
+```bash
+npm ci
+npm run build
+npx cap sync
+```
+
+Useful scripts:
+
+```bash
+npm run cap:sync       # web build + both native projects
+npm run cap:android    # sync and open Android Studio
+npm run cap:ios        # sync and open Xcode (macOS only)
+npm run android:debug  # build a debug APK
+npm run android:bundle # build a release AAB (signing must be configured)
+```
+
+Always run `npx cap sync` after changing a plugin, `capacitor.config.ts`, or web assets. Generated copies under `android/app/src/main/assets/public` and `ios/App/App/public` are ignored; do not edit those copies. Edit `index.html`, `src/`, or `public/`, then sync.
+
+The native bridge in `src/native.js` provides:
+
+- native Supabase email/password auth and Sign in with Apple initiation through `@capgo/capacitor-supabase`, with its JWT mirrored into `supabase-js` for Realtime, Storage, and Edge Functions;
+- APNs/FCM registration, foreground delivery, notification taps, and reminder intents;
+- Android system-back handling, app/universal links, haptics, status-bar styling, and splash control;
+- connectivity monitoring with `@capacitor/network`; and
+- a private no-cloud Filesystem snapshot. Existing `cloudPending` state is the offline write queue, and Supabase remains authoritative after reconnect.
+
+Only the Supabase publishable/anon key is embedded. Never place a service-role key, Firebase service-account private key, APNs `.p8` key, release keystore, or signing password in the app bundle.
+
+### Native Supabase auth and links
+
+1. Apply every migration, including `202610150001_native_mobile.sql`, and deploy the `delete-account` Edge Function as well as the functions listed above.
+2. Add these exact Supabase Auth redirect URLs (adjust preview hosts as needed):
+   - `https://www.getyere.com/**`
+   - `yere://**`
+   - local and controlled Vercel preview URLs
+3. In Supabase Auth, enable Apple only after creating the Apple service identifier/key and adding Supabase's callback URL in Apple Developer. Email/password remains available on both platforms.
+4. For universal/app links, host the production `apple-app-site-association` and `assetlinks.json` files described in `docs/MOBILE_RELEASE.md`. Their team ID, certificate fingerprint, and package values cannot be placeholders.
+5. The account-deletion control is under **Settings → Account & data**. App Store and Play submissions should not remove or hide it.
+
+## 9. Native push setup
+
+The `push_subscriptions` table supports three providers: Web Push, FCM on Android, and APNs on iOS. The official Capacitor push plugin returns an FCM registration token on Android and an APNs device token on iOS, so the shared `sendPush` server path selects the correct transport. Do not send an APNs token to FCM.
+
+### Android / Firebase Cloud Messaging
+
+1. Create a Firebase project and Android app whose package is exactly `com.getyere.app`.
+2. Download `google-services.json` and put it at `android/app/google-services.json`. It is intentionally ignored by Git; provide it to CI through an encrypted secret if CI must produce a push-enabled build.
+3. In Firebase **Project settings → Service accounts**, create a least-privilege service account that can send Firebase Cloud Messaging messages. Store these values as Supabase Edge Function secrets:
+
+   ```bash
+   npx supabase secrets set \
+     FIREBASE_PROJECT_ID='your-project-id' \
+     FIREBASE_CLIENT_EMAIL='firebase-adminsdk-...@your-project.iam.gserviceaccount.com' \
+     FIREBASE_PRIVATE_KEY='-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n'
+   ```
+
+4. Keep the Android notification channel ID `yere_reminders`. `YereMessagingService` displays data-only high-priority messages with **Snooze 10 min**, **Done**, and **View** actions and forwards token/message events to the official Capacitor plugin.
+5. Test on a physical device with Google Play services. An emulator without Play services cannot obtain an FCM token.
+
+### iOS / Apple Push Notification service
+
+1. In Apple Developer, create the `com.getyere.app` App ID and enable **Push Notifications**, **Associated Domains**, and **Sign in with Apple**.
+2. Create an APNs `.p8` key and retain its key ID and your Apple team ID. Store the following as Supabase Edge Function secrets (never in Xcode source):
+
+   ```bash
+   npx supabase secrets set \
+     APNS_KEY_ID='ABC123DEFG' \
+     APNS_TEAM_ID='TEAMID1234' \
+     APNS_PRIVATE_KEY='-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n' \
+     APNS_BUNDLE_ID='com.getyere.app' \
+     APNS_USE_SANDBOX='false'
+   ```
+
+3. Set `APNS_USE_SANDBOX=true` while testing a development-signed build. Set it to `false` for TestFlight/App Store device tokens. Do not mix sandbox and production tokens.
+4. In Xcode, select the App target and your developer team. Confirm Push Notifications, Associated Domains, and Sign in with Apple appear under **Signing & Capabilities**. The checked-in entitlements use `development` for Debug and `production` for Release.
+5. The `YERE_REMINDER` iOS category supplies Snooze, Done, and View actions. A normal notification tap opens the relevant reminder/snooze flow.
+
+After changing native push secrets, redeploy both push-sending functions:
+
+```bash
+npx supabase functions deploy test-notification
+npx supabase functions deploy dispatch-reminders --no-verify-jwt
+```
+
+Then sign in on a device, turn on push in Settings, confirm the native row in `push_subscriptions`, and use **Send a test notification**.
+
+## 10. Android APK and Play release
+
+### Debug APK
+
+Prerequisites are Java 21 and an Android SDK containing API 36. From the repository root:
+
+```bash
+npm ci
+npm run android:debug
+```
+
+Output:
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Install it with:
+
+```bash
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+The GitHub workflow `.github/workflows/build-android.yml` runs tests, syncs Capacitor, builds the APK, creates a SHA-256 checksum, and uploads both as a 14-day Actions artifact on pushes, pull requests, and manual dispatches.
+
+### Signed Play bundle
+
+Do not commit a keystore or `keystore.properties`. Generate and back up the release key outside Git, configure a local/CI Gradle signing config, then run:
+
+```bash
+npm run android:bundle
+```
+
+The bundle is written to `android/app/build/outputs/bundle/release/app-release.aab`. Before upload, confirm the target SDK, 64-bit support, Data safety answers, privacy/support URLs, content rating, account-deletion URL/control, screenshots, and current Google Play testing requirements. New personal developer accounts may be required to complete a closed test (commonly 12 opted-in testers for 14 continuous days); use the exact requirement shown in that Play Console account.
+
+## 11. iOS archive and App Store submission
+
+A signed iOS archive requires macOS, the current App Store-supported Xcode (Xcode 26 or later for the current submission window), an Apple Developer membership, and access to the `com.getyere.app` identifier.
+
+```bash
+npm ci
+npm run build
+npx cap sync ios
+npx cap open ios
+```
+
+In Xcode:
+
+1. Select the **App** target, select the correct Team, keep bundle ID `com.getyere.app`, and confirm version `1.0` / build `1` (increment build for every upload).
+2. Resolve Swift packages and test on a physical iPhone: sign-in, microphone prompt, offline launch/write/reconnect, attachment access, push registration/test/tap/actions, account deletion, and all safe-area layouts.
+3. Confirm the 1024×1024 icon is opaque, the branded dark splash appears, `PrivacyInfo.xcprivacy` is in the target, privacy permission text is accurate, and Release uses the production APNs entitlement.
+4. Choose **Any iOS Device (arm64)**, then **Product → Archive → Distribute App → App Store Connect → Upload**.
+5. Use TestFlight for internal/external testing before submitting. Complete export-compliance, age-rating, App Privacy, and content-rights questions accurately.
+6. Use `docs/MOBILE_RELEASE.md` for listing copy, review notes, screenshot plan, privacy-label guidance, and the final release checklist. Replace review-account placeholders with a functioning review account or an approved no-login review path.
+
+The native app includes more than a web wrapper: native auth/token storage, push and actions, durable offline storage/sync, device connectivity, deep links, haptics, status/splash integration, and system back navigation. List these in App Review notes to address Guideline 4.2.
+
+## 12. Mobile troubleshooting
+
+- **`Could not find installation of TypeScript`:** run `npm ci`; TypeScript is a checked-in development dependency required to read `capacitor.config.ts`.
+- **Capacitor major-version mismatch:** all `@capacitor/*` and `@capgo/capacitor-supabase` packages must use major version 8. Run `npx cap doctor`, then `npx cap sync`.
+- **Android asks for Java 21 or fails at `compileSdk`:** select JDK 21 and install Android SDK Platform 36 plus matching build tools. Do not lower SDK values to hide the error.
+- **`google-services.json not found`:** debug compilation can succeed without it, but FCM registration cannot. Put the file at `android/app/google-services.json` and sync/rebuild.
+- **Android token exists but messages do not arrive:** verify package/project alignment, FCM API/service-account permissions, all three Firebase secrets, notification permission, battery restrictions, and Edge Function logs.
+- **iOS registration fails:** use a physical device, a profile with Push capability, matching bundle ID/team, and the correct APNs environment. Simulators are not a substitute for the final device test.
+- **APNs `BadDeviceToken` or `DeviceTokenNotForTopic`:** verify sandbox vs production, bundle/topic, team/key IDs, and rebuild after changing signing. Invalid tokens are removed by the dispatch function.
+- **Native auth works but database calls return 401:** inspect the native session and its mirrored `supabase-js` session, verify anon URL/key point to the same project, and do not disable RLS.
+- **Offline edits do not sync:** leave the app open after connectivity returns, inspect `cloudPending` in the device WebView, verify `@capacitor/network` events, and check Supabase/RLS errors. Do not clear app data before recovering the private offline snapshot.
+- **Deep/universal link opens a browser:** validate the hosted AASA/asset-links files over HTTPS with no redirect, signing team/fingerprint, entitlements/manifest, and Supabase redirect allowlist. The `yere://` custom scheme remains a fallback.
+- **Xcode archive lacks capabilities:** select the real team and App ID, refresh profiles, ensure `App/App.entitlements` is the Code Signing Entitlements file, and verify the profile includes Push, Associated Domains, and Sign in with Apple.
+- **Store review says “repackaged website”:** include the native functionality above in review notes and give the reviewer working steps for push actions, offline editing, deep links, account deletion, and native authentication.

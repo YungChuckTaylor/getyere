@@ -14,7 +14,7 @@ test('browser bootstrap exposes only public Supabase and Web Push configuration'
   assert.match(bootstrap, /VITE_SUPABASE_URL/);
   assert.match(bootstrap, /VITE_SUPABASE_ANON_KEY/);
   assert.match(bootstrap, /VITE_VAPID_PUBLIC_KEY/);
-  assert.doesNotMatch(bootstrap + html, /VITE_SUPABASE_SERVICE_ROLE_KEY|VITE_VAPID_PRIVATE_KEY|RESEND_API_KEY|TWILIO_AUTH_TOKEN/);
+  assert.doesNotMatch(bootstrap + html, /VITE_SUPABASE_SERVICE_ROLE_KEY|VITE_VAPID_PRIVATE_KEY|RESEND_API_KEY|TWILIO_AUTH_TOKEN|FIREBASE_PRIVATE_KEY|APNS_PRIVATE_KEY/);
   assert.match(html, /delete settings\.pushEnabled/);
   assert.match(html, /delete settings\.notif/);
   assert.doesNotMatch(envExample, /^VITE_SUPABASE_SERVICE_ROLE_KEY=/m);
