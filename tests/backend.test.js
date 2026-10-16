@@ -9,8 +9,10 @@ import {
   CORE_TABLES,
   EDGE_FUNCTIONS,
   NATIVE_MIGRATION_COLUMNS,
+  classifyTableProbe,
   describeKeyFormat,
   isGatewayRejection,
+  isSecretOnlyEndpoint,
   snippet,
   verifyBackend
 } from '../scripts/verify-backend.mjs';
@@ -34,12 +36,6 @@ function cleanEnv(extra = {}) {
 /** Builds a fake fetch that answers like a Supabase project with the given gaps. */
 function fakeSupabase({ missingFunctions = [], tables = CORE_TABLES, nativeColumns = NATIVE_MIGRATION_COLUMNS.columns, signupDisabled = false, bucketStatus = 200, rejectBearer = false } = {}) {
   const requests = [];
-  const spec = {
-    definitions: Object.fromEntries(tables.map((table) => [
-      table,
-      { properties: table === NATIVE_MIGRATION_COLUMNS.table ? Object.fromEntries(nativeColumns.map((column) => [column, {}])) : { id: {} } }
-    ]))
-  };
   const respond = (status, body) => ({ status, ok: status >= 200 && status < 300, text: async () => body });
   const fetchImpl = async (url, init = {}) => {
     const headers = init.headers || {};
@@ -47,7 +43,20 @@ function fakeSupabase({ missingFunctions = [], tables = CORE_TABLES, nativeColum
     const isGet = (init.method || 'GET') === 'GET';
     // A gateway that refuses a non-JWT bearer token but accepts apikey-only requests.
     if (rejectBearer && isGet && headers.authorization) return respond(401, JSON.stringify({ message: 'Missing JWT' }));
-    if (url.endsWith('/rest/v1/')) return respond(200, JSON.stringify(spec));
+    if (url.includes('/rest/v1/')) {
+      const table = url.split('/rest/v1/')[1].split('?')[0];
+      const query = url.split('?')[1] || '';
+      if (!tables.includes(table)) {
+        return respond(404, JSON.stringify({ code: 'PGRST205', message: `Could not find the table 'public.${table}' in the schema cache` }));
+      }
+      if (query.startsWith(`select=${NATIVE_MIGRATION_COLUMNS.columns.join(',')}`)) {
+        const missingColumn = NATIVE_MIGRATION_COLUMNS.columns.find((column) => !nativeColumns.includes(column));
+        if (missingColumn) {
+          return respond(400, JSON.stringify({ code: 'PGRST204', message: `Could not find the '${missingColumn}' column of '${table}' in the schema cache` }));
+        }
+      }
+      return respond(200, '[]');
+    }
     if (url.includes('/functions/v1/')) {
       const name = url.split('/functions/v1/')[1];
       return missingFunctions.includes(name) ? respond(404, 'Function not found') : respond(401, JSON.stringify({ error: 'Sign in.' }));
@@ -68,8 +77,9 @@ test('a fully deployed project reports nothing missing', async () => {
   const report = await verifyBackend({ url: URL_OK, anonKey: ANON_KEY, fetchImpl });
   assert.equal(report.ok, true, JSON.stringify(report.missing));
   assert.deepEqual(report.missing, []);
-  assert.equal(report.present.some((line) => line.includes('Core migration applied')), true);
-  assert.equal(report.present.some((line) => line.includes('Native migration applied')), true);
+  assert.equal(report.present.some((line) => line.includes('Core migration 202610120001_yere_core.sql is applied')), true);
+  assert.equal(report.present.some((line) => line.includes('Native migration 202610150001_native_mobile.sql is applied')), true);
+  assert.equal(report.tables.length, CORE_TABLES.length);
   for (const fn of EDGE_FUNCTIONS) {
     assert.ok(report.present.some((line) => line.includes(`Edge Function ${fn.name} is deployed`)), `${fn.name} verified`);
   }
@@ -171,11 +181,11 @@ test('a publishable key that the gateway rejects as a bearer token is retried wi
   const { fetchImpl, requests } = fakeSupabase({ rejectBearer: true });
   const report = await verifyBackend({ url: URL_OK, anonKey: PUBLISHABLE_KEY, fetchImpl });
   assert.deepEqual(report.missing, [], JSON.stringify(report.missing));
-  assert.ok(report.present.some((line) => line.includes('Core migration applied')), 'migrations are verified after the retry');
-  assert.ok(report.present.some((line) => line.includes('Native migration applied')));
+  assert.ok(report.present.some((line) => line.includes('Core migration 202610120001_yere_core.sql is applied')), 'migrations are verified after the retry');
+  assert.ok(report.present.some((line) => line.includes('Native migration 202610150001_native_mobile.sql is applied')));
   assert.ok(report.present.some((line) => line.includes('Email sign-up is enabled')));
-  const restRequests = requests.filter((request) => request.url.endsWith('/rest/v1/'));
-  assert.equal(restRequests.length, 2, 'exactly one retry');
+  const restRequests = requests.filter((request) => request.url.includes('/rest/v1/profiles?'));
+  assert.equal(restRequests.length, 2, 'exactly one retry per table probe');
   assert.ok(restRequests[0].headers.authorization, 'the first attempt sends both headers');
   assert.equal(restRequests[1].headers.authorization, undefined, 'the retry uses apikey only');
   assert.equal(restRequests[1].headers.apikey, PUBLISHABLE_KEY);
@@ -200,18 +210,51 @@ test('a REST API that refuses both header styles is reported as inconclusive, no
   const report = await verifyBackend({
     url: URL_OK,
     anonKey: PUBLISHABLE_KEY,
-    fetchImpl: async (url, init = {}) => {
-      if (url.endsWith('/rest/v1/')) return { status: 401, ok: false, text: async () => 'Missing JWT' };
-      if (url.includes('/functions/v1/')) return { status: 401, ok: false, text: async () => '' };
-      if (url.includes('/auth/v1/settings')) return { status: 401, ok: false, text: async () => '' };
-      if (url.includes('/storage/v1/bucket/')) return { status: 401, ok: false, text: async () => '' };
-      void init;
-      return { status: 404, ok: false, text: async () => '' };
-    }
+    fetchImpl: async () => ({ status: 401, ok: false, text: async () => '{"message":"Missing JWT"}' })
   });
-  assert.deepEqual(report.missing, []);
-  assert.ok(report.unknown.some((item) => /Postgres REST API answered HTTP 401/.test(item)));
+  assert.deepEqual(report.missing, [], 'an unanswerable probe is never reported as a missing migration');
+  assert.ok(report.unknown.some((item) => item.startsWith('Table state could not be confirmed for:')), 'tables are inconclusive');
+  assert.ok(report.unknown.some((item) => item.includes('The native migration could not be confirmed')));
+  assert.ok(report.unknown.some((item) => item.includes('Edge Function delete-account answered HTTP 401 at the gateway')));
   assert.equal(report.ok, false);
+});
+
+test('the PostgREST root spec being secret-only does not imply a bad public key', () => {
+  assert.equal(isSecretOnlyEndpoint(401, '{"message":"Secret API key required","hint":"Only secret API keys can be used for this endpoint."}'), true);
+  assert.equal(isGatewayRejection(401, '{"message":"Secret API key required"}'), false, 'that endpoint restriction is not a key problem');
+  assert.equal(isGatewayRejection(401, '{"message":"Missing JWT"}'), true);
+});
+
+test('table probes are classified from PostgREST error codes', () => {
+  assert.equal(classifyTableProbe({ status: 200, body: '[]' }), 'ok');
+  assert.equal(classifyTableProbe({ status: 206, body: '[]' }), 'ok');
+  assert.equal(classifyTableProbe({ status: 404, body: '{"code":"PGRST205","message":"Could not find the table"}' }), 'missing-table');
+  assert.equal(classifyTableProbe({ status: 400, body: '{"code":"PGRST204","message":"Could not find the \'device_token\' column of \'push_subscriptions\'"}' }), 'missing-column');
+  assert.equal(classifyTableProbe({ status: 403, body: '{"message":"permission denied for table reminders"}' }), 'exists-no-grant');
+  assert.equal(classifyTableProbe({ status: 0, body: '' }), 'unreachable');
+  assert.equal(classifyTableProbe({ status: 500, body: 'boom' }), 'inconclusive');
+});
+
+test('a table the anon role cannot read still proves the migration ran', async () => {
+  const fetchImpl = async (url) => {
+    if (url.includes('/rest/v1/')) return { status: 403, ok: false, text: async () => '{"message":"permission denied for table x"}' };
+    if (url.includes('/functions/v1/')) return { status: 401, ok: false, text: async () => '{"error":"Sign in."}' };
+    if (url.includes('/auth/v1/settings')) return { status: 200, ok: true, text: async () => '{"disable_signup":false,"external":{}}' };
+    return { status: 400, ok: false, text: async () => '{"error":"Bucket not found"}' };
+  };
+  const report = await verifyBackend({ url: URL_OK, anonKey: ANON_KEY, fetchImpl });
+  assert.equal(report.tables.length, CORE_TABLES.length);
+  assert.ok(report.present.some((line) => line.includes('Native migration 202610150001_native_mobile.sql is applied')));
+  assert.deepEqual(report.missing, []);
+});
+
+test('a private attachment bucket is inconclusive, not missing', async () => {
+  const { fetchImpl } = fakeSupabase({ bucketStatus: 400 });
+  const report = await verifyBackend({ url: URL_OK, anonKey: ANON_KEY, fetchImpl });
+  const bucketNote = report.unknown.find((item) => item.includes(ATTACHMENT_BUCKET));
+  assert.ok(bucketNote);
+  assert.match(bucketNote, /private bucket, which an anonymous probe cannot see/);
+  assert.ok(!report.missing.some((item) => item.includes(ATTACHMENT_BUCKET)));
 });
 
 test('response excerpts are redacted and gateway rejections are told apart from a function\'s own 401', () => {
@@ -231,7 +274,7 @@ test('a project that rejects the public key at the gateway reports "unconfirmed"
     assert.ok(report.unknown.some((item) => item.includes(`Edge Function ${fn.name} answered HTTP 401 at the gateway`)), `${fn.name} is unconfirmed`);
     assert.ok(!report.present.some((item) => item.includes(`Edge Function ${fn.name} is deployed`)));
   }
-  assert.ok(report.unknown.some((item) => item.includes('The gateway rejected the public key itself')));
+  assert.ok(report.unknown.some((item) => item.startsWith('Table state could not be confirmed for:')));
   assert.equal(report.ok, false);
 });
 

@@ -114,29 +114,35 @@ export function snippet(body) {
     .slice(0, 140);
 }
 
-/** True when a 401/403 came from Supabase's gateway rather than from a Yere Edge Function. */
+/**
+ * True when a 401/403 came from Supabase's gateway rather than from a Yere Edge Function.
+ * Endpoints that are restricted to secret keys are excluded: that refusal says nothing about
+ * whether the public key is valid.
+ */
 export function isGatewayRejection(status, body) {
   if (status !== 401 && status !== 403) return false;
-  return /missing jwt|invalid jwt|jwt expired|jwt invalid|no authorization|api ?key|invalid api key|token is expired/i.test(String(body || ''));
+  const text = String(body || '');
+  if (/secret api key required|only secret api keys/i.test(text)) return false;
+  return /missing jwt|invalid jwt|jwt expired|jwt invalid|no authorization|api ?key|invalid api key|token is expired/i.test(text);
 }
 
-function tablesFromSpec(spec) {
-  if (!spec || typeof spec !== 'object') return { tables: [], columns: {} };
-  const definitions = spec.definitions && typeof spec.definitions === 'object' ? spec.definitions : null;
-  const columns = {};
-  const tables = [];
-  if (definitions) {
-    for (const [name, definition] of Object.entries(definitions)) {
-      tables.push(name);
-      columns[name] = Object.keys(definition?.properties || {});
-    }
-    return { tables, columns };
-  }
-  for (const key of Object.keys(spec.paths || {})) {
-    const name = key.replace(/^\//, '');
-    if (name) tables.push(name);
-  }
-  return { tables, columns };
+/** True when the endpoint itself refuses public keys (for example the PostgREST root spec). */
+export function isSecretOnlyEndpoint(status, body) {
+  return status === 401 && /secret api key required|only secret api keys/i.test(String(body || ''));
+}
+
+/**
+ * Interprets a read-only table probe. RLS hides every row from an anonymous caller, so an empty
+ * 200 still proves the table and the selected columns exist in the schema cache.
+ */
+export function classifyTableProbe(result) {
+  const body = String(result?.body || '');
+  if (result.status === 200 || result.status === 206) return 'ok';
+  if (result.status === 0) return 'unreachable';
+  if (/permission denied|42501/i.test(body)) return 'exists-no-grant';
+  if (/PGRST204|could not find the '?[a-z_]+'? column/i.test(body)) return 'missing-column';
+  if (result.status === 404 || /PGRST205|could not find the table|does not exist|42P01/i.test(body)) return 'missing-table';
+  return 'inconclusive';
 }
 
 /**
@@ -163,42 +169,51 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
     report.missing.push(`${CLOUD_ENV_KEYS.anonKey} is a legacy anon JWT that EXPIRED on ${keyInfo.expiresAt.toISOString()}. Every request below (and every request the app makes) will be rejected with 401 until the repository variable is replaced with the current publishable/anon key from Project Settings → API.`);
   }
 
-  // 1. Migrations: tables and native columns from the PostgREST schema cache.
-  const spec = await probeGet(fetchImpl, projectUrl, '/rest/v1/', key, { headers: { accept: 'application/json' } }, timeoutMs, 4_000_000);
-  if (spec.status === 0) {
-    report.unknown.push(`Postgres REST API is unreachable (${spec.error}). Migrations could not be verified from here.`);
-  } else if (!spec.ok) {
-    const detail = snippet(spec.body);
-    report.unknown.push(`Postgres REST API answered HTTP ${spec.status} for both the apikey+bearer and apikey-only requests${detail ? ` (${detail})` : ''}, so migrations could not be verified from here. ` +
-      (isGatewayRejection(spec.status, spec.body)
-        ? 'The gateway rejected the public key itself: it is expired, revoked, or belongs to a different project. Replace VITE_SUPABASE_ANON_KEY, then re-run.'
-        : 'Check them in Supabase → Database → Migrations.'));
-  } else {
-    let parsed = null;
-    try {
-      parsed = JSON.parse(spec.body);
-    } catch (_) {
-      parsed = null;
-    }
-    const { tables, columns } = tablesFromSpec(parsed);
-    report.tables = tables;
-    const missingTables = CORE_TABLES.filter((table) => !tables.includes(table));
-    if (missingTables.length) {
-      report.missing.push(`Core migration 202610120001_yere_core.sql is not fully applied. Missing tables: ${missingTables.join(', ')}. ${DEPLOY_HINTS.migrations}`);
-    } else {
-      report.present.push(`Core migration applied: all ${CORE_TABLES.length} Yere tables are exposed (${CORE_TABLES.join(', ')}).`);
-    }
-
-    const nativeColumns = columns[NATIVE_MIGRATION_COLUMNS.table] || [];
-    const missingColumns = NATIVE_MIGRATION_COLUMNS.columns.filter((column) => !nativeColumns.includes(column));
-    if (!nativeColumns.length) {
-      report.unknown.push(`Columns of ${NATIVE_MIGRATION_COLUMNS.table} are not listed by the REST spec; confirm the native migration manually.`);
-    } else if (missingColumns.length) {
-      report.missing.push(`Native migration 202610150001_native_mobile.sql is not applied: ${NATIVE_MIGRATION_COLUMNS.table} is missing ${missingColumns.join(', ')}. Android/iOS push tokens cannot be stored. ${DEPLOY_HINTS.migrations}`);
-    } else {
-      report.present.push('Native migration applied: push_subscriptions has device_token, platform, and provider.');
-    }
+  // 1. Migrations. The PostgREST root spec now requires a secret key, so each table is probed
+  //    directly instead: an anonymous read returns an empty 200 when the table and the selected
+  //    columns exist, and a PGRST205/PGRST204 error when they do not. Read-only, no rows returned.
+  const missingTables = [];
+  const presentTables = [];
+  const inconclusiveTables = [];
+  for (const table of CORE_TABLES) {
+    const result = await probeGet(fetchImpl, projectUrl, `/rest/v1/${table}?select=*&limit=1`, key, { headers: { accept: 'application/json' } }, timeoutMs);
+    const verdict = classifyTableProbe(result);
+    if (verdict === 'ok' || verdict === 'exists-no-grant') presentTables.push(table);
+    else if (verdict === 'missing-table') missingTables.push(table);
+    else inconclusiveTables.push(`${table} (HTTP ${result.status || 'no response'}${snippet(result.body) ? `: ${snippet(result.body)}` : ''})`);
   }
+
+  if (missingTables.length) {
+    report.missing.push(`Core migration 202610120001_yere_core.sql is not fully applied. Missing tables: ${missingTables.join(', ')}. ${DEPLOY_HINTS.migrations}`);
+  }
+  if (presentTables.length) {
+    report.present.push(`Tables present (${presentTables.length}/${CORE_TABLES.length}): ${presentTables.join(', ')}.`);
+  }
+  if (inconclusiveTables.length) {
+    report.unknown.push(`Table state could not be confirmed for: ${inconclusiveTables.join('; ')}. Check them in Supabase → Table Editor.`);
+  }
+  if (!missingTables.length && presentTables.length === CORE_TABLES.length) {
+    report.present.push('Core migration 202610120001_yere_core.sql is applied: every Yere table answers an anonymous read.');
+  }
+
+  // The native migration is identified by the columns it adds to push_subscriptions.
+  const nativeProbe = await probeGet(
+    fetchImpl,
+    projectUrl,
+    `/rest/v1/${NATIVE_MIGRATION_COLUMNS.table}?select=${NATIVE_MIGRATION_COLUMNS.columns.join(',')}&limit=1`,
+    key,
+    { headers: { accept: 'application/json' } },
+    timeoutMs
+  );
+  const nativeVerdict = classifyTableProbe(nativeProbe);
+  if (nativeVerdict === 'ok' || nativeVerdict === 'exists-no-grant') {
+    report.present.push('Native migration 202610150001_native_mobile.sql is applied: push_subscriptions has device_token, platform, and provider.');
+  } else if (nativeVerdict === 'missing-column' || nativeVerdict === 'missing-table') {
+    report.missing.push(`Native migration 202610150001_native_mobile.sql is not applied: ${NATIVE_MIGRATION_COLUMNS.table} is missing ${NATIVE_MIGRATION_COLUMNS.columns.join(', ')} (${snippet(nativeProbe.body) || `HTTP ${nativeProbe.status}`}). Android/iOS push tokens cannot be stored. ${DEPLOY_HINTS.migrations}`);
+  } else {
+    report.unknown.push(`The native migration could not be confirmed (${snippet(nativeProbe.body) || `HTTP ${nativeProbe.status}`}). Confirm ${NATIVE_MIGRATION_COLUMNS.table} has ${NATIVE_MIGRATION_COLUMNS.columns.join(', ')}.`);
+  }
+  report.tables = presentTables;
 
   // 2. Edge Functions: an unauthenticated probe is rejected before any work happens.
   for (const fn of EDGE_FUNCTIONS) {
@@ -255,10 +270,10 @@ export async function verifyBackend({ url, anonKey, fetchImpl = fetch, timeoutMs
   const bucket = await probeGet(fetchImpl, projectUrl, `/storage/v1/bucket/${ATTACHMENT_BUCKET}`, key, {}, timeoutMs);
   if (bucket.status === 200) {
     report.present.push(`Storage bucket ${ATTACHMENT_BUCKET} exists.`);
-  } else if (bucket.status === 404) {
-    report.missing.push(`Storage bucket ${ATTACHMENT_BUCKET} is missing; private attachments will fail. ${DEPLOY_HINTS.bucket}`);
   } else {
-    report.unknown.push(`Storage bucket ${ATTACHMENT_BUCKET} answered HTTP ${bucket.status || 'no response'}${snippet(bucket.body) ? ` (${snippet(bucket.body)})` : ''}; it is private, so confirm it in Storage → Buckets.`);
+    // The bucket is created with public = false, and Storage hides private buckets from an
+    // anonymous caller, so "Bucket not found" here is not proof that it is missing.
+    report.unknown.push(`Storage bucket ${ATTACHMENT_BUCKET} answered HTTP ${bucket.status || 'no response'}${snippet(bucket.body) ? ` (${snippet(bucket.body)})` : ''}. It is a private bucket, which an anonymous probe cannot see: confirm it in Storage → Buckets, or sign in and attach a file to a reminder. ${DEPLOY_HINTS.bucket}`);
   }
 
   report.notes.push(`Public key format: ${describeKeyFormat(key)}. Project URL: ${projectUrl}.`);

@@ -412,14 +412,21 @@ export VITE_SUPABASE_ANON_KEY="<publishable/anon key>"
 npm run verify:backend            # add --strict to exit non-zero on a confirmed gap
 ```
 
-It reads the PostgREST schema cache (tables and the columns added by the native migration), probes
-each Edge Function with an empty unauthenticated POST that every function rejects before touching
-data, reads `/auth/v1/settings`, and checks the attachment bucket. It uses only the two public values
+It reads each Yere table anonymously (`select=*&limit=1`: RLS returns zero rows, and PostgREST
+answers `PGRST205`/`PGRST204` when a table or a column does not exist), which is how it confirms both
+migrations — the native one through the `device_token`, `platform`, and `provider` columns it adds to
+`push_subscriptions`. It probes each Edge Function with an empty unauthenticated POST that every
+function rejects before touching data, reads `/auth/v1/settings`, and checks the attachment bucket.
+The PostgREST root spec is not used: Supabase now restricts that endpoint to secret keys, which this
+check never touches. It uses only the two public values
 that are already in the client bundle, never writes, never prints the key, and reports anything it
 could not confirm as *unknown* rather than guessing. Read-only GETs are sent with `apikey` plus a
 bearer token and retried with `apikey` alone, because Supabase's gateway rejects a new
-`sb_publishable_...` key presented as a JWT; an Edge Function that answers `404` is genuinely
-undeployed, while `401` means deployed and correctly refusing an anonymous caller. The Android workflow runs the same check on every
+`sb_publishable_...` key presented as a JWT. An Edge Function that answers `404` is genuinely
+undeployed, while its own `401` (`Sign in to ...`) means deployed and correctly refusing an anonymous
+caller; a gateway `401` (`Missing JWT`, `JWT expired`) is reported as *unconfirmed* rather than as
+either. Because `yere-attachments` is a private bucket, Storage answers `Bucket not found` to an
+anonymous caller, so that one line always needs a signed-in confirmation. The Android workflow runs the same check on every
 build and publishes the result in the run summary (non-blocking, so a backend gap never stops an
 otherwise valid APK). Set `YERE_SKIP_BACKEND_CHECK=1` to skip it.
 
