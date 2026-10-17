@@ -1,4 +1,6 @@
 import './style.css';
+import { enhancePasswordFields, startSocialSignIn } from './auth-ui.js';
+window.YERE_AUTH = { enhancePasswordFields, startSocialSignIn };
 import { createClient } from '@supabase/supabase-js';
 import { nativeBridge } from './native.js';
 import { resolveRuntimeConfig } from './config.js';

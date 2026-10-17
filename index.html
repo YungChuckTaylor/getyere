@@ -801,6 +801,10 @@ function setAuthMode(mode, message='') {
       ${fields}
       <button id="authSubmit" type="submit" class="w-full mt-2 py-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-glow">${submitText}</button>
     </form>
+    ${!isReset&&!isRecovery?`<div class="flex items-center gap-3 my-4 text-[11px] text-slate-400"><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span>or continue with<span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span></div><div class="grid grid-cols-2 gap-3 mb-3">
+      <button type="button" data-social-provider="google" onclick="signInWithSocial('google','${mode}')" class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-white/15 py-3 font-semibold hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50"><span aria-hidden="true" class="text-lg font-extrabold text-blue-600">G</span>Google</button>
+      <button type="button" data-social-provider="facebook" onclick="signInWithSocial('facebook','${mode}')" class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-white/15 py-3 font-semibold hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50"><span aria-hidden="true" class="text-lg font-extrabold text-blue-600">f</span>Facebook</button>
+    </div>`:''}
     ${isNativeApp()&&window.YERE_NATIVE.platform==='ios'&&!isReset&&!isRecovery?`<div class="flex items-center gap-3 my-4 text-[11px] text-slate-400"><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span>or<span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span></div><button type="button" onclick="signInWithApple()" class="w-full py-3 rounded-2xl bg-black text-white font-bold">Sign in with Apple</button>`:''}
     <div class="flex items-center justify-center gap-4 mt-5 text-xs font-semibold text-indigo-600 dark:text-indigo-300">
       ${!isSignup&&!isReset&&!isRecovery?`<button onclick="setAuthMode('signup')">Create account</button><button onclick="setAuthMode('reset')">Forgot password?</button>`:''}
@@ -809,6 +813,7 @@ function setAuthMode(mode, message='') {
     </div>
     ${!window.YERE_ENV?.supabaseConfigured?`<p class="mt-5 text-[11px] text-amber-600">Cloud sign-in needs Supabase URL and public anon key in the environment.</p>`:''}
   </div>`;
+  window.YERE_AUTH.enhancePasswordFields(host);
   document.getElementById('authGate').classList.remove('hidden');
   window.setTimeout(()=>document.querySelector('#authGate input')?.focus(),80);
 }
@@ -850,6 +855,22 @@ async function submitAuth(event, mode) {
     if (session) await startCloudWorkspace(session);
   } catch(error) {
     setAuthMode(mode,error?.message||'We could not complete that request. Please try again.');
+  }
+}
+
+let socialSignInPending=false;
+async function signInWithSocial(provider, mode='signin') {
+  if(socialSignInPending)return;
+  socialSignInPending=true;
+  const buttons=document.querySelectorAll('[data-social-provider]');
+  buttons.forEach(button=>button.disabled=true);
+  try {
+    await window.YERE_AUTH.startSocialSignIn({provider,client:supabase,native:window.YERE_NATIVE,location:window.location});
+  } catch(error) {
+    setAuthMode(mode,error?.message||'Could not start social sign-in. Please try again.');
+  } finally {
+    socialSignInPending=false;
+    buttons.forEach(button=>button.disabled=false);
   }
 }
 
@@ -2498,12 +2519,20 @@ async function handleNativeUrl(rawUrl){
     }
     const invite=params.get('invite');
     if(invite){history.replaceState({},'',`/?invite=${encodeURIComponent(invite)}`);await handleInviteLink();return;}
+    const authCallback=route==='auth'&&url.pathname==='/callback';
+    if(authCallback&&params.has('error')){
+      await window.YERE_NATIVE.auth.closeOAuthBrowser();
+      setAuthMode('signin','Sign-in was cancelled or could not be completed. Please try again.');
+      return;
+    }
     const code=params.get('code');
     if(code&&supabase){
-      const {data,error}=await supabase.auth.exchangeCodeForSession(code);
+      const {data,error}=authCallback
+        ?await window.YERE_NATIVE.auth.completeOAuth(code)
+        :await supabase.auth.exchangeCodeForSession(code);
       if(error){toast('That secure sign-in link is invalid or has expired.');return;}
       if(data?.session)await startCloudWorkspace(data.session);
-      if(params.get('reset')==='1'||route==='auth')setAuthMode('recovery');
+      if(params.get('reset')==='1'||params.get('type')==='recovery')setAuthMode('recovery');
     }
   }catch(error){console.warn('Yere ignored an invalid app link.',error);}
 }
@@ -2734,7 +2763,18 @@ async function bootApp(){
     const {data,error}=await supabase.auth.getSession();
     if(error)console.warn('Could not restore the Yere session.',error.message);
     if(data?.session)await startCloudWorkspace(data.session);
-    else{setAccountLabel();setAuthMode('signin');}
+    else{
+      setAccountLabel();
+      const callbackParams=new URLSearchParams(window.location.search);
+      const oauthError=callbackParams.has('error');
+      if(oauthError){
+        ['error','error_code','error_description'].forEach(key=>callbackParams.delete(key));
+        history.replaceState({},'',location.pathname+(callbackParams.toString()?'?'+callbackParams.toString():''));
+      }
+      setAuthMode('signin',oauthError?'Sign-in was cancelled or could not be completed. Please try again.':'');
+      // A cold-start native OAuth callback must be exchanged even without a session yet.
+      handleNotificationIntent();
+    }
   }else{
     currentSession=null;cloudReady=false;load(true);setAccountLabel();render();
     handleNotificationIntent();maybeStartTour();

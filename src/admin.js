@@ -1,3 +1,5 @@
+import { enhancePasswordFields } from './auth-ui.js';
+
 const app = document.getElementById('app');
 const ADMIN_ACCESS_PATH = '/admin-access';
 
@@ -16,6 +18,7 @@ function shell(content) {
   robots.content = 'noindex,nofollow';
   app.className = 'min-h-screen w-full';
   app.innerHTML = `<main class="min-h-screen bg-slate-50 dark:bg-ink-950 text-slate-900 dark:text-slate-100 p-4 md:p-8"><div class="max-w-7xl mx-auto">${content}</div></main>`;
+  enhancePasswordFields(app);
 }
 
 function errorMessage(value) {

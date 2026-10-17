@@ -1,3 +1,4 @@
+import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
@@ -298,6 +299,26 @@ const nativeAuth = {
     const result = await CapacitorSupabase.signUp({ email, password, data: options.data || {} });
     const session = await applyNativeSessionToWeb(result.session);
     return { data: { session, user: session?.user || nativeUserToWeb(result.user) }, error: null };
+  },
+  async signInWithOAuth({ provider }) {
+    if (!['google', 'facebook'].includes(provider)) throw new Error('Unsupported sign-in provider.');
+    if (!webClient) throw new Error('Cloud sign-in is not configured yet.');
+    // Use the shared client's PKCE verifier so the callback can exchange the code
+    // in the same storage, then the existing auth listener syncs the native session.
+    const { data, error } = await webClient.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: 'yere://auth/callback', skipBrowserRedirect: true }
+    });
+    if (error) throw error;
+    if (!data?.url) throw new Error('Could not start social sign-in.');
+    await Browser.open({ url: data.url });
+  },
+  async closeOAuthBrowser() {
+    await Browser.close().catch(() => undefined);
+  },
+  async completeOAuth(code) {
+    await this.closeOAuthBrowser();
+    return webClient.auth.exchangeCodeForSession(code);
   },
   async signInWithApple() {
     await CapacitorSupabase.signInWithOAuth({ provider: 'apple', redirectTo: 'yere://auth/callback' });
