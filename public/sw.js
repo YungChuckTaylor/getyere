@@ -41,6 +41,8 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== APP_URL.origin || url.pathname.endsWith('/sw.js')) return;
+  // Never serve a cached public shell for the protected server-guarded admin routes.
+  if (url.pathname === '/admin' || url.pathname.startsWith('/admin/') || url.pathname === '/admin-access' || url.pathname.startsWith('/admin-api/')) return;
 
   if (request.mode === 'navigate') {
     event.respondWith((async () => {

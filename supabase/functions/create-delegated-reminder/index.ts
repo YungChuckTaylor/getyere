@@ -15,9 +15,14 @@ Deno.serve(async (req) => {
     const due = typeof body?.dueAt === 'string' ? new Date(body.dueAt) : new Date(NaN);
     const channel = ['push', 'email', 'both', 'none'].includes(body?.deliveryChannel) ? body.deliveryChannel : 'push';
     const recurrence = body?.recurrence && typeof body.recurrence === 'object' ? body.recurrence : null;
+    const listId = typeof body?.listId === 'string' && body.listId ? body.listId : null;
+    const reminderType = ['standard', 'expiry', 'renewal'].includes(body?.reminderType) ? body.reminderType : 'standard';
+    const cost = body?.cost === null || body?.cost === undefined || body.cost === '' ? null : Number(body.cost);
     if (!/^[0-9a-f-]{36}$/i.test(ownerId) || !title || Number.isNaN(due.getTime())) return jsonResponse({ error: 'Add a valid reminder and due time.' }, 400);
     if (url && !['https:', 'http:'].includes(new URL(url).protocol)) return jsonResponse({ error: 'The reminder link must use HTTP or HTTPS.' }, 400);
     if (recurrence && JSON.stringify(recurrence).length > 3000) return jsonResponse({ error: 'Recurrence settings are too large.' }, 400);
+    if (listId && !/^[0-9a-f-]{36}$/i.test(listId)) return jsonResponse({ error: 'Choose a valid list.' }, 400);
+    if (cost !== null && (!Number.isFinite(cost) || cost < 0 || cost > 9999999999.99)) return jsonResponse({ error: 'Enter a valid non-negative cost.' }, 400);
 
     const admin = adminClient();
     const { data: securityRows, error: securityError } = await admin.from('workspace_security').select('user_id,suspended_until').in('user_id',[user.id,ownerId]);
@@ -40,6 +45,11 @@ Deno.serve(async (req) => {
     if (ownerBlockResult.error) throw ownerBlockResult.error;
     if (senderBlockResult.error) throw senderBlockResult.error;
     if (ownerBlockResult.data||senderBlockResult.data) return jsonResponse({ error: 'This account is not accepting reminders from you.' }, 403);
+    if (listId) {
+      const { data: list, error: listError } = await admin.from('user_lists').select('id').eq('id',listId).eq('owner_id',ownerId).maybeSingle();
+      if (listError) throw listError;
+      if (!list) return jsonResponse({ error: 'That list is not available in the recipient account.' }, 400);
+    }
 
     const approvalStatus = relation.approval_mode === 'require_approval' ? 'pending' : 'approved';
     const { data: reminder, error: insertError } = await admin.from('reminders').insert({
@@ -53,7 +63,9 @@ Deno.serve(async (req) => {
       approval_status: approvalStatus,
       from_contact_id: relation.id,
       delivery_channel: channel,
-      reminder_type: 'standard',
+      reminder_type: reminderType,
+      cost,
+      list_id: listId,
       is_completed: false
     }).select('id').single();
     if (insertError || !reminder) throw insertError || new Error('Could not create the shared reminder.');

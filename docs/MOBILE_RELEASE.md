@@ -108,6 +108,21 @@ Provide every device class and pixel size App Store Connect currently requests. 
 
 These files require values from the final signing accounts. Do not deploy placeholders.
 
+The apps verify app links on **two** hosts — the canonical apex `getyere.com` and `www.getyere.com`
+(`AndroidManifest.xml` declares both with `android:autoVerify="true"`, and `App.entitlements` lists
+`applinks:getyere.com` and `applinks:www.getyere.com`). Verification is per host, so **both** hosts
+must serve a valid file or links on the missing host silently open in the browser instead of the app:
+
+```
+https://getyere.com/.well-known/apple-app-site-association
+https://www.getyere.com/.well-known/apple-app-site-association
+https://getyere.com/.well-known/assetlinks.json
+https://www.getyere.com/.well-known/assetlinks.json
+```
+
+If you would rather verify a single host, remove the other from the manifest and the entitlements
+first; a host that is declared but not verified only delays app-link resolution.
+
 ### Apple `/.well-known/apple-app-site-association`
 
 ```json
@@ -143,7 +158,7 @@ Serve as `application/json` over HTTPS with no extension and no redirect.
 ]
 ```
 
-Use the Play App Signing certificate fingerprint for store installs. Add the debug/release fingerprint only to the controlled test environment that needs it.
+Use the Play App Signing certificate fingerprint for store installs. Add the debug/release fingerprint only to the controlled test environment that needs it. Serve the identical file from both hosts — the fingerprint does not change per host.
 
 ## Final release checklist
 

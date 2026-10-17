@@ -80,6 +80,22 @@ test('native projects declare mobile permissions, identifiers, actions, and priv
   assert.match(privacy, /NSPrivacyTracking/);
 });
 
+test('app links are verified on the canonical apex and the www host', async () => {
+  const [manifest, entitlements] = await Promise.all([
+    read('android/app/src/main/AndroidManifest.xml'),
+    read('ios/App/App/App.entitlements')
+  ]);
+  // Both hosts are declared, so both must serve a .well-known file (docs/MOBILE_RELEASE.md).
+  assert.match(manifest, /android:host="getyere\.com"/);
+  assert.match(manifest, /android:host="www\.getyere\.com"/);
+  assert.match(entitlements, /applinks:getyere\.com/);
+  assert.match(entitlements, /applinks:www\.getyere\.com/);
+  // The canonical origin used for email, invite, and password-reset links.
+  const [envExample, bootstrap] = await Promise.all([read('.env.example'), read('src/bootstrap.js')]);
+  assert.match(envExample, /^VITE_PUBLIC_APP_URL=https:\/\/getyere\.com$/m);
+  assert.match(bootstrap, /nativeBridge\.enabled \? 'https:\/\/getyere\.com' : publicAppUrl/);
+});
+
 test('Android CI produces an APK and checksum artifact', async () => {
   const workflow = await read('.github/workflows/build-android.yml');
   assert.match(workflow, /java-version:\s*21/);

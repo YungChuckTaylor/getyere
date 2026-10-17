@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     if (profile?.display_name && data.contact_id) {
       await admin.from('contacts').update({ display_name: profile.display_name }).eq('id', data.contact_id).eq('owner_id', data.owner_id);
     }
-    return jsonResponse({ ok: true, message: 'Invite accepted. The person who invited you will see your request.' });
+    return jsonResponse({ ok: true, message: 'Invite accepted. You are now connected.' });
   } catch (error) {
     console.error('redeem-contact-invite:', error);
     return jsonResponse({ error: error instanceof Error ? error.message : 'Could not redeem this invitation.' }, 400);

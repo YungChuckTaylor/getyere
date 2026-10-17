@@ -67,9 +67,10 @@ export function randomToken(bytes = 32) {
 }
 
 export function safeAppOrigin() {
-  const configured = Deno.env.get('PUBLIC_APP_URL') || 'https://getyere.app';
+  const configured = Deno.env.get('PUBLIC_APP_URL') || 'https://getyere.com';
   const url = new URL(configured);
-  if (!['https:', 'http:'].includes(url.protocol)) throw new Error('PUBLIC_APP_URL must use HTTPS.');
+  const localDevelopmentOrigin = ['localhost', '127.0.0.1'].includes(url.hostname);
+  if (url.protocol !== 'https:' && !localDevelopmentOrigin) throw new Error('PUBLIC_APP_URL must use HTTPS.');
   return url.origin;
 }
 

@@ -115,7 +115,7 @@ export function optionalConfigWarnings({ vapidPublicKey, publicAppUrl } = {}) {
   const appUrl = clean(publicAppUrl);
   if (!vapid) warnings.push(`${CLOUD_ENV_KEYS.vapidPublicKey} is not set; web push subscriptions will be unavailable.`);
   else if (PLACEHOLDER_PATTERN.test(vapid)) warnings.push(`${CLOUD_ENV_KEYS.vapidPublicKey} still contains a placeholder value.`);
-  if (!appUrl) warnings.push(`${CLOUD_ENV_KEYS.publicAppUrl} is not set; the native app will use https://www.getyere.com for links.`);
+  if (!appUrl) warnings.push(`${CLOUD_ENV_KEYS.publicAppUrl} is not set; the native app will use https://getyere.com for links.`);
   else {
     try {
       if (new URL(appUrl).protocol !== 'https:') warnings.push(`${CLOUD_ENV_KEYS.publicAppUrl} should be an https:// URL.`);
