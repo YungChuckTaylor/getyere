@@ -15,9 +15,27 @@
       ],
       "destination": "https://getyere.com/:path*",
       "permanent": true
+    },
+    {
+      "source": "/privacy.html",
+      "destination": "/privacy-policy",
+      "permanent": true
+    },
+    {
+      "source": "/terms.html",
+      "destination": "/termsofuse",
+      "permanent": true
     }
   ],
   "rewrites": [
+    {
+      "source": "/privacy-policy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/termsofuse",
+      "destination": "/terms.html"
+    },
     {
       "source": "/admin-access",
       "destination": "/index.html"

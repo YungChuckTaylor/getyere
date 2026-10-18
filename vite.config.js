@@ -27,8 +27,22 @@ function nativeCloudGuard(mode) {
   };
 }
 
+// Match Vercel's public legal routes in local development and the preview server.
+function legalRoutes() {
+  const install = (server) => {
+    server.middlewares.use((req, _res, next) => {
+      const [pathname, query] = (req.url || '').split('?');
+      const routes = { '/privacy-policy': '/privacy.html', '/termsofuse': '/terms.html' };
+      const destination = routes[pathname.replace(/\/$/, '')];
+      if (destination) req.url = destination + (query ? `?${query}` : '');
+      next();
+    });
+  };
+  return { name: 'yere-legal-routes', configureServer: install, configurePreviewServer: install };
+}
+
 export default defineConfig(({ mode }) => ({
-  plugins: [tailwindcss(), nativeCloudGuard(mode)],
+  plugins: [tailwindcss(), nativeCloudGuard(mode), legalRoutes()],
   server: {
     host: '0.0.0.0',
     allowedHosts: true

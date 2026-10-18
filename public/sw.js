@@ -44,6 +44,10 @@ self.addEventListener('fetch', (event) => {
   // Never serve a cached public shell for the protected server-guarded admin routes.
   if (url.pathname === '/admin' || url.pathname.startsWith('/admin/') || url.pathname === '/admin-access' || url.pathname.startsWith('/admin-api/')) return;
 
+  // Public legal documents must never fall back to the signed-in app shell.
+  // Let the browser navigate normally (including showing an honest offline error).
+  if (['/privacy-policy', '/termsofuse', '/privacy.html', '/terms.html'].includes(url.pathname.replace(/\/$/, ''))) return;
+
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
       try {

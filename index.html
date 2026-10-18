@@ -810,6 +810,7 @@ function setAuthMode(mode, message='') {
       ${isSignup?`<button onclick="setAuthMode('signin')">Already have an account? Sign in</button>`:''}
       ${isReset||isRecovery?`<button onclick="setAuthMode('signin')">Back to sign in</button>`:''}
     </div>
+    <p class="mt-5 text-[11px] text-slate-500">${isSignup?'By creating an account, you agree to our':'Read our'} <a href="/termsofuse" target="_blank" rel="noopener" class="underline">Terms of Use</a>${isSignup?' and acknowledge our':' and'} <a href="/privacy-policy" target="_blank" rel="noopener" class="underline">Privacy Policy</a>.</p>
     ${!window.YERE_ENV?.supabaseConfigured?`<p class="mt-5 text-[11px] text-amber-600">Cloud sign-in needs Supabase URL and public anon key in the environment.</p>`:''}
   </div>`;
   window.YERE_AUTH.enhancePasswordFields(host);
@@ -1541,7 +1542,7 @@ function renderSettings() {
       <h3 class="font-bold">Account & data</h3><p class="text-sm text-slate-500">${currentSession?`Signed in as <strong>${esc(state.user.email)}</strong>. Your reminders sync securely across devices.`:'Local demo data is saved in this browser only.'}</p>
       ${currentSession?`<div class="flex flex-wrap gap-4"><button onclick="signOut()" class="text-sm font-semibold text-slate-500">Sign out</button><button onclick="deleteAccount()" class="text-sm font-semibold text-rose-500">Delete account and cloud data</button></div>`:`<button onclick="openAuthGate('signin')" class="text-sm font-semibold text-indigo-600 dark:text-indigo-300">Connect an account for sync</button>`}
       ${!currentSession?`<button onclick="if(confirm('Reset demo data?')){localStorage.removeItem(activeStorageKey());localStorage.removeItem('Yere.v1');location.reload()}" class="block text-sm font-semibold text-rose-500">Reset demo workspace</button>`:''}
-      <div class="flex flex-wrap gap-4 text-sm font-semibold"><a href="/privacy.html" target="_blank" rel="noopener">Privacy policy</a><a href="/support.html" target="_blank" rel="noopener">Support</a></div>
+      <div class="flex flex-wrap gap-4 text-sm font-semibold"><a href="/privacy-policy" target="_blank" rel="noopener">Privacy policy</a><a href="/termsofuse" target="_blank" rel="noopener">Terms of use</a><a href="/support.html" target="_blank" rel="noopener">Support</a></div>
       <button onclick="startTour(true)" class="block text-sm font-semibold text-indigo-600 dark:text-indigo-300">Replay the feature tour</button>
     </div>
   </div>`;
