@@ -1,5 +1,5 @@
 // Public OAuth options only. Provider credentials belong in Supabase, never in the bundle.
-export const SOCIAL_PROVIDERS = ['google', 'facebook'];
+export const SOCIAL_PROVIDERS = ['google'];
 
 export async function startSocialSignIn({ provider, client, native, location }) {
   if (!SOCIAL_PROVIDERS.includes(provider)) throw new Error('Unsupported sign-in provider.');

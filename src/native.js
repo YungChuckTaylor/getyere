@@ -301,7 +301,7 @@ const nativeAuth = {
     return { data: { session, user: session?.user || nativeUserToWeb(result.user) }, error: null };
   },
   async signInWithOAuth({ provider }) {
-    if (!['google', 'facebook'].includes(provider)) throw new Error('Unsupported sign-in provider.');
+    if (provider !== 'google') throw new Error('Unsupported sign-in provider.');
     if (!webClient) throw new Error('Cloud sign-in is not configured yet.');
     // Use the shared client's PKCE verifier so the callback can exchange the code
     // in the same storage, then the existing auth listener syncs the native session.

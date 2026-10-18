@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { startSocialSignIn, enhancePasswordFields, togglePasswordVisibility } from '../src/auth-ui.js';
 
-for (const provider of ['google', 'facebook']) {
+for (const provider of ['google']) {
   test(`${provider} uses Supabase OAuth on the current web origin and preserves invitations`, async () => {
     let request;
     const client = { auth: { signInWithOAuth: async options => { request = options; return { data: { url: 'https://provider.example' }, error: null }; } } };
@@ -22,7 +22,7 @@ for (const provider of ['google', 'facebook']) {
 test('unsupported providers, missing config and Supabase errors are surfaced', async () => {
   await assert.rejects(startSocialSignIn({ provider: 'malicious' }), /Unsupported/);
   await assert.rejects(startSocialSignIn({ provider: 'google' }), /not configured/);
-  await assert.rejects(startSocialSignIn({ provider: 'facebook', location: { origin: 'https://getyere.com' }, client: { auth: { signInWithOAuth: async () => ({ error: new Error('Provider not enabled') }) } } }), /Provider not enabled/);
+  await assert.rejects(startSocialSignIn({ provider: 'google', location: { origin: 'https://getyere.com' }, client: { auth: { signInWithOAuth: async () => ({ error: new Error('Provider not enabled') }) } } }), /Provider not enabled/);
 });
 
 test('password reveal preserves value, toggles accessible state and hides again', () => {
@@ -82,13 +82,23 @@ test('native social auth shares PKCE storage, opens external browser and exchang
   assert.equal(closed, true);
   assert.equal(result.data.session.user.id, 'real-user');
   await assert.rejects(context.auth.signInWithOAuth({ provider: 'unknown' }), /Unsupported/);
+  await assert.rejects(context.auth.signInWithOAuth({ provider: 'facebook' }), /Unsupported/);
 });
 
 test('OAuth callbacks do not open password recovery unless explicitly requested', async () => {
   const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
   assert.match(html, /data-social-provider="google"/);
-  assert.match(html, /data-social-provider="facebook"/);
+  assert.doesNotMatch(html, /data-social-provider="facebook"/);
   assert.match(html, /!isReset&&!isRecovery\?`<div/);
   assert.match(html, /params\.get\('reset'\)==='1'\|\|params\.get\('type'\)==='recovery'/);
   assert.doesNotMatch(html, /params\.get\('reset'\)==='1'\|\|route==='auth'/);
+});
+
+test('Facebook is disabled before any web or native auth request', async () => {
+  let called = false;
+  const signInWithOAuth = async () => { called = true; };
+  for (const native of [undefined, { enabled: true, auth: { signInWithOAuth } }]) {
+    await assert.rejects(startSocialSignIn({ provider: 'facebook', client: { auth: { signInWithOAuth } }, native }), /Unsupported/);
+  }
+  assert.equal(called, false);
 });
