@@ -916,7 +916,9 @@ async function signOut() {
   try{
     if(isNativeApp()){
       const registration=window.YERE_NATIVE.getPushRegistration();
-      if(registration.token&&currentSession)await supabase.from('push_subscriptions').delete().eq('owner_id',currentSession.user.id).eq('device_token',registration.token);
+      await removeNativePushSubscription(registration);
+      await window.YERE_NATIVE.unregisterPush().catch(()=>undefined);
+      notificationIntentQueue?.clear();
       await window.YERE_NATIVE.auth.signOut();
     }else{
       const result=await supabase.auth.signOut();
@@ -1020,6 +1022,7 @@ async function pullCloudSnapshot(showSetupError=true) {
   setAccountLabel();
   saveLocalCache();
   render();
+  notificationDataReady=true;flushNotificationIntents();
   return true;
 }
 
@@ -1113,7 +1116,7 @@ function setAccountLabel() {
   const avatar=document.getElementById('meAvatar'); if(avatar) avatar.textContent=(state.user.name||'Y').split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
 }
 
-let cloudWorkspaceLoading=false, cloudWorkspaceUserId='';
+let cloudWorkspaceLoading=false, cloudWorkspaceUserId='', notificationDataReady=false;
 async function startCloudWorkspace(session) {
   if(!session)return;
   if(cloudReady&&currentSession?.user?.id===session.user.id)return;
@@ -1121,7 +1124,7 @@ async function startCloudWorkspace(session) {
   cloudWorkspaceLoading=true;cloudWorkspaceUserId=session.user.id;
   try{
     if(realtimeChannel&&supabase)await supabase.removeChannel(realtimeChannel);
-    currentSession=session;cloudReady=false;
+    currentSession=session;cloudReady=false;notificationDataReady=false;
     state.reminders=[];state.contacts=[];state.relationships=[];state.invites=[];state.audit=[];state.blocklist=[];state.lists=[];
     cloudSnapshot={reminders:new Set(),contacts:new Set(),lists:new Set()};cloudPending=false;
     state.settings={...DEFAULT_SETTINGS,rate:{invites:[],fails:[]}};
@@ -1136,13 +1139,14 @@ async function startCloudWorkspace(session) {
       if(cloudPending&&isOnline()){cloudReady=true;await syncCloudSnapshot();}
       if(!cloudPending)loaded=await pullCloudSnapshot(true);
     }catch(error){console.warn('Yere is using the account cache while offline.',error);}
+    if(currentSession?.user?.id!==session.user.id||cloudWorkspaceUserId!==session.user.id)return;
     cloudReady=true;profileDirty=!loaded;
     document.getElementById('authGate').classList.add('hidden');
     setAccountLabel();render();startRealtimeSync();
     if(!loaded)toast((!isOnline()||cloudPending)?'Cloud is unavailable. Your saved changes will sync when the connection is restored.':'Yere is open, but Supabase needs its migrations and security policies.');
     if(isNativeApp()&&state.settings.pushEnabled)ensureNativePushRegistration().catch(error=>console.warn('Native push will retry when it is enabled again.',error));
     await handleInviteLink();handleNotificationIntent();maybeStartTour();
-  }finally{cloudWorkspaceLoading=false;}
+  }finally{if(cloudWorkspaceUserId===session.user.id){cloudWorkspaceLoading=false;flushNotificationIntents();}}
 }
 
 function startRealtimeSync() {
@@ -2539,35 +2543,52 @@ function urlBase64ToUint8Array(value){
   for(let i=0;i<raw.length;i++)output[i]=raw.charCodeAt(i);
   return output;
 }
-async function registerNativePushSubscription(registration){
-  if(!registration?.token||!supabase||!currentSession)return false;
-  const {error}=await supabase.rpc('register_native_push_token',{
-    p_device_token:registration.token,
-    p_platform:registration.platform,
-    p_provider:registration.provider,
-    p_user_agent:`Yere native ${registration.platform} · ${navigator.userAgent}`.slice(0,250)
+let nativePushTask=Promise.resolve();
+function withNativePushTask(job){
+  const next=nativePushTask.catch(()=>undefined).then(job);nativePushTask=next;return next;
+}
+async function removeNativePushSubscription(registration){
+  return withNativePushTask(async()=>{
+    if(!registration.token||!supabase||!currentSession)return;
+    const {error}=await supabase.from('push_subscriptions').delete().eq('owner_id',currentSession.user.id).eq('device_token',registration.token);
+    if(error)throw error;
   });
-  if(error)throw error;
-  return true;
+}
+async function registerNativePushSubscription(registration){
+  const ownerId=currentSession?.user?.id;
+  return withNativePushTask(async()=>{
+    if(!registration?.token||!supabase||!ownerId||currentSession?.user?.id!==ownerId||signOutInProgress||!state.settings.pushEnabled)return false;
+    const {error}=await supabase.rpc('register_native_push_token',{
+      p_device_token:registration.token,p_platform:registration.platform,p_provider:registration.provider,
+      p_user_agent:`Yere native ${registration.platform} · ${navigator.userAgent}`.slice(0,250)
+    });
+    if(error)throw error;
+    return true;
+  });
 }
 async function ensureNativePushRegistration(){
-  if(!isNativeApp()||!supabase||!currentSession)return false;
+  if(!isNativeApp()||!supabase||!currentSession||!state.settings.pushEnabled)return false;
+  const ownerId=currentSession.user.id;
   const registration=await window.YERE_NATIVE.registerPush();
+  if(currentSession?.user?.id!==ownerId||signOutInProgress)return false;
   if(!registration.granted){state.settings.pushEnabled=false;state.settings.notif=false;saveDeviceNotificationSettings();saveLocalCache();render();return false;}
+  if(currentSession?.user?.id!==ownerId||!state.settings.pushEnabled||signOutInProgress)return false;
   await registerNativePushSubscription(registration);
   return true;
 }
 async function requestNotif(){
   if(isNativeApp()){
     if(!supabase||!currentSession){toast('Sign in to receive native push reminders.');return;}
+    const ownerId=currentSession.user.id;
     try{
       const registration=await window.YERE_NATIVE.registerPush();
+      if(currentSession?.user?.id!==ownerId||signOutInProgress)return;
       state.settings.notif=Boolean(registration.granted);
       state.settings.pushEnabled=Boolean(registration.granted&&registration.token);
       if(!registration.granted){saveDeviceNotificationSettings();persist();render();toast('Enable notifications in your device settings.');return;}
       await registerNativePushSubscription(registration);
       saveDeviceNotificationSettings();persist();render();toast('Native push reminders are on.');
-    }catch(error){toast(error?.message||'Could not enable native notifications.');}
+    }catch(error){if(currentSession?.user?.id!==ownerId||signOutInProgress)return;state.settings.pushEnabled=false;state.settings.notif=false;saveDeviceNotificationSettings();persist();render();toast(error?.message||'Could not enable native notifications.');}
     return;
   }
   if(!('Notification' in window)){toast('Notifications are not supported in this browser.');return;}
@@ -2612,7 +2633,9 @@ async function togglePushNotifications(){
     try{
       if(isNativeApp()){
         const registration=window.YERE_NATIVE.getPushRegistration();
-        if(registration.token&&supabase&&currentSession)await supabase.from('push_subscriptions').delete().eq('owner_id',currentSession.user.id).eq('device_token',registration.token);
+        state.settings.pushEnabled=false;state.settings.notif=false;
+        try{await removeNativePushSubscription(registration);}catch(error){state.settings.pushEnabled=true;state.settings.notif=true;throw error;}
+        saveDeviceNotificationSettings();
         await window.YERE_NATIVE.unregisterPush();
       }else{
         const registration=await navigator.serviceWorker.ready;
@@ -2627,16 +2650,20 @@ async function sendTestNotification(){
   if(isNativeApp()){
     if(!supabase||!currentSession){toast('Sign in to test native push.');return;}
     if(!state.settings.pushEnabled){await requestNotif();if(!state.settings.pushEnabled)return;}
-    const {error}=await supabase.functions.invoke('test-notification',{body:{}});
-    if(error){toast(error.message||'Test push could not be sent. Check FCM or APNs configuration.');return;}
-    toast('Test notification sent.');return;
+    const registration=window.YERE_NATIVE.getPushRegistration();
+    const {data,error}=await supabase.functions.invoke('test-notification',{body:{platform:registration.platform,deviceToken:registration.token}});
+    if(error){const problem=await error.context?.json?.().catch(()=>null);toast(problem?.error||error.message||'Test push could not be sent.');return;}
+    toast(data?.accepted?'Push service accepted this device’s test. Check for its notification.':'Test push was not accepted.');return;
   }
   if(!('Notification' in window)){toast('Notifications are not supported.');return;}
   if(Notification.permission!=='granted'){await requestNotif();if(Notification.permission!=='granted')return;}
   if(supabase&&currentSession){
-    const {error}=await supabase.functions.invoke('test-notification',{body:{}});
+    const registration=await navigator.serviceWorker.ready;
+    const subscription=await registration.pushManager.getSubscription();
+    if(!subscription){toast('Turn on push on this device first.');return;}
+    const {error}=await supabase.functions.invoke('test-notification',{body:{platform:'web',endpoint:subscription.endpoint}});
     if(error){toast(error.message||'Test push could not be sent. Check your push configuration.');return;}
-    toast('Test notification sent.');return;
+    toast('Push service accepted this browser’s test. Check for its notification.');return;
   }
   const payload={title:'Yere · It works!',body:'This is what a thoughtful reminder will feel like.',icon:'/icons/icon-192-v2.png'};
   try{if('serviceWorker' in navigator){const reg=await navigator.serviceWorker.ready;await reg.showNotification(payload.title,payload);}else new Notification(payload.title,{body:payload.body});toast('Test notification sent.');}
@@ -2676,18 +2703,31 @@ function handleServiceWorkerMessage(event){
   if(data.action==='snooze'&&data.reminderId)openSnoozeScreen(data.reminderId,data.minutes||60);
   else if(data.reminderId)openDetail(data.reminderId);
 }
-function handleNativeNotificationIntent(intent){
-  if(!intent?.reminderId)return;
-  const run=()=>{
-    if(intent.action==='done'){
+let notificationIntentQueue=null;
+function getNotificationIntentQueue(){
+  if(!notificationIntentQueue)notificationIntentQueue=window.YERE_NOTIFICATION_INTENTS.createNotificationIntentQueue({
+    getContext:()=>({userId:currentSession?.user?.id,ready:cloudReady&&!cloudWorkspaceLoading&&!signOutInProgress&&(notificationDataReady||!isOnline())}),
+    execute:intent=>{
       const reminder=state.reminders.find(item=>item.id===intent.reminderId);
-      if(reminder&&!reminder.completed)toggleComplete(intent.reminderId);
-      else if(!reminder)toast('That reminder is no longer available.');
-    }else if(intent.action==='snooze'&&intent.direct)snooze(intent.reminderId,intent.minutes||10);
-    else if(intent.action==='snooze')openSnoozeScreen(intent.reminderId,intent.minutes||60);
-    else openDetail(intent.reminderId);
-  };
-  window.setTimeout(run,250);
+      if(!reminder){if(!isOnline())return false;toast('That reminder is no longer available in this account.');return true;}
+      if(reminder.rejected||reminder.approved===false){toast('That reminder is not approved.');return true;}
+      // Old notification buttons must not mutate a reminder that has since been rescheduled.
+      if(intent.dueAt&&intent.action!=='view'&&new Date(intent.dueAt).getTime()!==new Date(reminder.due).getTime()){
+        toast('This reminder has changed. Open it to see the latest schedule.');return true;
+      }
+      if(intent.action==='done'){if(!reminder.completed)toggleComplete(intent.reminderId);}
+      else if(intent.action==='snooze'&&intent.direct){if(!reminder.completed)snooze(intent.reminderId,intent.minutes||10);}
+      else if(intent.action==='snooze')openSnoozeScreen(intent.reminderId,intent.minutes||60);
+      else openDetail(intent.reminderId);
+      return true;
+    }
+  });
+  return notificationIntentQueue;
+}
+function flushNotificationIntents(){notificationIntentQueue?.flush();}
+function handleNativeNotificationIntent(intent){
+  getNotificationIntentQueue().enqueue(intent);
+  flushNotificationIntents();
 }
 async function handleNativeUrl(rawUrl){
   if(!rawUrl)return;
@@ -2697,7 +2737,7 @@ async function handleNativeUrl(rawUrl){
     const route=url.protocol==='yere:'?url.hostname:'';
     const reminderId=params.get('reminder')||(route==='reminder'?url.pathname.replace(/^\//,''):'');
     if(reminderId){
-      handleNativeNotificationIntent({reminderId,action:params.get('action')||params.get('notificationAction')||'view',direct:params.get('direct')==='1',minutes:Number(params.get('minutes'))||60});
+      handleNativeNotificationIntent({reminderId,action:params.get('action')||params.get('notificationAction')||'view',direct:params.get('direct')==='1',minutes:Number(params.get('minutes'))||0,ownerId:params.get('ownerId')||'',dueAt:params.get('dueAt')||'',eventId:params.get('eventId')||''});
       return;
     }
     const invite=params.get('invite');
@@ -2727,8 +2767,8 @@ function handleNotificationIntent(){
     handleNativeNotificationIntent({reminderId:id,action:action||'view',minutes});
   }
   if(isNativeApp()){
-    const nativeIntent=window.YERE_NATIVE.consumeNotificationIntent();
-    if(nativeIntent)handleNativeNotificationIntent(nativeIntent);
+    let nativeIntent;
+    while((nativeIntent=window.YERE_NATIVE.consumeNotificationIntent()))handleNativeNotificationIntent(nativeIntent);
     const launchUrl=window.YERE_NATIVE.consumeLaunchUrl();
     if(launchUrl)handleNativeUrl(launchUrl);
   }
@@ -2872,9 +2912,9 @@ function installNativeAppHandlers(){
   window.addEventListener('yere:native-resume',event=>{if(event.detail?.connected&&cloudReady)syncCloudSnapshot().then(()=>pullCloudSnapshot(false));});
   window.addEventListener('yere:native-back',handleNativeBack);
   window.addEventListener('yere:native-url',event=>{window.YERE_NATIVE.consumeLaunchUrl();handleNativeUrl(event.detail?.url);});
-  window.addEventListener('yere:native-notification-action',event=>{window.YERE_NATIVE.consumeNotificationIntent();handleNativeNotificationIntent(event.detail);});
+  window.addEventListener('yere:native-notification-action',()=>{let intent;while((intent=window.YERE_NATIVE.consumeNotificationIntent()))handleNativeNotificationIntent(intent);});
   window.addEventListener('yere:native-notification-received',event=>{if(event.detail?.title)toast(event.detail.title);});
-  window.addEventListener('yere:native-push-token',event=>{if(currentSession)registerNativePushSubscription(event.detail).catch(error=>console.warn('The refreshed device token could not be saved.',error));});
+  window.addEventListener('yere:native-push-token',event=>{if(currentSession&&cloudReady&&state.settings.pushEnabled&&!signOutInProgress)registerNativePushSubscription(event.detail).catch(error=>console.warn('The refreshed device token could not be saved.',error));});
 }
 
 document.addEventListener('keydown', (e) => {
@@ -2941,6 +2981,7 @@ async function bootApp(){
       if(event==='PASSWORD_RECOVERY'){currentSession=session;setAuthMode('recovery');return;}
       if(event==='SIGNED_OUT'){
         closeProfileMenu();
+        notificationIntentQueue?.clear();
         currentSession=null;cloudReady=false;
         if(realtimeChannel){supabase.removeChannel(realtimeChannel);realtimeChannel=null;}
         setAccountLabel();setAuthMode('signin','You have been signed out.');return;

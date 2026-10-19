@@ -62,10 +62,10 @@ function logoutHarness({ native = false, answer = false, error = null } = {}) {
   const calls = { confirm: 0, web: 0, native: 0, tokens: 0, labels: 0 };
   const session = { user: { id: 'user-1' } };
   const context = {
-    currentSession: session, cloudReady: true, cloudPending: true, realtimeChannel: null,
+    notificationIntentQueue: null, removeNativePushSubscription: async () => { calls.tokens++; }, currentSession: session, cloudReady: true, cloudPending: true, realtimeChannel: null,
     state: { reminders: [reminder('saved')], contacts: [], relationships: [], audit: [], lists: [], invites: [] },
     supabase: { auth: { signOut: async () => { calls.web++; return { error }; } }, from: () => { calls.tokens++; return { delete: () => ({ eq: () => ({ eq: async () => ({}) }) }) }; } },
-    window: { YERE_NATIVE: { getPushRegistration: () => ({ token: 'device-token' }), auth: { signOut: async () => { calls.native++; } } } },
+    window: { YERE_NATIVE: { getPushRegistration: () => ({ token: 'device-token' }), unregisterPush: async () => {}, auth: { signOut: async () => { calls.native++; } } } },
     isNativeApp: () => native, confirm: () => { calls.confirm++; return answer; }, closeProfileMenu() {},
     toast() {}, setAccountLabel: () => { calls.labels++; }, setAuthMode() {}
   };

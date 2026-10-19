@@ -1,3 +1,5 @@
+import { createNotificationIntentQueue } from './notification-intents.js';
+window.YERE_NOTIFICATION_INTENTS = { createNotificationIntentQueue };
 import './style.css';
 import { isPreviewableImage, createAttachmentController } from './attachments.js';
 window.YERE_ATTACHMENTS = { isPreviewableImage, createAttachmentController };

@@ -11,12 +11,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let snooze = UNNotificationAction(
             identifier: "YERE_SNOOZE_10",
             title: "Snooze 10 min",
-            options: []
+            options: [.foreground]
         )
         let done = UNNotificationAction(
             identifier: "YERE_DONE",
             title: "Done",
-            options: []
+            options: [.foreground]
         )
         let view = UNNotificationAction(
             identifier: "YERE_VIEW",
@@ -31,6 +31,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         )
         UNUserNotificationCenter.current().setNotificationCategories([reminderCategory])
         return true
+    }
+
+    // The Capacitor push plugin waits for these notifications to emit registration/errors.
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

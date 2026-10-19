@@ -1,4 +1,5 @@
 import webpush from 'npm:web-push@3.6.7';
+import { PushDeliveryError, fcmErrorCode } from './push-errors.js';
 
 export type PushRow = {
   id?: string;
@@ -13,6 +14,7 @@ export type PushRow = {
 const encoder = new TextEncoder();
 let vapidReady = false;
 let firebaseAccess: { token: string; expiresAt: number } | null = null;
+let apnsHttpClient: Deno.HttpClient | null = null;
 let apnsAccess: { token: string; expiresAt: number } | null = null;
 
 function required(name: string) {
@@ -61,10 +63,15 @@ function prepareVapid() {
 export async function sendWebPush(subscription: PushRow, payload: Record<string, unknown>) {
   if (!subscription.endpoint || !subscription.p256dh || !subscription.auth) throw new Error('Web Push subscription is incomplete.');
   if (!prepareVapid()) throw new Error('Web Push VAPID keys are not configured.');
-  await webpush.sendNotification({
-    endpoint: subscription.endpoint,
-    keys: { p256dh: subscription.p256dh, auth: subscription.auth }
-  }, JSON.stringify(payload));
+  try {
+    await webpush.sendNotification({
+      endpoint: subscription.endpoint,
+      keys: { p256dh: subscription.p256dh, auth: subscription.auth }
+    }, JSON.stringify(payload), { TTL: 3600, timeout: 15000 });
+    return { provider: 'webpush', reference: null };
+  } catch (error) {
+    throw new PushDeliveryError('webpush', 'SEND_FAILED', Number((error as { statusCode?: number }).statusCode || 0));
+  }
 }
 
 async function firebaseAccessToken() {
@@ -88,11 +95,12 @@ async function firebaseAccessToken() {
   );
   const response = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
+    signal: AbortSignal.timeout(15000),
     headers: { 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion })
   });
   const body = await response.json();
-  if (!response.ok || !body.access_token) throw new Error(`FCM OAuth failed (${response.status}): ${body.error_description || body.error || 'unknown error'}`);
+  if (!response.ok || !body.access_token) throw new PushDeliveryError('fcm', 'OAUTH_FAILED', response.status);
   firebaseAccess = { token: body.access_token, expiresAt: Date.now() + Number(body.expires_in || 3600) * 1000 };
   return firebaseAccess.token;
 }
@@ -111,19 +119,23 @@ async function sendFcm(subscription: PushRow, payload: Record<string, unknown>) 
   const accessToken = await firebaseAccessToken();
   const response = await fetch(`https://fcm.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/messages:send`, {
     method: 'POST',
+    signal: AbortSignal.timeout(15000),
     headers: { authorization: `Bearer ${accessToken}`, 'content-type': 'application/json' },
     body: JSON.stringify({
       message: {
         token: subscription.device_token,
         data: stringData(payload),
-        android: { priority: 'HIGH', ttl: '86400s' }
+        android: { priority: 'HIGH', ttl: '3600s' }
       }
     })
   });
   if (!response.ok) {
-    const reason = await response.text();
-    throw new Error(`FCM ${response.status}: ${reason.slice(0, 500)}`);
+    const reason = await response.json().catch(() => ({}));
+    if (response.status === 401) firebaseAccess = null;
+    throw new PushDeliveryError('fcm', fcmErrorCode(reason), response.status);
   }
+  const result = await response.json();
+  return { provider: 'fcm', reference: result.name || null };
 }
 
 async function apnsAccessToken() {
@@ -145,37 +157,49 @@ async function sendApns(subscription: PushRow, payload: Record<string, unknown>)
   const token = await apnsAccessToken();
   const sandbox = /^true$/i.test(Deno.env.get('APNS_USE_SANDBOX') || '');
   const host = sandbox ? 'https://api.sandbox.push.apple.com' : 'https://api.push.apple.com';
+  // APNs is HTTP/2-only; do not depend on the runtime's default HTTP/1 client.
+  apnsHttpClient ||= Deno.createHttpClient({ http2: true });
+  const { title, body, ...data } = payload;
   const response = await fetch(`${host}/3/device/${encodeURIComponent(subscription.device_token)}`, {
     method: 'POST',
+    signal: AbortSignal.timeout(15000),
+    client: apnsHttpClient,
     headers: {
       authorization: `bearer ${token}`,
       'apns-topic': Deno.env.get('APNS_BUNDLE_ID') || 'com.getyere.app',
       'apns-push-type': 'alert',
       'apns-priority': '10',
-      'apns-expiration': '0',
+      'apns-expiration': String(Math.floor(Date.now() / 1000) + 3600),
       'content-type': 'application/json'
     },
     body: JSON.stringify({
       aps: {
         alert: {
-          title: String(payload.title || 'A reminder from Yere'),
-          body: String(payload.body || 'It is time for a reminder you wanted to keep.')
+          title: String(title || 'A reminder from Yere'),
+          body: String(body || 'It is time for a reminder you wanted to keep.')
         },
         sound: 'default',
-        category: 'YERE_REMINDER',
+        category: payload.reminderId ? 'YERE_REMINDER' : undefined,
         'thread-id': payload.reminderId ? `yere-${payload.reminderId}` : 'yere-reminders'
       },
-      ...payload
+      ...data
     })
   });
   if (!response.ok) {
-    const reason = await response.text();
-    throw new Error(`APNs ${response.status}: ${reason.slice(0, 500)}`);
+    const reason = await response.json().catch(() => ({}));
+    if (reason.reason === 'ExpiredProviderToken') apnsAccess = null;
+    throw new PushDeliveryError('apns', reason.reason || 'PROVIDER_ERROR', response.status);
   }
+  return { provider: 'apns', reference: response.headers.get('apns-id') };
 }
 
 /** Send through the transport represented by a push_subscriptions row. */
 export async function sendPush(subscription: PushRow, payload: Record<string, unknown>) {
+  // Long reminder notes must not exceed the providers' 4 KB payload limit.
+  payload = { ...payload,
+    title: Array.from(String(payload.title || 'A reminder from Yere')).slice(0, 120).join(''),
+    body: Array.from(String(payload.body || 'It is time for a reminder you wanted to keep.')).slice(0, 240).join('')
+  };
   if (subscription.provider === 'fcm' || (subscription.platform === 'android' && subscription.device_token)) {
     return sendFcm(subscription, payload);
   }

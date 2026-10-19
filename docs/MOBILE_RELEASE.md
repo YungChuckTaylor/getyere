@@ -1,5 +1,7 @@
 # Yere mobile release pack
 
+Activation and device acceptance: [Native notifications](NATIVE_NOTIFICATIONS.md). Source/build checks alone are not delivery verification.
+
 Bundle/package ID: `com.getyere.app`
 Marketing version: `1.0`
 Primary language: English
@@ -48,7 +50,7 @@ reminder,tasks,recurring,shared,contacts,snooze,renewal,planner,offline
 
 - Marketing: `https://www.getyere.com`
 - Support: `https://www.getyere.com/support.html`
-- Privacy policy: `https://www.getyere.com/privacy.html`
+- Privacy policy: `https://getyere.com/privacy-policy`
 - Account deletion information: `https://www.getyere.com/support.html#delete-account` (add that anchor before Play submission if the console requires a dedicated deep URL)
 
 ## App Review notes
@@ -56,7 +58,7 @@ reminder,tasks,recurring,shared,contacts,snooze,renewal,planner,offline
 Yere uses the existing responsive web experience inside a Capacitor native shell, with substantial native integration:
 
 1. Native Supabase authentication stores/restores the mobile session and mirrors its JWT into the shared data layer.
-2. Native APNs/FCM notifications work while the app is closed and include Done, Snooze, and View actions.
+2. Native APNs/FCM integration supports alerts and Done, Snooze, and View actions after provider activation and physical-device verification. Actions open the app and wait for account/reminder restoration; they are not silent background mutations.
 3. A private native Filesystem snapshot, network monitoring, and a queued-write flag let users view and edit while offline and sync on reconnect.
 4. The app supports universal/custom links, Android system-back navigation, haptics, a native splash/icon, safe areas, and native status-bar behavior.
 5. Account deletion is available in Settings → Account & data.

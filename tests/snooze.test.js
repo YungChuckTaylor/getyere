@@ -67,5 +67,5 @@ test('missing reminders are ignored', () => {
 test('popup and notification snooze paths reuse the same shared implementation', () => {
   assert.match(html, /onclick="snooze\('\$\{esc\(r\.id\)\}',10\)"/);
   assert.match(html, /onclick="snooze\('\$\{esc\(r\.id\)\}',60\)"/);
-  assert.match(html, /intent\.action==='snooze'&&intent\.direct\)snooze\(intent\.reminderId/);
+  assert.match(html, /intent\.action==='snooze'&&intent\.direct\)\{if\(!reminder\.completed\)snooze\(intent\.reminderId/);
 });

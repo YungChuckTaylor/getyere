@@ -1,3 +1,4 @@
+import { normalizeNotification } from './notification-intents.js';
 import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
@@ -168,23 +169,10 @@ function removeOfflineSnapshot(key) {
   return writeOfflineCache();
 }
 
-function normalizeNotification(notification = {}, actionId = 'tap') {
-  const data = notification.data || {};
-  return {
-    actionId,
-    id: data.reminderId || data.reminder_id || notification.id || '',
-    reminderId: data.reminderId || data.reminder_id || '',
-    action: data.action || (/snooze/i.test(actionId) ? 'snooze' : /done|complete/i.test(actionId) ? 'done' : 'view'),
-    direct: /snooze|done|complete/i.test(actionId),
-    minutes: Number(data.minutes || (/10/.test(actionId) ? 10 : /60|hour/i.test(actionId) ? 60 : 0)) || 0,
-    title: notification.title || data.title || '',
-    body: notification.body || data.body || '',
-    url: data.url || ''
-  };
-}
-
 function rememberNotificationIntent(intent) {
-  nativeBridge.pendingNotification = intent;
+  if (!intent) return;
+  nativeBridge.pendingNotifications.push(intent);
+  if (nativeBridge.pendingNotifications.length > 20) nativeBridge.pendingNotifications.shift();
   emit('yere:native-notification-action', intent);
 }
 
@@ -252,7 +240,7 @@ async function initializeNative({ supabaseUrl, supabaseKey, client }) {
     Network.getStatus(),
     App.getLaunchUrl().catch(() => undefined)
   ]);
-  pushToken = savedToken || '';
+  pushToken = pushToken || savedToken || '';
   nativeBridge.online = network.connected;
   nativeBridge.connectionType = network.connectionType;
   if (launch?.url) nativeBridge.pendingUrl = launch.url;
@@ -349,7 +337,7 @@ const nativeBridge = {
   platform,
   online: typeof navigator === 'undefined' ? true : navigator.onLine,
   connectionType: 'unknown',
-  pendingNotification: null,
+  pendingNotifications: [],
   pendingUrl: '',
   auth: nativeAuth,
   speech,
@@ -392,30 +380,31 @@ const nativeBridge = {
       });
     }
 
-    const savedToken = pushToken;
     const tokenPromise = new Promise((resolve, reject) => {
       const timer = window.setTimeout(() => {
         pushWaiters = pushWaiters.filter((entry) => entry.timer !== timer);
-        if (savedToken) resolve(this.getPushRegistration());
-        else reject(new Error('Push registration timed out. Check this app’s notification and signing configuration.'));
-      }, savedToken ? 5000 : 20000);
+        reject(new Error('Push registration timed out. Check this app’s notification and signing configuration.'));
+      }, 20000);
       pushWaiters.push({ resolve, reject, timer });
     });
-    await PushNotifications.register();
+    // Attach a rejection handler before invoking the native bridge.
+    tokenPromise.catch(() => undefined);
+    try { await PushNotifications.register(); }
+    catch (error) { resolvePushWaiters(null, error); throw error; }
     const registration = await tokenPromise;
     return { granted: true, ...registration };
   },
   async unregisterPush() {
     const previous = this.getPushRegistration();
-    await PushNotifications.unregister();
-    pushToken = '';
-    await Preferences.remove({ key: PUSH_TOKEN_KEY });
+    try { await PushNotifications.unregister(); }
+    finally {
+      pushToken = '';
+      await Promise.allSettled([Preferences.remove({ key: PUSH_TOKEN_KEY }), PushNotifications.removeAllDeliveredNotifications()]);
+    }
     return previous;
   },
   consumeNotificationIntent() {
-    const value = this.pendingNotification;
-    this.pendingNotification = null;
-    return value;
+    return this.pendingNotifications.shift() || null;
   },
   consumeLaunchUrl() {
     const value = this.pendingUrl;

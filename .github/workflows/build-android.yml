@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      require_android_push:
+        description: Fail unless the Firebase Android client configuration is installed
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -78,9 +83,14 @@ jobs:
         # for com.getyere.app. It is decoded only on this ephemeral runner and is never uploaded.
         env:
           GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
+          REQUIRE_ANDROID_PUSH: ${{ github.event_name == 'workflow_dispatch' && inputs.require_android_push }}
         run: |
           set -euo pipefail
           if [ -z "${GOOGLE_SERVICES_JSON_B64}" ]; then
+            if [ "${REQUIRE_ANDROID_PUSH}" = "true" ]; then
+              echo "::error title=Android push required::Add GOOGLE_SERVICES_JSON_B64 in repository Actions secrets before building a push-verification APK."
+              exit 1
+            fi
             echo "::warning title=Android push disabled::GOOGLE_SERVICES_JSON_B64 is not set. This APK is built without Firebase Cloud Messaging configuration, so Android push notifications will not work."
             echo "GOOGLE_SERVICES_STATUS=missing" >> "$GITHUB_ENV"
             exit 0

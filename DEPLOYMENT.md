@@ -290,9 +290,11 @@ error wording; CI additionally proves the plugin and manifest entries reached th
 
 The `push_subscriptions` table supports three providers: Web Push, FCM on Android, and APNs on iOS. The official Capacitor push plugin returns an FCM registration token on Android and an APNs device token on iOS, so the shared `sendPush` server path selects the correct transport. Do not send an APNs token to FCM.
 
+See [the native notification activation checklist](docs/NATIVE_NOTIFICATIONS.md) for the current rollout order, secure account-owner steps and device acceptance matrix.
+
 ### Android / Firebase Cloud Messaging
 
-1. Create a Firebase project and Android app whose package is exactly `com.getyere.app`.
+1. Reuse the existing Firebase project and Android app whose package is exactly `com.getyere.app`.
 2. Download `google-services.json` and put it at `android/app/google-services.json`. It is intentionally ignored by Git; provide it to CI through an encrypted secret if CI must produce a push-enabled build.
 3. In Firebase **Project settings → Service accounts**, create a least-privilege service account that can send Firebase Cloud Messaging messages. Store these values as Supabase Edge Function secrets:
 
@@ -308,7 +310,7 @@ The `push_subscriptions` table supports three providers: Web Push, FCM on Androi
 
 ### iOS / Apple Push Notification service
 
-1. In Apple Developer, create the `com.getyere.app` App ID and enable **Push Notifications**, **Associated Domains**, and **Sign in with Apple**.
+1. In Apple Developer, use the existing `com.getyere.app` App ID and enable **Push Notifications**, **Associated Domains**, and **Sign in with Apple**.
 2. Create an APNs `.p8` key and retain its key ID and your Apple team ID. Store the following as Supabase Edge Function secrets (never in Xcode source):
 
    ```bash
@@ -322,7 +324,7 @@ The `push_subscriptions` table supports three providers: Web Push, FCM on Androi
 
 3. Set `APNS_USE_SANDBOX=true` while testing a development-signed build. Set it to `false` for TestFlight/App Store device tokens. Do not mix sandbox and production tokens.
 4. In Xcode, select the App target and your developer team. Confirm Push Notifications, Associated Domains, and Sign in with Apple appear under **Signing & Capabilities**. The checked-in entitlements use `development` for Debug and `production` for Release.
-5. The `YERE_REMINDER` iOS category supplies Snooze, Done, and View actions. A normal notification tap opens the relevant reminder/snooze flow.
+5. The `YERE_REMINDER` iOS category supplies Snooze, Done, and View actions. All foreground the app; actions wait for account/data restoration, not a background JavaScript timer. Physical-device verification is still required.
 
 After changing native push secrets, redeploy both push-sending functions:
 
@@ -427,7 +429,7 @@ The native app includes more than a web wrapper: native auth/token storage, push
 - **`google-services.json not found`:** debug compilation can succeed without it, but FCM registration cannot. Put the file at `android/app/google-services.json` and sync/rebuild.
 - **Android token exists but messages do not arrive:** verify package/project alignment, FCM API/service-account permissions, all three Firebase secrets, notification permission, battery restrictions, and Edge Function logs.
 - **iOS registration fails:** use a physical device, a profile with Push capability, matching bundle ID/team, and the correct APNs environment. Simulators are not a substitute for the final device test.
-- **APNs `BadDeviceToken` or `DeviceTokenNotForTopic`:** verify sandbox vs production, bundle/topic, team/key IDs, and rebuild after changing signing. Invalid tokens are removed by the dispatch function.
+- **APNs `BadDeviceToken` or `DeviceTokenNotForTopic`:** verify sandbox vs production, bundle/topic, team/key IDs, and rebuild after changing signing. These configuration/environment errors do not delete tokens. Only explicit provider retirement responses do.
 - **Native auth works but database calls return 401:** inspect the native session and its mirrored `supabase-js` session, verify anon URL/key point to the same project, and do not disable RLS.
 - **Everything returns 401 and `verify:backend` cannot confirm anything:** the public key itself is being rejected. `npm run build:native` and the Android workflow warn when `VITE_SUPABASE_ANON_KEY` is a legacy anon JWT whose `exp` claim has passed, and the backend report says so as a `MISSING` item. Copy the current publishable (or anon) key from Supabase → Project Settings → API into the GitHub repository variable, then re-run the workflow. A publishable `sb_publishable_...` key does not expire.
 - **Offline edits do not sync:** leave the app open after connectivity returns, inspect `cloudPending` in the device WebView, verify `@capacitor/network` events, and check Supabase/RLS errors. Do not clear app data before recovering the private offline snapshot.
