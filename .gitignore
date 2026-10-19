@@ -28,3 +28,6 @@ google-services.json
 *.p12
 *.pem
 *.key
+
+# Local image-generation tooling
+.venv/

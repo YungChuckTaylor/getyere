@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'yere-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2-brand`;
 const APP_URL = new URL(self.registration.scope);
 
 async function precacheShell() {
@@ -11,10 +11,13 @@ async function precacheShell() {
 
   const assets = new Set([
     new URL('manifest.webmanifest', APP_URL).href,
-    new URL('yere-mark.svg', APP_URL).href,
-    new URL('icons/icon-192.png', APP_URL).href,
-    new URL('icons/icon-512.png', APP_URL).href,
-    new URL('icons/icon-maskable-512.png', APP_URL).href
+    new URL('yere-logo-v2.png', APP_URL).href,
+    new URL('icons/icon-192-v2.png', APP_URL).href,
+    new URL('icons/icon-512-v2.png', APP_URL).href,
+    new URL('icons/icon-maskable-512-v2.png', APP_URL).href,
+    new URL('icons/apple-touch-icon-v2.png', APP_URL).href,
+    new URL('icons/favicon-v2-32.png', APP_URL).href,
+    new URL('icons/badge-v2-96.png', APP_URL).href
   ]);
   for (const match of html.matchAll(/(?:src|href)=["']([^"']+)["']/g)) {
     try {
@@ -65,7 +68,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/') || url.pathname.endsWith('.svg') || url.pathname.endsWith('.webmanifest')) {
+  if (url.pathname === '/yere-logo-v2.png' || url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/') || url.pathname.endsWith('.svg') || url.pathname.endsWith('.webmanifest')) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match(request);
@@ -88,8 +91,8 @@ self.addEventListener('push', (event) => {
   const reminderId = payload.reminderId || payload.id || '';
   event.waitUntil(self.registration.showNotification(payload.title || 'A reminder from Yere', {
     body: payload.body || 'It is time for a reminder you wanted to keep.',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: '/icons/icon-192-v2.png',
+    badge: '/icons/badge-v2-96.png',
     tag: payload.tag || `yere-${reminderId || Date.now()}`,
     renotify: false,
     requireInteraction: true,

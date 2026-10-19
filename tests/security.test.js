@@ -44,7 +44,7 @@ test('Supabase confirmation template is Yere-branded and uses the generated conf
   const [template, deployment] = await Promise.all([
     read('supabase/email-templates/confirm-signup.html'), read('DEPLOYMENT.md')
   ]);
-  assert.match(template, /https:\/\/getyere\.com\/icons\/icon-192\.png/);
+  assert.match(template, /https:\/\/getyere\.com\/icons\/icon-192-v2\.png/);
   assert.match(template, /\{\{ \.ConfirmationURL \}\}/);
   assert.match(template, /Confirm your Yere account/);
   assert.match(deployment, /smtp\.resend\.com/);
@@ -124,7 +124,7 @@ test('PWA manifest and offline shell assets are present', async () => {
   assert.match(worker, /addEventListener\(['"]install/);
   assert.match(worker, /caches\.open/);
   assert.match(html, /rel="manifest"/);
-  assert.match(html, /yere-mark\.svg/);
+  assert.match(html, /yere-logo-v2\.png/);
 });
 
 test('admin data is server-only and private-content reads require an audited reason', async () => {

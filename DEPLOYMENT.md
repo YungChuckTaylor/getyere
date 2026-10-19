@@ -156,7 +156,7 @@ For the Vercel Node admin guard/session/proxy routes, set `SUPABASE_URL` and `SU
 
 Run the deployed app over HTTPS (or localhost for development), then verify:
 
-1. `/manifest.webmanifest`, `/sw.js`, `/yere-mark.svg`, and the three PNG icons return successfully. The manifest starts in standalone mode with the dark theme color.
+1. `/manifest.webmanifest`, `/sw.js`, `/yere-logo-v2.png`, and the three PNG icons return successfully. The manifest starts in standalone mode with the dark theme color.
 2. In Chrome/Edge DevTools → **Application**, confirm the manifest is installable and the service worker is activated. Use **Offline** in the Network panel and reload after the first visit; the app shell and compiled styles/scripts should still load.
 3. On Android, install from the browser install prompt or browser menu. On iPhone/iPad, open the site in Safari, tap **Share → Add to Home Screen**, then open the installed icon. iOS web push requires a supported iOS/iPadOS version and an installed Home Screen web app.
 4. Toggle the theme in the header and Settings. The first visit is dark; your explicit choice persists in local storage and the signed-in profile.
