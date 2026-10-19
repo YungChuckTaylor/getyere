@@ -31,3 +31,6 @@ google-services.json
 
 # Local image-generation tooling
 .venv/
+
+# Local browser smoke-test screenshots
+.cache/

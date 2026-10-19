@@ -1,4 +1,6 @@
 import './style.css';
+import { homeMetrics } from './dashboard.js';
+window.YERE_DASHBOARD = { homeMetrics };
 import { enhancePasswordFields, startSocialSignIn } from './auth-ui.js';
 window.YERE_AUTH = { enhancePasswordFields, startSocialSignIn };
 import { createClient } from '@supabase/supabase-js';

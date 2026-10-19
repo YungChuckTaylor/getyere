@@ -90,3 +90,9 @@ input[type="checkbox"].pretty:checked::after { content:''; width:5px; height:9px
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* Shared web/native account menu. */
+.profile-menu-item { display:block; width:100%; text-align:left; min-height:44px; padding:.65rem .75rem; border-radius:.75rem; font-size:.875rem; font-weight:600; }
+.profile-menu-item:hover, .profile-menu-item:focus-visible { background:rgba(99,102,241,.10); outline:2px solid transparent; }
+.profile-menu-item:focus-visible { outline-color:#818cf8; }
+.profile-menu-item.hidden { display:none; }
