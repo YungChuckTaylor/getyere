@@ -51,10 +51,20 @@ begin
 end;
 $$;
 
-alter table public.push_subscriptions
-  add constraint push_subscriptions_device_token_length
-  check (device_token is null or char_length(device_token) between 16 and 4096) not valid;
+-- Guarded like the constraints above so re-running this file is harmless. That matters because a
+-- project may have had these columns applied by hand from the SQL Editor while its migration
+-- history still lists an older set of versions.
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'push_subscriptions_device_token_length') then
+    alter table public.push_subscriptions
+      add constraint push_subscriptions_device_token_length
+      check (device_token is null or char_length(device_token) between 16 and 4096) not valid;
+  end if;
+end;
+$$;
 
+-- Validating an already-validated constraint is a no-op, so this stays safe to repeat.
 alter table public.push_subscriptions
   validate constraint push_subscriptions_device_token_length;
 

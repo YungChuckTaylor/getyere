@@ -1,3 +1,5 @@
+import { normalizeNotification } from './notification-intents.js';
+import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
@@ -7,7 +9,9 @@ import { Preferences } from '@capacitor/preferences';
 import { PushNotifications } from '@capacitor/push-notifications';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { SpeechRecognition } from '@capgo/capacitor-speech-recognition';
 import { CapacitorSupabase } from '@capgo/capacitor-supabase';
+import { createSpeechController } from './speech.js';
 
 const enabled = Capacitor.isNativePlatform();
 const platform = Capacitor.getPlatform();
@@ -96,8 +100,26 @@ async function applyWebSessionToNative(session) {
   }
 }
 
+// Unscoped keys only ever held the browser demo workspace (seeded sample people and reminders).
+// Native builds never sign in with them, so they are removed rather than restored. Account
+// data is always stored under a user-scoped key such as "Yere.v2.<userId>".
+const LEGACY_DEMO_KEYS = ['Yere.v1', 'Yere.v2'];
+
+function purgeLegacyDemoStorage() {
+  let changed = false;
+  for (const key of LEGACY_DEMO_KEYS) {
+    try { localStorage.removeItem(key); } catch (_) { /* storage unavailable */ }
+    if (key in offlineCache) {
+      delete offlineCache[key];
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 async function hydrateOfflineCache() {
   if (!enabled) return;
+  purgeLegacyDemoStorage();
   try {
     const result = await Filesystem.readFile({
       path: CACHE_PATH,
@@ -107,8 +129,10 @@ async function hydrateOfflineCache() {
     const parsed = JSON.parse(asText(result.data));
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return;
     offlineCache = parsed;
+    if (purgeLegacyDemoStorage()) writeOfflineCache();
     for (const [key, value] of Object.entries(offlineCache)) {
       if (!/^Yere(?:\.|$)/.test(key) || typeof value !== 'string') continue;
+      if (LEGACY_DEMO_KEYS.includes(key)) continue;
       if (localStorage.getItem(key) === null) localStorage.setItem(key, value);
     }
   } catch (error) {
@@ -145,23 +169,10 @@ function removeOfflineSnapshot(key) {
   return writeOfflineCache();
 }
 
-function normalizeNotification(notification = {}, actionId = 'tap') {
-  const data = notification.data || {};
-  return {
-    actionId,
-    id: data.reminderId || data.reminder_id || notification.id || '',
-    reminderId: data.reminderId || data.reminder_id || '',
-    action: data.action || (/snooze/i.test(actionId) ? 'snooze' : /done|complete/i.test(actionId) ? 'done' : 'view'),
-    direct: /snooze|done|complete/i.test(actionId),
-    minutes: Number(data.minutes || (/10/.test(actionId) ? 10 : /60|hour/i.test(actionId) ? 60 : 0)) || 0,
-    title: notification.title || data.title || '',
-    body: notification.body || data.body || '',
-    url: data.url || ''
-  };
-}
-
 function rememberNotificationIntent(intent) {
-  nativeBridge.pendingNotification = intent;
+  if (!intent) return;
+  nativeBridge.pendingNotifications.push(intent);
+  if (nativeBridge.pendingNotifications.length > 20) nativeBridge.pendingNotifications.shift();
   emit('yere:native-notification-action', intent);
 }
 
@@ -229,7 +240,7 @@ async function initializeNative({ supabaseUrl, supabaseKey, client }) {
     Network.getStatus(),
     App.getLaunchUrl().catch(() => undefined)
   ]);
-  pushToken = savedToken || '';
+  pushToken = pushToken || savedToken || '';
   nativeBridge.online = network.connected;
   nativeBridge.connectionType = network.connectionType;
   if (launch?.url) nativeBridge.pendingUrl = launch.url;
@@ -277,6 +288,26 @@ const nativeAuth = {
     const session = await applyNativeSessionToWeb(result.session);
     return { data: { session, user: session?.user || nativeUserToWeb(result.user) }, error: null };
   },
+  async signInWithOAuth({ provider }) {
+    if (provider !== 'google') throw new Error('Unsupported sign-in provider.');
+    if (!webClient) throw new Error('Cloud sign-in is not configured yet.');
+    // Use the shared client's PKCE verifier so the callback can exchange the code
+    // in the same storage, then the existing auth listener syncs the native session.
+    const { data, error } = await webClient.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: 'yere://auth/callback', skipBrowserRedirect: true }
+    });
+    if (error) throw error;
+    if (!data?.url) throw new Error('Could not start social sign-in.');
+    await Browser.open({ url: data.url });
+  },
+  async closeOAuthBrowser() {
+    await Browser.close().catch(() => undefined);
+  },
+  async completeOAuth(code) {
+    await this.closeOAuthBrowser();
+    return webClient.auth.exchangeCodeForSession(code);
+  },
   async signInWithApple() {
     await CapacitorSupabase.signInWithOAuth({ provider: 'apple', redirectTo: 'yere://auth/callback' });
   },
@@ -290,14 +321,26 @@ const nativeAuth = {
   }
 };
 
+// Voice capture for the installed apps. Android WebView exposes no window.SpeechRecognition, so
+// native builds drive the platform recognizer instead. Availability, microphone/speech
+// permissions, streaming partials, the single terminal result, stopping, and listener cleanup all
+// live in src/speech.js; nothing here is requested until the user taps the mic button.
+const speech = createSpeechController({
+  plugin: SpeechRecognition,
+  isNative: enabled,
+  language: typeof navigator === 'undefined' ? '' : (navigator.language || ''),
+  log: console
+});
+
 const nativeBridge = {
   enabled,
   platform,
   online: typeof navigator === 'undefined' ? true : navigator.onLine,
   connectionType: 'unknown',
-  pendingNotification: null,
+  pendingNotifications: [],
   pendingUrl: '',
   auth: nativeAuth,
+  speech,
   initialize: initializeNative,
   saveOfflineSnapshot,
   removeOfflineSnapshot,
@@ -337,30 +380,31 @@ const nativeBridge = {
       });
     }
 
-    const savedToken = pushToken;
     const tokenPromise = new Promise((resolve, reject) => {
       const timer = window.setTimeout(() => {
         pushWaiters = pushWaiters.filter((entry) => entry.timer !== timer);
-        if (savedToken) resolve(this.getPushRegistration());
-        else reject(new Error('Push registration timed out. Check this app’s notification and signing configuration.'));
-      }, savedToken ? 5000 : 20000);
+        reject(new Error('Push registration timed out. Check this app’s notification and signing configuration.'));
+      }, 20000);
       pushWaiters.push({ resolve, reject, timer });
     });
-    await PushNotifications.register();
+    // Attach a rejection handler before invoking the native bridge.
+    tokenPromise.catch(() => undefined);
+    try { await PushNotifications.register(); }
+    catch (error) { resolvePushWaiters(null, error); throw error; }
     const registration = await tokenPromise;
     return { granted: true, ...registration };
   },
   async unregisterPush() {
     const previous = this.getPushRegistration();
-    await PushNotifications.unregister();
-    pushToken = '';
-    await Preferences.remove({ key: PUSH_TOKEN_KEY });
+    try { await PushNotifications.unregister(); }
+    finally {
+      pushToken = '';
+      await Promise.allSettled([Preferences.remove({ key: PUSH_TOKEN_KEY }), PushNotifications.removeAllDeliveredNotifications()]);
+    }
     return previous;
   },
   consumeNotificationIntent() {
-    const value = this.pendingNotification;
-    this.pendingNotification = null;
-    return value;
+    return this.pendingNotifications.shift() || null;
   },
   consumeLaunchUrl() {
     const value = this.pendingUrl;

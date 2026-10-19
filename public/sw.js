@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'yere-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2-brand`;
 const APP_URL = new URL(self.registration.scope);
 
 async function precacheShell() {
@@ -11,10 +11,13 @@ async function precacheShell() {
 
   const assets = new Set([
     new URL('manifest.webmanifest', APP_URL).href,
-    new URL('yere-mark.svg', APP_URL).href,
-    new URL('icons/icon-192.png', APP_URL).href,
-    new URL('icons/icon-512.png', APP_URL).href,
-    new URL('icons/icon-maskable-512.png', APP_URL).href
+    new URL('yere-logo-v2.png', APP_URL).href,
+    new URL('icons/icon-192-v2.png', APP_URL).href,
+    new URL('icons/icon-512-v2.png', APP_URL).href,
+    new URL('icons/icon-maskable-512-v2.png', APP_URL).href,
+    new URL('icons/apple-touch-icon-v2.png', APP_URL).href,
+    new URL('icons/favicon-v2-32.png', APP_URL).href,
+    new URL('icons/badge-v2-96.png', APP_URL).href
   ]);
   for (const match of html.matchAll(/(?:src|href)=["']([^"']+)["']/g)) {
     try {
@@ -41,6 +44,12 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== APP_URL.origin || url.pathname.endsWith('/sw.js')) return;
+  // Never serve a cached public shell for the protected server-guarded admin routes.
+  if (url.pathname === '/admin' || url.pathname.startsWith('/admin/') || url.pathname === '/admin-access' || url.pathname.startsWith('/admin-api/')) return;
+
+  // Public legal documents must never fall back to the signed-in app shell.
+  // Let the browser navigate normally (including showing an honest offline error).
+  if (['/privacy-policy', '/termsofuse', '/privacy.html', '/terms.html'].includes(url.pathname.replace(/\/$/, ''))) return;
 
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
@@ -59,7 +68,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/') || url.pathname.endsWith('.svg') || url.pathname.endsWith('.webmanifest')) {
+  if (url.pathname === '/yere-logo-v2.png' || url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/') || url.pathname.endsWith('.svg') || url.pathname.endsWith('.webmanifest')) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match(request);
@@ -82,8 +91,8 @@ self.addEventListener('push', (event) => {
   const reminderId = payload.reminderId || payload.id || '';
   event.waitUntil(self.registration.showNotification(payload.title || 'A reminder from Yere', {
     body: payload.body || 'It is time for a reminder you wanted to keep.',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: '/icons/icon-192-v2.png',
+    badge: '/icons/badge-v2-96.png',
     tag: payload.tag || `yere-${reminderId || Date.now()}`,
     renotify: false,
     requireInteraction: true,

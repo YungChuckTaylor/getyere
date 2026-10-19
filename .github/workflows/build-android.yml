@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      require_android_push:
+        description: Fail unless the Firebase Android client configuration is installed
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -14,12 +19,23 @@ concurrency:
 
 jobs:
   debug-apk:
-    name: Debug APK
+    name: Debug APK (cloud-configured)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    # Public, browser-safe values only. These come from GitHub Actions repository VARIABLES
+    # (Settings → Secrets and variables → Actions → Variables). Never put service-role keys,
+    # Firebase service-account keys, APNs keys, or signing material in this block.
+    env:
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+      VITE_PUBLIC_APP_URL: ${{ vars.VITE_PUBLIC_APP_URL }}
+      VITE_VAPID_PUBLIC_KEY: ${{ vars.VITE_VAPID_PUBLIC_KEY }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+
+      - name: Validate cloud configuration (fails before any build)
+        run: node scripts/validate-cloud-env.mjs --target native
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -46,15 +62,83 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Build and sync web assets
-        run: npm run build && npx cap sync android
+      # Read-only, unauthenticated probe of the live Supabase project: which migrations, Edge
+      # Functions, auth settings, and storage bucket are actually deployed. It never blocks the
+      # APK (that is the configuration gate's job) and it only uses the two public VITE_ values.
+      - name: Verify Supabase backend deployment (read-only, non-blocking)
+        continue-on-error: true
+        run: |
+          report="$(node scripts/verify-backend.mjs)"
+          printf '%s\n' "$report"
+          {
+            echo '### Supabase backend check (read-only)'
+            echo ''
+            echo '```text'
+            printf '%s\n' "$report"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install Firebase Android config (optional, from encrypted secret)
+        # GOOGLE_SERVICES_JSON_B64 is the base64 of the Firebase *Android client* google-services.json
+        # for com.getyere.app. It is decoded only on this ephemeral runner and is never uploaded.
+        env:
+          GOOGLE_SERVICES_JSON_B64: ${{ secrets.GOOGLE_SERVICES_JSON_B64 }}
+          REQUIRE_ANDROID_PUSH: ${{ github.event_name == 'workflow_dispatch' && inputs.require_android_push }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GOOGLE_SERVICES_JSON_B64}" ]; then
+            if [ "${REQUIRE_ANDROID_PUSH}" = "true" ]; then
+              echo "::error title=Android push required::Add GOOGLE_SERVICES_JSON_B64 in repository Actions secrets before building a push-verification APK."
+              exit 1
+            fi
+            echo "::warning title=Android push disabled::GOOGLE_SERVICES_JSON_B64 is not set. This APK is built without Firebase Cloud Messaging configuration, so Android push notifications will not work."
+            echo "GOOGLE_SERVICES_STATUS=missing" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          printf '%s' "${GOOGLE_SERVICES_JSON_B64}" | base64 --decode > android/app/google-services.json
+          node scripts/validate-google-services.mjs android/app/google-services.json
+          echo "GOOGLE_SERVICES_STATUS=installed" >> "$GITHUB_ENV"
+
+      - name: Build native web bundle (requires cloud configuration)
+        run: npm run build:native
+
+      - name: Verify web bundle targets the real Supabase project
+        run: node scripts/verify-bundle.mjs dist
+
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Verify synced native assets
+        run: node scripts/verify-bundle.mjs android/app/src/main/assets/public
+
+      # Native voice capture must reach the APK: the Capacitor plugin registry is what bridges
+      # window.YERE_NATIVE.speech to the Android recognizer.
+      - name: Verify the native speech recognizer is registered
+        run: node scripts/verify-native-voice.mjs android/app/src/main/assets/capacitor.plugins.json
 
       - name: Assemble debug APK
         working-directory: android
         run: ./gradlew --no-daemon --stacktrace assembleDebug
 
+      - name: Verify APK contents are cloud-configured
+        run: node scripts/verify-bundle.mjs android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Verify the APK bundles native voice capture
+        run: node scripts/verify-native-voice.mjs android/app/build/outputs/apk/debug/app-debug.apk --aapt2 "${ANDROID_SDK_ROOT}/build-tools/36.0.0/aapt2"
+
       - name: Create checksum
         run: sha256sum android/app/build/outputs/apk/debug/app-debug.apk > android/app/build/outputs/apk/debug/app-debug.apk.sha256
+
+      - name: Write run summary
+        run: |
+          {
+            echo "### Yere Android build"
+            echo ""
+            echo "- Supabase project host: \`$(node -e 'console.log(new URL(process.env.VITE_SUPABASE_URL).host)')\`"
+            echo "- Public app URL: \`${VITE_PUBLIC_APP_URL:-https://getyere.com (default)}\`"
+            echo "- Firebase / Android push config: ${GOOGLE_SERVICES_STATUS}"
+            echo "- APK SHA-256: \`$(cut -d' ' -f1 android/app/build/outputs/apk/debug/app-debug.apk.sha256)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7

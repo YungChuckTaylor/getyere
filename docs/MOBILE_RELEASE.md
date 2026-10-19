@@ -1,5 +1,7 @@
 # Yere mobile release pack
 
+Activation and device acceptance: [Native notifications](NATIVE_NOTIFICATIONS.md). Source/build checks alone are not delivery verification.
+
 Bundle/package ID: `com.getyere.app`
 Marketing version: `1.0`
 Primary language: English
@@ -48,7 +50,7 @@ reminder,tasks,recurring,shared,contacts,snooze,renewal,planner,offline
 
 - Marketing: `https://www.getyere.com`
 - Support: `https://www.getyere.com/support.html`
-- Privacy policy: `https://www.getyere.com/privacy.html`
+- Privacy policy: `https://getyere.com/privacy-policy`
 - Account deletion information: `https://www.getyere.com/support.html#delete-account` (add that anchor before Play submission if the console requires a dedicated deep URL)
 
 ## App Review notes
@@ -56,16 +58,16 @@ reminder,tasks,recurring,shared,contacts,snooze,renewal,planner,offline
 Yere uses the existing responsive web experience inside a Capacitor native shell, with substantial native integration:
 
 1. Native Supabase authentication stores/restores the mobile session and mirrors its JWT into the shared data layer.
-2. Native APNs/FCM notifications work while the app is closed and include Done, Snooze, and View actions.
+2. Native APNs/FCM integration supports alerts and Done, Snooze, and View actions after provider activation and physical-device verification. Actions open the app and wait for account/reminder restoration; they are not silent background mutations.
 3. A private native Filesystem snapshot, network monitoring, and a queued-write flag let users view and edit while offline and sync on reconnect.
 4. The app supports universal/custom links, Android system-back navigation, haptics, a native splash/icon, safe areas, and native status-bar behavior.
 5. Account deletion is available in Settings → Account & data.
-6. Microphone access is requested only after the user chooses voice capture. Raw audio is not intentionally retained by Yere.
+6. Microphone access is requested only after the user chooses voice capture, through the native recognizer (`@capgo/capacitor-speech-recognition`): Android's `SpeechRecognizer` and iOS's Speech framework, not the WebView Web Speech API. Raw audio is not intentionally retained by Yere; only the transcript text is used to fill the reminder field.
 
 **Suggested review path**
 
 1. Sign in with the review account supplied in App Store Connect.
-2. Create “Call Aunty tomorrow at 4pm” and save it.
+2. Create “Call Aunty tomorrow at 4pm” and save it. Use the microphone button once to show voice capture: allow the prompt, speak the reminder, watch the partial transcript appear, and confirm the sheet that opens. Tapping the microphone again stops the session.
 3. Open Settings, turn on push, and tap Send a test notification.
 4. Disable connectivity, edit/create a reminder, reconnect, and observe sync.
 5. Open Trusted contacts to inspect invitation and approval controls.
@@ -108,6 +110,21 @@ Provide every device class and pixel size App Store Connect currently requests. 
 
 These files require values from the final signing accounts. Do not deploy placeholders.
 
+The apps verify app links on **two** hosts — the canonical apex `getyere.com` and `www.getyere.com`
+(`AndroidManifest.xml` declares both with `android:autoVerify="true"`, and `App.entitlements` lists
+`applinks:getyere.com` and `applinks:www.getyere.com`). Verification is per host, so **both** hosts
+must serve a valid file or links on the missing host silently open in the browser instead of the app:
+
+```
+https://getyere.com/.well-known/apple-app-site-association
+https://www.getyere.com/.well-known/apple-app-site-association
+https://getyere.com/.well-known/assetlinks.json
+https://www.getyere.com/.well-known/assetlinks.json
+```
+
+If you would rather verify a single host, remove the other from the manifest and the entitlements
+first; a host that is declared but not verified only delays app-link resolution.
+
 ### Apple `/.well-known/apple-app-site-association`
 
 ```json
@@ -143,7 +160,7 @@ Serve as `application/json` over HTTPS with no extension and no redirect.
 ]
 ```
 
-Use the Play App Signing certificate fingerprint for store installs. Add the debug/release fingerprint only to the controlled test environment that needs it.
+Use the Play App Signing certificate fingerprint for store installs. Add the debug/release fingerprint only to the controlled test environment that needs it. Serve the identical file from both hosts — the fingerprint does not change per host.
 
 ## Final release checklist
 
@@ -154,6 +171,8 @@ Use the Play App Signing certificate fingerprint for store installs. Add the deb
 - [ ] Production privacy/support pages are reachable over HTTPS.
 - [ ] Sign-up, confirmation/recovery, sign-in, sign-out, and account deletion are tested.
 - [ ] Offline create/edit/complete/reconnect behavior is tested with conflict expectations documented.
+- [ ] Voice capture is tested on a physical device: permission prompt, streaming partials, final confirmation, stop mid-session, and one failure path (offline or denied permission) with its specific message.
+- [ ] `npm run verify:backend` reports no `MISSING` items for the production project.
 - [ ] Native push registration, test delivery, reminder delivery, tap, Done, Snooze, token refresh, and sign-out cleanup are tested.
 - [ ] Invite, delegated reminder, block/revoke, attachment, theme, and accessibility paths are tested.
 - [ ] Version/build numbers and release notes are updated.
@@ -169,7 +188,8 @@ Use the Play App Signing certificate fingerprint for store installs. Add the deb
 
 ### Android
 
-- [ ] `google-services.json` matches `com.getyere.app`.
+- [ ] `google-services.json` matches `com.getyere.app` (in CI, the `GOOGLE_SERVICES_JSON_B64` secret).
+- [ ] The merged manifest keeps `RECORD_AUDIO` and the `<queries>` intent for `android.speech.RecognitionService`; without the query, Android 11+ reports no recognizer.
 - [ ] Release AAB is signed through the protected release/Play key path.
 - [ ] Play App Signing fingerprint is in `assetlinks.json`.
 - [ ] Data safety, account deletion, content rating, target audience, ads, and access declarations are complete.

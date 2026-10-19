@@ -1,0 +1,2 @@
+# Optional asset-generation tooling only; not needed for app builds.
+Pillow==13.0.0

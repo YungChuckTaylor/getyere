@@ -6,6 +6,15 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <!-- Android 11+ package visibility. SpeechRecognizer.isRecognitionAvailable() only sees the
+         platform recognition service when the app declares this intent, so without it the native
+         speech plugin reports "unavailable" and voice capture fails even with RECORD_AUDIO granted. -->
+    <queries>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="false"
         android:enableOnBackInvokedCallback="true"
@@ -40,6 +49,10 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Both hosts are verified: getyere.com is the canonical origin used in email
+                     and invite links, and www.getyere.com is kept so links already sent to
+                     users keep opening the app. Each host needs its own assetlinks.json. -->
+                <data android:scheme="https" android:host="getyere.com" />
                 <data android:scheme="https" android:host="www.getyere.com" />
             </intent-filter>
         </activity>

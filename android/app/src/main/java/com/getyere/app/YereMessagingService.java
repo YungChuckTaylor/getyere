@@ -43,17 +43,21 @@ public final class YereMessagingService extends FirebaseMessagingService {
         String title = value(data, "title", "A reminder from Yere");
         String body = value(data, "body", "It is time for a reminder you wanted to keep.");
         String reminderId = value(data, "reminderId", value(data, "reminder_id", ""));
-        showReminder(title, body, reminderId, value(data, "tag", message.getMessageId()));
+        showReminder(title, body, reminderId, value(data, "tag", message.getMessageId()), value(data, "ownerId", ""), value(data, "dueAt", ""));
     }
 
-    private void showReminder(String title, String body, String reminderId, String tag) {
+    private void showReminder(String title, String body, String reminderId, String tag, String ownerId, String dueAt) {
         createReminderChannel();
         int notificationId = (tag == null ? title : tag).hashCode() & 0x7fffffff;
 
-        PendingIntent viewIntent = appIntent(reminderId, "view", 0, false, notificationId + 1);
-        PendingIntent snoozeIntent = appIntent(reminderId, "snooze", 10, true, notificationId + 2);
-        PendingIntent doneIntent = appIntent(reminderId, "done", 0, true, notificationId + 3);
+        PendingIntent viewIntent = appIntent(reminderId, "view", 0, false, notificationId + 1, ownerId, dueAt, tag);
+        PendingIntent snoozeIntent = appIntent(reminderId, "snooze", 10, true, notificationId + 2, ownerId, dueAt, tag);
+        PendingIntent doneIntent = appIntent(reminderId, "done", 0, true, notificationId + 3, ownerId, dueAt, tag);
 
+        if (reminderId.isEmpty()) {
+            // Test notifications open the app but do not expose actions for a non-existent reminder.
+            snoozeIntent = null; doneIntent = null;
+        }
         NotificationCompat.Builder notification = new NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_yere)
             .setColor(Color.rgb(99, 102, 241))
@@ -63,10 +67,11 @@ public final class YereMessagingService extends FirebaseMessagingService {
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .setContentIntent(viewIntent)
-            .addAction(0, "Snooze 10 min", snoozeIntent)
-            .addAction(0, "Done", doneIntent)
-            .addAction(0, "View", viewIntent);
+            .setContentIntent(viewIntent);
+        if (!reminderId.isEmpty()) {
+            notification.addAction(0, "Snooze 10 min", snoozeIntent)
+                .addAction(0, "Done", doneIntent).addAction(0, "View", viewIntent);
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
             && ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -75,12 +80,15 @@ public final class YereMessagingService extends FirebaseMessagingService {
         NotificationManagerCompat.from(this).notify(tag, notificationId, notification.build());
     }
 
-    private PendingIntent appIntent(String reminderId, String action, int minutes, boolean direct, int requestCode) {
+    private PendingIntent appIntent(String reminderId, String action, int minutes, boolean direct, int requestCode, String ownerId, String dueAt, String eventId) {
         Uri.Builder deepLink = new Uri.Builder()
             .scheme("yere")
             .authority("reminder")
             .appendPath(reminderId == null ? "" : reminderId)
-            .appendQueryParameter("action", action);
+            .appendQueryParameter("action", action)
+            .appendQueryParameter("ownerId", ownerId)
+            .appendQueryParameter("dueAt", dueAt)
+            .appendQueryParameter("eventId", eventId);
         if (minutes > 0) deepLink.appendQueryParameter("minutes", String.valueOf(minutes));
         if (direct) deepLink.appendQueryParameter("direct", "1");
 
