@@ -2706,7 +2706,10 @@ function handleServiceWorkerMessage(event){
 let notificationIntentQueue=null;
 function getNotificationIntentQueue(){
   if(!notificationIntentQueue)notificationIntentQueue=window.YERE_NOTIFICATION_INTENTS.createNotificationIntentQueue({
-    getContext:()=>({userId:currentSession?.user?.id,ready:cloudReady&&!cloudWorkspaceLoading&&!signOutInProgress&&(notificationDataReady||!isOnline())}),
+    getContext:()=>{
+      const localDemo=!isNativeApp()&&!supabase;
+      return {userId:currentSession?.user?.id||(localDemo?'local-demo':''),ready:localDemo||(cloudReady&&!cloudWorkspaceLoading&&!signOutInProgress&&(notificationDataReady||!isOnline()))};
+    },
     execute:intent=>{
       const reminder=state.reminders.find(item=>item.id===intent.reminderId);
       if(!reminder){if(!isOnline())return false;toast('That reminder is no longer available in this account.');return true;}

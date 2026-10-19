@@ -57,7 +57,7 @@ const handlers = html.slice(html.indexOf('let notificationIntentQueue=null;'), h
 function appHarness({ due = intent.dueAt, completed = false, ready = true } = {}) {
   const calls = [], reminder = { id: 'reminder', due, completed };
   const context = { state: { reminders: [reminder] }, currentSession: { user: { id: 'alice' } }, cloudReady: ready, cloudWorkspaceLoading: false, signOutInProgress: false, notificationDataReady: ready,
-    window: { YERE_NOTIFICATION_INTENTS: { createNotificationIntentQueue } }, isOnline: () => true,
+    window: { YERE_NOTIFICATION_INTENTS: { createNotificationIntentQueue } }, isNativeApp: () => true, supabase: {}, isOnline: () => true,
     snooze: (...args) => calls.push(['snooze', ...args]), toggleComplete: id => calls.push(['done', id]), openDetail: id => calls.push(['view', id]), openSnoozeScreen: id => calls.push(['screen', id]), toast: m => calls.push(['toast', m]) };
   vm.runInNewContext(handlers, context);
   return { context, calls };
@@ -80,4 +80,35 @@ test('iOS forwards success/errors and all mutation actions foreground the app', 
   assert.match(delegate, /capacitorDidRegisterForRemoteNotifications, object: deviceToken/);
   assert.match(delegate, /capacitorDidFailToRegisterForRemoteNotifications, object: error/);
   assert.equal((delegate.match(/options: \[\.foreground\]/g) || []).length, 3);
+});
+
+test('browser-only local demo notification navigation is preserved without native demo fallback', () => {
+  const { context, calls } = appHarness({ ready: false }); context.currentSession = null; context.supabase = null;
+  context.isNativeApp = () => false;
+  context.handleNativeNotificationIntent({ reminderId: 'reminder', action: 'view' });
+  assert.deepEqual(calls, [['view', 'reminder']]);
+  const native = appHarness({ ready: false }); native.context.currentSession = null; native.context.supabase = null;
+  native.context.handleNativeNotificationIntent({ reminderId: 'reminder', action: 'view' }); assert.equal(native.calls.length,0);
+});
+const htmlPush = html.slice(html.indexOf('let nativePushTask=Promise.resolve();'), html.indexOf('async function ensureNativePushRegistration'));
+test('token refresh is serialized before opt-out deletion and cannot silently enroll again', async () => {
+  let release; const gate = new Promise(resolve => { release = resolve; }); const calls=[];
+  const context = { currentSession: { user: { id:'alice' } }, signOutInProgress:false,state:{settings:{pushEnabled:true}},navigator:{userAgent:'test'},
+    supabase:{rpc:async()=>{calls.push('register');await gate;return{error:null};},from:()=>({delete:()=>({eq:()=>({eq:async()=>{calls.push('delete');return{error:null};}})})})} };
+  vm.runInNewContext(htmlPush,context);
+  const registering = context.registerNativePushSubscription({token:'test-device',platform:'android',provider:'fcm'});
+  await new Promise(resolve=>setImmediate(resolve));
+  context.state.settings.pushEnabled=false;
+  const removing=context.removeNativePushSubscription({token:'test-device'});
+  const refreshing=context.registerNativePushSubscription({token:'new-token',platform:'android',provider:'fcm'});
+  assert.deepEqual(calls,['register']); release(); await registering; await removing; assert.equal(await refreshing,false);
+  assert.deepEqual(calls,['register','delete']);
+});
+test('queued token registration is rejected after logout or account switch', async () => {
+  const calls=[];
+  const context={currentSession:{user:{id:'alice'}},signOutInProgress:false,state:{settings:{pushEnabled:true}},navigator:{userAgent:'test'},supabase:{rpc:async()=>{calls.push('register');return{error:null};}}};
+  vm.runInNewContext(htmlPush,context);
+  const task=context.registerNativePushSubscription({token:'test-device',platform:'android',provider:'fcm'});
+  context.currentSession={user:{id:'bob'}};assert.equal(await task,false);
+  context.signOutInProgress=true;assert.equal(await context.registerNativePushSubscription({token:'test-device',platform:'android',provider:'fcm'}),false);assert.deepEqual(calls,[]);
 });

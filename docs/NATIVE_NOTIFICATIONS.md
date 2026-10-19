@@ -31,6 +31,12 @@ Supabase project and shared Capacitor application. No new backend or demo build 
 
 ## Backend rollout (maintainer)
 
+Production rollout on 19 October 2026: migration **20261019180536** has already been applied to
+`nttspzlszckaxjsjdlqi`, and both notification functions are **ACTIVE v15** with their previous JWT
+settings retained. The existing cron reached the new dispatcher with **HTTP 200**. No Firebase/APNs
+secrets were installed and no physical-device delivery was verified. **The account owner does not
+need to re-apply the migration**; the procedure below is for maintainers/redeployment.
+
 Apply **only** `supabase/migrations/20261019180536_notification_delivery_retries.sql`, then deploy
 both functions from the same tested revision:
 
