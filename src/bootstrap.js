@@ -1,4 +1,6 @@
 import './style.css';
+import { isPreviewableImage, createAttachmentController } from './attachments.js';
+window.YERE_ATTACHMENTS = { isPreviewableImage, createAttachmentController };
 import { homeMetrics } from './dashboard.js';
 window.YERE_DASHBOARD = { homeMetrics };
 import { enhancePasswordFields, startSocialSignIn } from './auth-ui.js';

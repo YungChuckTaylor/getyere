@@ -220,6 +220,16 @@
   </div>
 </div>
 
+<!-- Private image viewer: separate from the editor so unsaved fields survive. -->
+<div id="imagePreview" class="image-preview hidden" role="dialog" aria-modal="true" aria-labelledby="imagePreviewTitle">
+  <div class="image-preview-backdrop" data-close-image></div>
+  <div class="image-preview-panel">
+    <header class="image-preview-header"><div><p class="image-preview-eyebrow">Private image</p><h2 id="imagePreviewTitle"></h2></div><button id="imagePreviewClose" type="button" aria-label="Close expanded image">✕</button></header>
+    <div class="image-preview-content"><img id="imagePreviewImage" hidden alt="" referrerpolicy="no-referrer"><p id="imagePreviewStatus" role="status" aria-live="polite"></p><button id="imagePreviewRetry" type="button" hidden>Try again</button></div>
+    <p class="image-preview-hint">Press Escape, tap outside, or use Back to return to your reminder.</p>
+  </div>
+</div>
+
 <!-- Toasts -->
 <div id="toasts" class="fixed bottom-20 md:bottom-6 right-4 z-[60] space-y-2 w-[min(360px,calc(100%-2rem))]"></div>
 
@@ -1087,6 +1097,7 @@ let profileDirty=true;
 function profileUpsertNeeded(){ const dirty=profileDirty; profileDirty=false; return dirty; }
 
 function setAccountLabel() {
+  attachmentController?.syncSession();
   const label=document.getElementById('workspaceLabel');
   const button=document.getElementById('signOutBtn');
   const demo=!supabase;
@@ -1362,6 +1373,34 @@ function render() {
   }
 }
 
+function renderDetailsDiscovery(){
+  const hasReminders=state.reminders.some(r=>!r.rejected);
+  return `<section class="details-discovery" aria-labelledby="detailsDiscoveryTitle"><div class="details-discovery-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div><div class="details-discovery-copy"><p class="details-discovery-eyebrow">More than a reminder</p><h2 id="detailsDiscoveryTitle">Keep notes, photos &amp; files with every reminder</h2><p>Add instructions, a useful link, a cost or a category. Keep everything you need right beside the date.</p><div class="details-discovery-actions"><button type="button" onclick="openDetailedCapture()" class="details-create">Create with details <span aria-hidden="true">↗</span></button>${hasReminders?`<button type="button" onclick="openDetailsPicker()" class="details-existing">Add to an existing reminder</button>`:''}</div><p class="details-discovery-privacy">${currentSession?'Photos and documents stay private to your account.':'Notes and links work here. Sign in to save private photos and files.'}</p></div></section>`;
+}
+
+function openDetailedCapture(){
+  if(document.getElementById('quickInput').value.trim())openConfirmFromInput();
+  else{
+    const due=new Date();due.setHours(state.settings.defaultHour??9,state.settings.defaultMin??0,0,0);
+    if(due<=now())due.setDate(due.getDate()+1);
+    editingId=null;draftAttachment=null;
+    draft={id:null,title:'',notes:'',link:'',due:due.toISOString(),recurrence:null,fromContact:null,approved:true,parsed:null,listId:null,channel:'push',type:'standard',cost:'',attachments:[]};
+    showConfirmModal();
+  }
+  document.getElementById('dTitle')?.focus();
+}
+function openDetailsPicker(){
+  const reminders=state.reminders.filter(r=>!r.rejected).slice().sort(compareReminders);
+  if(!reminders.length){openDetailedCapture();return;}
+  document.getElementById('modalCard').innerHTML=`<div class="p-5 md:p-6"><div class="flex justify-between items-start gap-3"><div><p class="text-xs font-bold text-indigo-500 mb-2">Notes, photos &amp; files</p><h2 class="text-xl font-extrabold">Add details to a reminder</h2></div><button type="button" onclick="closeModal()" class="p-2 rounded-xl" aria-label="Close">✕</button></div><p class="text-sm text-slate-500 mt-3 mb-5">Choose a reminder to open its notes, links, cost, category and private attachments.</p><label for="detailsReminder" class="block text-sm font-semibold mb-2">Reminder</label><select id="detailsReminder" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 mb-4">${reminders.map(r=>`<option value="${esc(r.id)}">${esc(r.title)} · ${esc(formatDue(r.due).dayLabel)}${r.completed?' · Completed':''}</option>`).join('')}</select><button type="button" onclick="editReminderDetails(document.getElementById('detailsReminder').value)" class="w-full rounded-xl bg-indigo-600 text-white font-bold py-3">Open reminder details</button></div>`;
+  openModal();document.getElementById('detailsReminder').focus();
+}
+function editReminderDetails(id){
+  if(!state.reminders.some(r=>r.id===id)){toast('That reminder is no longer available.');return;}
+  editReminder(id);
+  document.getElementById('dNotes')?.focus();
+}
+
 function renderHomeDashboard(){
   const metrics=window.YERE_DASHBOARD.homeMetrics(state,now());
   const max=Math.max(1,...metrics.days.map(day=>day.count));
@@ -1371,7 +1410,7 @@ function renderHomeDashboard(){
     ['Overdue',metrics.overdue,'text-rose-600 dark:text-rose-300','all'],
     ['Trusted contacts',metrics.contacts,'text-violet-600 dark:text-violet-300','contacts']
   ];
-  return `<section aria-label="Workspace overview" class="mb-8 space-y-4">
+  return renderDetailsDiscovery()+`<section aria-label="Workspace overview" class="mb-8 space-y-4">
     <div class="flex flex-wrap items-center justify-between gap-2"><h2 class="font-bold text-lg">Your workspace at a glance</h2><span class="text-[11px] text-slate-500">Workspace totals · Search filters the reminder list below</span></div>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">${cards.map(([label,count,color,destination])=>`<button type="button" onclick="setView('${destination}')" class="text-left rounded-2xl border border-slate-200/80 dark:border-white/5 bg-white dark:bg-ink-900 p-4 hover:border-indigo-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"><span class="block text-[11px] font-semibold text-slate-500">${label}</span><span class="block text-3xl font-extrabold mt-2 ${color}">${count}</span></button>`).join('')}</div>
     <div class="grid md:grid-cols-2 gap-4">
@@ -1736,7 +1775,7 @@ function showConfirmModal() {
   const chips = (r.parsed && r.parsed.consumed || []).map(c => `<span class="nl-chip px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 text-[11px] font-semibold">${esc(c.match)}</span>`).join('');
   const listSource=isDelegated?(r.targetLists||[]):(state.lists||[]);
   const listOptions=listSource.map(l=>`<option value="${esc(l.id)}" ${r.listId===l.id?'selected':''}>${esc(l.name)}</option>`).join('');
-  const savedFiles=(r.attachments||[]).map(a=>`<button type="button" onclick="openAttachment('${esc(a.id)}')" class="text-xs text-indigo-600 dark:text-indigo-300 underline">${esc(a.name)}</button>`).join(' · ');
+  const savedFiles=renderAttachmentFiles(r.attachments||[]);
   const saveAction=isDelegated?'submitDelegatedReminder()':'saveDraft()';
   const saveLabel=isDelegated?`Send reminder to ${esc(r.delegatedName)}`:'Save reminder';
   document.getElementById('modalCard').innerHTML = `
@@ -1754,7 +1793,10 @@ function showConfirmModal() {
         <div><label class="block text-xs font-semibold text-slate-500 mb-1">Date</label><input id="dDate" type="date" value="${dateVal}" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></div>
         <div><label class="block text-xs font-semibold text-slate-500 mb-1">Time <span class="font-normal text-slate-400">(defaults 9:00 AM)</span></label><input id="dTime" type="time" value="${timeVal}" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></div>
       </div>
-      <label class="block text-xs font-semibold text-slate-500 mb-1">Why / notes</label>
+      <section id="reminderDetails" aria-labelledby="reminderDetailsTitle" class="reminder-details-section">
+      <h3 id="reminderDetailsTitle" class="font-bold mb-1">Notes, photos &amp; files</h3>
+      <p class="text-xs text-slate-500 mb-4">Keep the instructions, link, cost and category with your reminder.</p>
+      <label for="dNotes" class="block text-xs font-semibold text-slate-500 mb-1">Why / notes</label>
       <textarea id="dNotes" rows="2" maxlength="4000" placeholder="Context you’ll thank yourself for later" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none resize-none">${esc(r.notes||'')}</textarea>
       <label class="block text-xs font-semibold text-slate-500 mb-1">Helpful link</label>
       <input id="dLink" value="${esc(r.link||'')}" type="url" placeholder="https://" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none">
@@ -1776,13 +1818,15 @@ function showConfirmModal() {
       </div>
       ${isDelegated?`<div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-3 mb-4 text-xs text-slate-500">File attachments stay private to the account owner. They can add an attachment after this reminder appears in their Yere account.</div>`:`<div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-3 mb-4">
         <label class="block text-xs font-semibold text-slate-500">Photo or attachment <input id="dAttachment" type="file" accept="image/*,.pdf,.doc,.docx" class="mt-2 block w-full text-xs" onchange="setDraftAttachment(this.files[0])"></label>
-        ${savedFiles?`<div class="mt-2 text-xs">Attached: ${savedFiles}</div>`:''}
+        ${savedFiles?`<p class="mt-2 mb-2 text-xs font-semibold">Attached</p><div class="attachment-files">${savedFiles}</div>`:''}
         <p class="mt-1 text-[10px] text-slate-400">Files are stored privately with your Yere account. Local demo can save notes and links only.</p>
       </div>`}
+      </section>
       ${recurrenceEditor(rec)}
       <div class="mt-5 flex gap-2"><button onclick="${saveAction}" class="flex-1 py-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-glow">${saveLabel}</button><button onclick="closeModal()" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-ink-800 font-semibold">Cancel</button></div>
     </div>`;
   openModal();
+  reminderAttachmentController().hydrate(document.getElementById('modalCard'));
 }
 
 function setDraftAttachment(file) { draftAttachment=file||null; }
@@ -1962,19 +2006,42 @@ async function saveDraft() {
 
 function dateValFor(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
 
+let attachmentController=null;
+function reminderAttachmentController(){
+  if(!attachmentController)attachmentController=window.YERE_ATTACHMENTS.createAttachmentController({
+    document,
+    getSessionKey:()=>currentSession?.user?.id||'',
+    getFile:id=>state.reminders.flatMap(r=>r.attachments||[]).find(a=>a.id===id),
+    signUrl:async file=>{
+      if(!supabase||!currentSession)throw new Error('Sign in to view private attachments.');
+      const {data,error}=await supabase.storage.from('yere-attachments').createSignedUrl(file.path,120);
+      if(error||!data?.signedUrl)throw new Error('Could not load this private attachment.');
+      return data.signedUrl;
+    },toast
+  });
+  return attachmentController;
+}
+function renderAttachmentFiles(files){
+  return files.map(file=>window.YERE_ATTACHMENTS.isPreviewableImage(file)
+    ?`<button type="button" class="attachment-thumb" data-image-attachment="${esc(file.id)}" aria-label="Expand image: ${esc(file.name)}"><img hidden alt="${esc(file.name)}" decoding="async" referrerpolicy="no-referrer"><span data-attachment-status>Loading photo…</span><span class="attachment-expand" aria-hidden="true">⤢</span></button>`
+    :`<button type="button" onclick="openAttachment('${esc(file.id)}')" class="attachment-document">📎 ${esc(file.name)}</button>`
+  ).join('');
+}
+
 function openDetail(id) {
   const r = state.reminders.find(x => x.id===id);
   if (!r) return;
   const f=formatDue(r.due), rec=recLabel(r.recurrence), category=state.lists.find(l=>l.id===r.listId);
-  const files=(r.attachments||[]).map(a=>`<button onclick="openAttachment('${esc(a.id)}')" class="flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2 text-sm text-indigo-600 dark:text-indigo-300">📎 ${esc(a.name)}</button>`).join('');
+  const files=renderAttachmentFiles(r.attachments||[]);
   const meta=[category?.name,r.type==='expiry'?'Expiry':r.type==='renewal'?'Renewal':'',r.cost?`₦${Number(r.cost).toLocaleString('en-NG')}`:''].filter(Boolean).join(' · ');
   document.getElementById('modalCard').innerHTML=`
     <div class="p-5 md:p-6">
       <div class="flex items-start justify-between mb-4"><div>${r.fromContact?`<div class="badge-from inline-block text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200 mb-2">From ${esc(r.fromContact.name)}</div>`:''}<h2 class="text-2xl font-extrabold leading-tight ${r.completed?'line-through text-slate-400':''}">${esc(r.title)}</h2><p class="text-sm text-slate-500 mt-1">${f.dayLabel} · ${f.t}${rec?' · ↻ '+esc(rec):''}</p>${meta?`<p class="text-xs text-slate-400 mt-1">${esc(meta)}</p>`:''}</div><button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Close">✕</button></div>
-      ${r.notes?`<div class="rounded-2xl bg-slate-50 dark:bg-ink-800 p-4 mb-3"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Why</div><p class="text-sm leading-relaxed whitespace-pre-wrap">${esc(r.notes)}</p></div>`:`<p class="text-sm text-slate-400 mb-3">No notes yet — add the why when you edit this reminder.</p>`}
+      ${r.notes?`<div class="rounded-2xl bg-slate-50 dark:bg-ink-800 p-4 mb-3"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Why</div><p class="text-sm leading-relaxed whitespace-pre-wrap">${esc(r.notes)}</p></div>`:`<p class="text-sm text-slate-400 mb-3">No notes yet — keep the instructions, photo or useful link here.</p>`}
       ${r.link?`<a class="block text-sm text-indigo-600 dark:text-indigo-300 font-semibold break-all mb-3" href="${esc(safeLink(r.link))}" target="_blank" rel="noopener noreferrer">${esc(r.link)}</a>`:''}
-      ${files?`<div class="flex flex-wrap gap-2 mb-3">${files}</div>`:''}
+      ${files?`<div class="attachment-files mb-3">${files}</div>`:''}
       ${r.recurrence&&r.recurrence.adaptive==='completion'?`<p class="text-xs text-amber-600 mt-3">Adaptive · next occurrence follows completion, not the original clock.</p>`:''}
+      <button type="button" onclick="editReminderDetails('${esc(r.id)}')" class="detail-add-button">${r.notes||r.link||r.attachments?.length?'Edit notes, photos &amp; files':'Add notes, photos &amp; files'} <span aria-hidden="true">↗</span></button>
       <div class="mt-6 flex flex-wrap gap-2">
         ${!r.completed?`<button onclick="toggleComplete('${esc(r.id)}');closeModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Mark done</button>`:`<button onclick="toggleComplete('${esc(r.id)}');closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Undo</button>`}
         ${r.recurrence?`<button onclick="skipOnce('${esc(r.id)}')" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Skip once</button>`:''}
@@ -1986,11 +2053,13 @@ function openDetail(id) {
       </div>
     </div>`;
   openModal();
+  reminderAttachmentController().hydrate(document.getElementById('modalCard'));
 }
 
 async function openAttachment(id) {
   const reminder=state.reminders.find(r=>(r.attachments||[]).some(a=>a.id===id));
   const file=reminder?.attachments.find(a=>a.id===id); if(!file) return;
+  if(window.YERE_ATTACHMENTS.isPreviewableImage(file)){await reminderAttachmentController().open(id,document.activeElement);return;}
   if(!supabase||!currentSession) { toast('Attachments are only available while signed in.'); return; }
   const {data,error}=await supabase.storage.from('yere-attachments').createSignedUrl(file.path,60);
   if(error) { toast('Could not open this private attachment.'); return; }
@@ -2078,7 +2147,7 @@ function rejectRem(id) {
 }
 
 function openModal(){ document.getElementById('modal').classList.remove('hidden'); document.body.style.overflow='hidden'; }
-function closeModal(){ document.getElementById('modal').classList.add('hidden'); document.body.style.overflow=''; draft=null; editingId=null; draftAttachment=null; }
+function closeModal(){ attachmentController?.close(false); document.getElementById('modal').classList.add('hidden'); document.body.style.overflow=''; draft=null; editingId=null; draftAttachment=null; }
 
 /* ---------- Contacts / invites ---------- */
 function openInviteModal() {
@@ -2749,7 +2818,7 @@ const TOUR_STEPS=[
   {eyebrow:'A little more together',title:'Remember the times, together.',body:'Yere keeps thoughtful reminders close — and lets your trusted people help, with your permission.',label:'Trusted contacts'},
   {eyebrow:'Capture in a breath',title:'Say it how you think it.',body:'Type or speak a reminder in plain language. Yere finds the date and time, then lets you confirm before saving.',label:'Quick capture'},
   {eyebrow:'Make routines fit real life',title:'A rhythm that can flex.',body:'Repeat by minutes, days, weeks, months, or years. Skip weekends, pick a calendar pattern, or let the next date follow your completion.',label:'Adaptive recurrence'},
-  {eyebrow:'Keep the why',title:'More than a date on a list.',body:'Add the context, link, cost, category, or a private attachment so future-you remembers why this mattered.',label:'Notes & details'},
+  {eyebrow:'Everything you need, attached',title:'Add notes, photos & files to reminders.',body:'Use Create with details on Home, or edit any reminder, to save instructions, useful links, costs and categories. Tap an attached photo to expand it.',label:'Notes, photos & files'},
   {eyebrow:'A gentle nudge',title:'Helpful, never noisy.',body:'Choose push, email, or both. Snooze from a notification, and keep your reminders in sync across devices.',label:'Notifications & sync'}
 ];
 let tourIndex=0;
@@ -2784,6 +2853,7 @@ function syncAfterReconnect(){
   if(cloudReady){toast('Back online · syncing your reminders.');syncCloudSnapshot().then(()=>pullCloudSnapshot(false));}
 }
 function handleNativeBack(){
+  if(attachmentController?.close())return;
   const profile=document.getElementById('profileMenu');
   if(profile&&!profile.classList.contains('hidden')){closeProfileMenu(true);return;}
   if(listening){cancelVoice();return;}
