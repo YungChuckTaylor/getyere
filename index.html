@@ -2053,8 +2053,10 @@ function skipOnce(id) {
 
 function snooze(id, mins) {
   const r=state.reminders.find(x=>x.id===id);if(!r)return;
+  const d=new Date(r.due);
+  if(Number.isNaN(d.getTime())){toast('Edit this reminder to set a valid scheduled time before snoozing.');return;}
+  d.setTime(d.getTime()+Math.max(1,Number(mins)||60)*60_000);
   window.YERE_NATIVE?.impactHaptic();
-  const d=new Date();d.setMinutes(d.getMinutes()+Math.max(1,Number(mins)||60));
   r.due=d.toISOString();r.completed=false;r.completedAt=null;
   logAudit('You','snoozed reminder',r.title+` · ${mins} minutes`);persist();closeModal();render();
   toast(`Snoozed for ${mins>=60?`${Math.round(mins/60)} hour${mins>=120?'s':''}`:`${mins} minutes`}.`);
