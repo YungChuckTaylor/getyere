@@ -635,15 +635,21 @@ async function mountDashboard(supabase) {
         };
         inviteForm.addEventListener('submit', async (event) => {
           event.preventDefault();
+          const inviteButton = inviteForm.querySelector('button');
+          if (inviteButton.disabled) return;
+          inviteButton.disabled = true;
           const values = new FormData(inviteForm);
           inviteMessage.textContent = 'Sending invite…';
           try {
             const result = await adminRequest('admin-admin-invite', {
               email: String(values.get('email') || ''), role: String(values.get('role') || ''), reason: String(values.get('reason') || '')
             });
-            inviteMessage.textContent = `Invite sent to ${result.email} as ${roleLabel(result.role)}.`;
+            inviteMessage.textContent = result.existingAccount
+              ? `Administrator access granted to the existing account ${result.email} as ${roleLabel(result.role)}. A secure password-setup email was sent. They can sign in with their existing password or use that email to choose one.`
+              : `Invite sent to ${result.email} as ${roleLabel(result.role)}.`;
             inviteForm.reset();
           } catch (error) { inviteMessage.textContent = error?.message || 'Could not send invite.'; }
+          finally { inviteButton.disabled = false; }
         });
         rosterForm.addEventListener('submit', async (event) => {
           event.preventDefault();

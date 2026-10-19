@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.3",
+    "@electric-sql/pglite": "0.5.10",
     "@tailwindcss/vite": "^4.3.3",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
