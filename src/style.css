@@ -142,3 +142,11 @@ input[type="checkbox"].pretty:checked::after { content:''; width:5px; height:9px
 .image-preview-content button { padding:.65rem 1rem; min-height:44px; border-radius:.75rem; background:#4f46e5; font-weight:700; }
 .image-preview-hint { text-align:center; padding:.5rem 1rem 1rem; color:#94a3b8; font-size:.65rem; }
 @media (max-width:480px) { .details-discovery { gap:.7rem; padding:1rem; } .details-discovery-icon { width:2.3rem; height:2.3rem; font-size:1.1rem; } }
+
+/* Make the native file chooser an obvious action without replacing its
+   accessible keyboard behavior or selected-filename display. */
+.attachment-file-input { color:#64748b; }
+.dark .attachment-file-input { color:#cbd5e1; }
+.attachment-file-input::file-selector-button { min-height:44px; margin-right:.75rem; padding:.7rem 1rem; border:1px solid #4f46e5; border-radius:.75rem; background:#4f46e5; color:#fff; font:inherit; font-weight:700; cursor:pointer; }
+.attachment-file-input:hover::file-selector-button { background:#4338ca; border-color:#4338ca; }
+.attachment-file-input:focus-visible { outline:3px solid #818cf8; outline-offset:3px; border-radius:.75rem; }
