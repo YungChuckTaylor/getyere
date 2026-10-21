@@ -29,6 +29,14 @@
   ],
   "rewrites": [
     {
+      "source": "/ios-guide.html",
+      "destination": "/ios-release-guide.html"
+    },
+    {
+      "source": "/ios-release-guide",
+      "destination": "/ios-release-guide.html"
+    },
+    {
       "source": "/privacy-policy",
       "destination": "/privacy.html"
     },

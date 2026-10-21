@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="A step-by-step owner’s guide to taking Yere from its existing iOS source to TestFlight and App Store review.">
+  <title>iOS launch guide · Yere</title>
+  <link rel="icon" href="/icons/favicon-v2-32.png" type="image/png">
+  <link rel="stylesheet" href="/ios-guide.css">
+  <script type="module" src="/ios-guide.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#guide-content">Skip to instructions</a>
+  <header class="topbar"><a class="brand" href="/" aria-label="Yere home"><img src="/yere-logo-v2.png" width="36" height="36" alt=""><span>Yere<span class="brand-divider">/</span><span class="brand-label">Owner’s handbook</span></span></a><span class="private-badge"><span aria-hidden="true">◈</span> Your accounts. Your control.</span><button id="print-guide" class="button secondary small" type="button">Print / save PDF</button></header>
+  <div class="layout">
+    <aside class="sidebar" aria-label="Guide navigation">
+      <div class="sidebar-title">YOUR ROAD TO RELEASE</div>
+      <nav id="stage-nav" aria-label="Release stages"></nav>
+      <div class="sidebar-note"><span class="note-symbol" aria-hidden="true">↗</span><strong>You don’t have to do it alone.</strong><p>Steps marked <b>Technical help</b> are good places to involve an iOS engineer. You never need to share your Apple password.</p></div>
+      <a class="reference-link" href="#glossary" id="glossary-link">New to this? Open the glossary <span aria-hidden="true">→</span></a>
+    </aside>
+    <main id="guide-content" tabindex="-1">
+      <section class="hero" aria-labelledby="page-title"><div><span class="eyebrow">FROM SOURCE CODE TO SUBMITTED</span><h1 id="page-title">Let’s get Yere<br>onto the App Store.</h1><p>A clear path for the app owner. Follow one stage at a time, tick off what you’ve done, and pick up where you left off.</p><div class="hero-chips"><span>8 guided stages</span><span>No shared Apple login</span><span>Progress saved on this browser</span></div></div><div class="app-token" aria-hidden="true"><img src="/yere-logo-v2.png" alt=""><span>Yere for iOS</span><div class="token-label">BUILD → TEST → SUBMIT</div></div></section>
+      <section class="progress-panel" aria-label="Your checklist progress"><div class="progress-heading"><strong id="progress-label">Getting your checklist ready…</strong><span id="progress-percent">0%</span></div><progress id="total-progress" max="100" value="0">0%</progress><div class="progress-footer"><span id="save-status">Only checklist ticks and your current stage are saved. Never enter credentials here.</span><button id="reset-guide" type="button" class="text-button">Reset progress</button></div></section>
+      <div class="scope-note"><strong>This is a guide, not a deployment tool.</strong> It does not connect to Apple, upload your app, or verify completed steps. iOS signing and real-iPhone testing still need to be done.</div>
+      <div id="stage-view"></div>
+      <noscript><section class="panel"><h2>Enable JavaScript to use the interactive guide</h2><p>Your browser needs JavaScript for the instructions, checklists and copy buttons. You can also read the existing release documentation in the GitHub repository: docs/NATIVE_NOTIFICATIONS.md and docs/MOBILE_RELEASE.md.</p></section></noscript>
+      <section class="glossary panel" id="glossary"><details id="glossary-details"><summary>Small glossary. No assumed knowledge.<span aria-hidden="true">+</span></summary><dl><dt>Repository (repo)</dt><dd>The folder of source code stored on GitHub.</dd><dt>Terminal</dt><dd>The Mac app where you paste commands. Open Applications → Utilities → Terminal.</dd><dt>Bundle ID</dt><dd>The app’s unique identity. Yere uses <code>com.getyere.app</code>.</dd><dt>Supabase</dt><dd>The existing service that stores Yere accounts, reminders and server settings.</dd><dt>Signing</dt><dd>Apple’s way of checking which developer owns and distributes the app.</dd><dt>APNs</dt><dd>Apple Push Notification service. It delivers alerts to the iPhone.</dd><dt>Archive</dt><dd>A packaged release build made by Xcode for uploading to Apple.</dd><dt>TestFlight</dt><dd>Apple’s app for privately installing and testing an unreleased app.</dd><dt>App Store Connect</dt><dd>Apple’s website for your listing, builds, testers and review submission.</dd></dl></details></section>
+      <footer class="page-footer"><span>Yere · Remember together.</span><span>Submission is not approval. Apple makes the review decision.</span></footer>
+    </main>
+  </div>
+  <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>

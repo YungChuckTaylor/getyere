@@ -203,6 +203,8 @@ test('vite build --mode native with a valid configuration produces a bundle wire
       cwd: root, env, encoding: 'utf8'
     });
     assert.equal(result.status, 0, result.stdout + result.stderr);
+    assert.equal(existsSync(path.join(outDir, 'ios-guide.js')), false, 'owner documentation must not be bundled into the native app');
+    assert.equal(existsSync(path.join(outDir, 'ios-release-guide.html')), false);
     const verdict = verifyBundle(outDir, env);
     assert.equal(verdict.ok, true, verdict.problems?.join('; '));
   } finally {

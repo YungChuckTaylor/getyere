@@ -1,3 +1,5 @@
+import { rm } from 'node:fs/promises';
+import path from 'node:path';
 import { defineConfig, loadEnv } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import { resolveRuntimeConfig, CLOUD_ENV_KEYS } from './src/config.js';
@@ -32,7 +34,7 @@ function legalRoutes() {
   const install = (server) => {
     server.middlewares.use((req, _res, next) => {
       const [pathname, query] = (req.url || '').split('?');
-      const routes = { '/privacy-policy': '/privacy.html', '/termsofuse': '/terms.html' };
+      const routes = { '/privacy-policy': '/privacy.html', '/termsofuse': '/terms.html', '/ios-release-guide': '/ios-release-guide.html', '/ios-guide.html': '/ios-release-guide.html' };
       const destination = routes[pathname.replace(/\/$/, '')];
       if (destination) req.url = destination + (query ? `?${query}` : '');
       next();
@@ -41,8 +43,25 @@ function legalRoutes() {
   return { name: 'yere-legal-routes', configureServer: install, configurePreviewServer: install };
 }
 
+// The owner handbook is a website document, never an asset of the installed app.
+// Keep the native credential-name verifier strict; documentation names are web-only.
+function webOnlyHandbook(mode) {
+  let outputDirectory;
+  return {
+    name: 'yere-web-only-handbook',
+    apply: 'build',
+    configResolved(config) { outputDirectory = path.resolve(config.root, config.build.outDir); },
+    async closeBundle() {
+      if (mode !== 'native') return;
+      await Promise.all(['ios-release-guide.html', 'ios-guide.css', 'ios-guide.js'].map(file =>
+        rm(path.join(outputDirectory, file), { force: true })
+      ));
+    }
+  };
+}
+
 export default defineConfig(({ mode }) => ({
-  plugins: [tailwindcss(), nativeCloudGuard(mode), legalRoutes()],
+  plugins: [tailwindcss(), nativeCloudGuard(mode), legalRoutes(), webOnlyHandbook(mode)],
   server: {
     host: '0.0.0.0',
     allowedHosts: true
