@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="From a working Android debug app to a signed release, Play testing and Google Play publication.">
+  <title>Android launch guide · Yere</title>
+  <link rel="icon" href="/icons/favicon-v2-32.png" type="image/png">
+  <link rel="stylesheet" href="/ios-guide.css">
+  <script type="module" src="/android-guide.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#guide-content">Skip to instructions</a>
+  <header class="topbar"><a class="brand" href="/" aria-label="Yere home"><img src="/yere-logo-v2.png" width="36" height="36" alt=""><span>Yere<span class="brand-divider">/</span><span class="brand-label">Owner’s handbook</span></span></a><span class="private-badge"><span aria-hidden="true">◈</span> Your accounts. Your control.</span><button id="print-guide" class="button secondary small" type="button">Print / save PDF</button></header>
+  <div class="layout">
+    <aside class="sidebar" aria-label="Guide navigation">
+      <div class="sidebar-title">YOUR ROAD TO RELEASE</div>
+      <nav id="stage-nav" aria-label="Release stages"></nav>
+      <div class="sidebar-note"><span class="note-symbol" aria-hidden="true">↗</span><strong>You don’t have to do it alone.</strong><p>Steps marked <b>Technical help</b> are good places to involve an Android engineer. You never need to share your Google password.</p></div>
+      <a class="reference-link" href="#glossary" id="glossary-link">New to this? Open the glossary <span aria-hidden="true">→</span></a>
+    </aside>
+    <main id="guide-content" tabindex="-1">
+      <section class="hero" aria-labelledby="page-title"><div><span class="eyebrow">FROM DEBUG SUCCESS TO GOOGLE PLAY</span><h1 id="page-title">Let’s get Yere<br>onto Google Play.</h1><p>Your debug app worked on your phone. Now follow the release steps, keep track of your progress, and finish Google Play publication.</p><div class="hero-chips"><span>8 guided stages</span><span>Client-owned signing</span><span>Progress saved on this browser</span></div></div><div class="app-token" aria-hidden="true"><img src="/yere-logo-v2.png" alt=""><span>Yere for Android</span><div class="token-label">SIGN → TEST → PUBLISH</div></div></section>
+      <section class="progress-panel" aria-label="Your checklist progress"><div class="progress-heading"><strong id="progress-label">Getting your checklist ready…</strong><span id="progress-percent">0%</span></div><progress id="total-progress" max="100" value="0">0%</progress><div class="progress-footer"><span id="save-status">Only checklist ticks and your current stage are saved. Never enter credentials here.</span><button id="reset-guide" type="button" class="text-button">Reset progress</button></div></section>
+      <div class="scope-note"><strong>This is a guide, not a deployment tool.</strong> Your debug test is user-reported success. Release signing and Play-installed testing still need to be completed. This page does not connect to Google, upload a build or verify checklist ticks.</div>
+      <div id="stage-view"></div>
+      <noscript><section class="panel"><h2>Enable JavaScript to use the interactive guide</h2><p>Your browser needs JavaScript for the instructions, checklists and copy buttons. You can also read the existing release documentation in the GitHub repository: docs/NATIVE_NOTIFICATIONS.md and docs/MOBILE_RELEASE.md.</p></section></noscript>
+      <section class="glossary panel" id="glossary"><details id="glossary-details"><summary>Small glossary. No assumed knowledge.<span aria-hidden="true">+</span></summary><dl><dt>Repository (repo)</dt><dd>The source-code folder stored on GitHub.</dd><dt>Terminal</dt><dd>The command app on your computer, such as PowerShell on Windows or Terminal on macOS/Linux. Run commands from the project folder.</dd><dt>Package name</dt><dd>The app’s permanent identity: <code>com.getyere.app</code>.</dd><dt>Supabase</dt><dd>The existing service for accounts, reminders, file storage and server functions.</dd><dt>FCM</dt><dd>Firebase Cloud Messaging: the service used to send Android push notifications.</dd><dt>APK / AAB</dt><dd>An APK installs on a phone. An Android App Bundle (.aab) is uploaded to Play, which creates APKs for users’ devices.</dd><dt>Keystore / upload key</dt><dd>A private signing file and key used to authorize release uploads. Keep it outside Git with a secure backup.</dd><dt>Play App Signing</dt><dd>Google’s system for signing the apps delivered to users; its certificate can differ from your upload certificate.</dd><dt>Fingerprint</dt><dd>A public identifier of a signing certificate, used by integrations such as verified app links. It is not a private key.</dd><dt>versionCode</dt><dd>The integer Google uses to order Android releases. Increase it for every new upload.</dd><dt>Test track</dt><dd>A controlled Play distribution channel for internal or closed testing before production.</dd><dt>ANR</dt><dd>“Application Not Responding”: a freeze reported in Play’s quality tools.</dd></dl></details></section>
+      <footer class="page-footer"><span>Yere · Remember together.</span><span>Submission is not approval. Google makes the review decision.</span></footer>
+    </main>
+  </div>
+  <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>

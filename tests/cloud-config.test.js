@@ -205,6 +205,8 @@ test('vite build --mode native with a valid configuration produces a bundle wire
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.equal(existsSync(path.join(outDir, 'ios-guide.js')), false, 'owner documentation must not be bundled into the native app');
     assert.equal(existsSync(path.join(outDir, 'ios-release-guide.html')), false);
+    assert.equal(existsSync(path.join(outDir, 'android-guide.html')), false);
+    assert.equal(existsSync(path.join(outDir, 'android-guide.js')), false);
     const verdict = verifyBundle(outDir, env);
     assert.equal(verdict.ok, true, verdict.problems?.join('; '));
   } finally {

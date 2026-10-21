@@ -53,7 +53,7 @@ function webOnlyHandbook(mode) {
     configResolved(config) { outputDirectory = path.resolve(config.root, config.build.outDir); },
     async closeBundle() {
       if (mode !== 'native') return;
-      await Promise.all(['ios-release-guide.html', 'ios-guide.css', 'ios-guide.js'].map(file =>
+      await Promise.all(['ios-release-guide.html', 'ios-guide.css', 'ios-guide.js', 'android-guide.html', 'android-guide.js'].map(file =>
         rm(path.join(outputDirectory, file), { force: true })
       ));
     }
