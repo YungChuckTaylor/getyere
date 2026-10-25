@@ -5,37 +5,58 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0e1220">
   <title>Support · Yere</title>
+  <link rel="canonical" href="https://getyere.com/support.html">
   <link rel="icon" type="image/png" href="/icons/favicon-v2-32.png">
   <style>
-    :root{color-scheme:dark;background:#0e1220;color:#edf0ff;font:16px/1.7 system-ui,-apple-system,sans-serif}body{margin:0}.wrap{max-width:760px;margin:auto;padding:48px 22px 90px}a{color:#a5b4fc}h1,h2{line-height:1.2}h1{font-size:clamp(2rem,7vw,3.2rem);margin:.4rem 0}h2{margin-top:2.2rem}.brand{color:#a5b4fc;font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.75rem}.muted{color:#a8b0ca}.card{background:#171c2d;border:1px solid #29314b;border-radius:18px;padding:20px;margin:22px 0}li{margin:.5rem 0}</style>
+    :root{color-scheme:dark;background:#0e1220;color:#edf0ff;font:16px/1.7 system-ui,-apple-system,sans-serif}body{margin:0}.wrap{max-width:760px;margin:auto;padding:48px 22px 90px;overflow-wrap:anywhere}a{color:#a5b4fc}h1,h2{line-height:1.2}h1{font-size:clamp(2rem,7vw,3.2rem);margin:.4rem 0}h2{margin-top:2.2rem}.brand{color:#a5b4fc;font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:.75rem}.muted{color:#a8b0ca}.card{background:#171c2d;border:1px solid #29314b;border-radius:18px;padding:20px;margin:22px 0}li{margin:.5rem 0}.skip{position:absolute;left:12px;top:-100px;background:#171c2d;padding:8px}.skip:focus{top:8px}address{font-style:normal}@media print{:root{color-scheme:light;background:white;color:#111}a,.muted,.brand{color:#333}.card{background:white;border-color:#aaa}.wrap{padding:0;max-width:none}}</style>
 </head>
-<body><main class="wrap">
+<body><a class="skip" href="#content">Skip to content</a><main id="content" class="wrap">
   <a href="/">← Back to Yere</a>
   <p class="brand"><img src="/yere-logo-v2.png" alt="Yere" width="48" height="48" style="display:block;margin-bottom:14px">Yere · Remember together</p>
   <h1>How can we help?</h1>
-  <p class="muted">Support for the Yere web, Android, and iOS apps.</p>
+  <p class="muted">Support for the Yere web, Android, and iOS apps.<br>Last updated: <time datetime="2026-10-25">25 October 2026</time> (Toronto).</p>
 
-  <div class="card"><strong>Contact support</strong><br>Email <a href="mailto:support@getyere.com">support@getyere.com</a>. Include your device type and app version, but never send your password, one-time code, private key, or full notification token.</div>
+  <div class="card"><strong>Contact support</strong><br>Email <a href="mailto:support@getyere.com">support@getyere.com</a>. Support is by email, not live chat. There is no published response-time or support-hours guarantee; do not assume continuous monitoring or an immediate reply.</div>
 
-  <h2>Notifications are not arriving</h2>
+  <h2 id="bug-report">What to include in a bug report</h2>
+  <p>Include your device model, operating-system version, app version/build (or browser and version), steps to reproduce, expected versus actual behavior, the time and timezone, any error text, and whether the problem happens on Wi-Fi, mobile data or offline. A screenshot with private information redacted can help. Never send your password, one-time sign-in or recovery code, invite secret, private key, or full notification token. Avoid including other people’s personal information or sensitive reminder contents.</p>
+
+  <h2 id="notifications">Notifications are not arriving</h2>
   <ol>
     <li>Open Yere → Settings and turn on push.</li>
-    <li>Confirm notifications are allowed in your phone or browser settings.</li>
+    <li>Confirm notifications are allowed in your phone or browser settings. Check Focus/Do Not Disturb and battery restrictions.</li>
     <li>Create a reminder a few minutes ahead and choose Push or Both.</li>
     <li>Use “Send a test notification” in Settings.</li>
     <li>On the web, install Yere first where the browser requires it. On iPhone Safari, use Share → Add to Home Screen.</li>
   </ol>
+  <p>Notifications are not guaranteed to arrive on time. Use an independent backup for important or safety-critical reminders.</p>
 
-  <h2>Offline changes</h2>
-  <p>The installed app keeps a private local snapshot and queues cloud changes while disconnected. Reopen Yere with a connection and leave it open briefly to sync. If a change still does not appear, sign out only after confirming the device is online.</p>
+  <h2 id="offline-sync">Offline changes and syncing</h2>
+  <p>The installed app keeps a local snapshot and queues cloud changes while disconnected. Connect to the internet, open Yere with the same account, and leave it open to allow syncing. <strong>Being online does not mean syncing has completed.</strong></p>
+  <p><strong>Confirm your recent changes reached the cloud before signing out, clearing app/browser data, or reinstalling.</strong> One useful check is that the latest edit appears in another already-signed-in device or web session using the same account. Do not sign out of the original device just to perform this check. If you cannot verify the change, keep the original local data, save a separate copy of anything important where practical, and contact support before taking a destructive troubleshooting step. Uninstalling, clearing storage or signing out can lose unsynced changes.</p>
+  <p>If devices disagree, check the account email/sign-in method on each, confirm connectivity, and record any error and the time it occurred. Do not repeatedly reinstall or clear storage to try to force a sync.</p>
 
-  <h2>Sign-in or account recovery</h2>
-  <p>Check that you are using the same email address and that your confirmation or recovery link has not expired. Request a new recovery email from the sign-in screen if needed. Yere support will never ask for your password.</p>
+  <h2 id="sign-in">Sign-in or account recovery</h2>
+  <p>Check that you are using the same email address and sign-in method and that your confirmation or recovery link has not expired. Request a new recovery email from the sign-in screen if needed. Yere support will never ask for your password or recovery code.</p>
+
+  <h2 id="trusted-contacts">Trusted contacts</h2>
+  <ul>
+    <li><strong>Invite:</strong> open Trusted contacts → <strong>Invite someone</strong>. Share a private link or code only with the intended person, with their permission. Do not post invite secrets publicly.</li>
+    <li><strong>Accept:</strong> sign in to your intended Yere account, then use the invite link or <strong>Redeem an invite code</strong> on Trusted contacts. If a code is expired, already used or revoked, ask for a new invitation. Accept only invitations from people you trust; accepting can activate the relationship immediately.</li>
+    <li><strong>Permissions:</strong> review the relationship and approval mode shown in the app. Direct access allows a trusted contact to set reminders for you without reviewing each one; approval mode requires review. Settings → Trusted-contact reminders includes the default approval choice for new contacts; do not assume changing a default changes an existing relationship. To create a reminder for someone who has approved you, use <strong>People who approved you → Set a reminder</strong>.</li>
+    <li><strong>Stop access:</strong> use <strong>Revoke</strong> or <strong>Block</strong> on Trusted contacts for an existing relationship, or <strong>Cancel</strong> for an outstanding invitation. Allow the change to sync. Revocation does not erase reminders or copies already received; review any remaining reminders separately. Report unexpected invitations or access to support without forwarding the invite secret.</li>
+  </ul>
 
   <h2 id="delete-account">Delete your account</h2>
-  <p>While signed in, go to <strong>Settings → Account &amp; data → Delete account and cloud data</strong>. Confirm the warning and type DELETE. This permanently removes the account and associated reminders, contacts, attachments, subscriptions, and settings. If you cannot access the app, email support from the account address.</p>
+  <p>While signed in, go to <strong>Settings → Account &amp; data → Delete account and cloud data</strong>. Read the warning and type DELETE. The deletion process targets your account and associated <strong>active cloud data</strong>, such as your reminders, contacts, attachments, push registrations and settings. Wait for success; if an error appears, data appears to remain, or you are unsure it completed, contact support.</p>
+  <p>This is not a promise to erase every copy everywhere immediately. Separately retained security, delivery or administrative records and legally required records may remain; backups follow the provider’s actual expiry/overwrite cycle. Device copies and reminders or information already received or saved by another person may remain. See <a href="/privacy-policy#retention">Privacy Policy §7</a> for retention criteria and limitations. Account deletion and uninstalling do not necessarily cancel any separate app-store subscription.</p>
+  <p>If you cannot access the app, email support from the account address. We may need proportionate ownership verification before acting. Do not send identity documents in your initial email.</p>
 
-  <h2>Privacy and safety</h2>
-  <p>Review the <a href="/privacy-policy">Privacy Policy</a> and <a href="/termsofuse">Terms of Use</a>. You can revoke a trusted contact or block that account from the Trusted contacts screen. For an urgent safety issue, use the subject “Urgent safety report” when contacting support.</p>
+  <h2 id="privacy-safety">Privacy and safety</h2>
+  <p>For privacy access, correction, deletion or complaints, contact the <strong>Privacy Officer — person responsible for the protection of personal information</strong> at <a href="mailto:support@getyere.com">support@getyere.com</a>, subject “Privacy request”. The <a href="/privacy-policy">Privacy Policy</a> explains your rights; the <a href="/termsofuse">Terms of Use / Terms and Conditions</a> explain the agreement.</p>
+  <p>For a non-emergency safety concern, use the subject “Urgent safety report”. This does not guarantee an immediate response. Yere and this inbox are not emergency services. If someone is in immediate danger, contact local emergency services (911 in Canada); do not wait for a support reply.</p>
+  <p><strong>Business mailing address for Yere:</strong></p>
+  <address>1004 Kicking Horse Path<br>Oshawa, Ontario L1J 0B4<br>Canada</address>
+  <p>Privacy correspondence may be addressed to “Privacy Officer” at the same address.</p>
 </main></body>
 </html>

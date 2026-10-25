@@ -91,3 +91,42 @@ test('Terms and Conditions use Canadian law without inventing a province or waiv
     assert.doesNotMatch(html, /fully compliant|certified compliant|incorporated in Canada|governed by the laws of Ontario/i);
   }
 });
+
+test('privacy, terms and support publish identical Ontario mailing and Privacy Officer contacts', async () => {
+  for (const file of ['public/privacy.html', 'public/terms.html', 'public/support.html']) {
+    const html = await read(file);
+    assert.match(html, /1004 Kicking Horse Path<br>Oshawa, Ontario L1J 0B4<br>Canada/);
+    assert.match(html, /Privacy Officer — person responsible for the protection of personal information/);
+    assert.match(html, /mailto:support@getyere\.com/);
+    assert.doesNotMatch(html, /Yere (?:Inc\.|Ltd\.|Corporation)|Nigeria|Nigerian|24\/7 support|within 48 hours/i);
+  }
+});
+
+test('Toronto publication and effective dates are labelled separately', async () => {
+  for (const file of ['public/privacy.html', 'public/terms.html']) {
+    const html = await read(file);
+    assert.match(html, /Last updated: <time data-legal-updated datetime="2026-10-25">25 October 2026<\/time> \(Toronto\)/);
+    assert.match(html, /Effective date of this revision: <time data-legal-effective datetime="2026-10-26">26 October 2026<\/time> \(Toronto\)/);
+  }
+  assert.match(await read('public/terms.html'), /effective date above is not a substitute/);
+});
+
+test('retention separates actual deletion behavior, record criteria and unverified backup expiry', async () => {
+  const privacy = await read('public/privacy.html');
+  for (const text of ['active cloud data', 'administrative audit history is not automatically erased', 'specific delivery investigation', 'whether the request is resolved', 'snapshot expires or is overwritten', 'maximum backup-expiry window across providers has not yet been verified', 'reminders saved to that person’s account', 'eu-west-1', 'iad1', 'not a complete list', 'not a claim that every provider is located in Canada or that the required transfer assessments and agreements have been completed']) assert.ok(privacy.includes(text), text);
+  assert.doesNotMatch(privacy, /(?:backups|logs).{0,30}(?:expire|deleted) within \d+ days/i);
+});
+
+test('support protects unsynced data and qualifies deletion and availability promises', async () => {
+  const support = await read('public/support.html');
+  for (const text of ['Being online does not mean syncing has completed', 'before signing out, clearing app/browser data, or reinstalling', 'another already-signed-in device or web session', 'active cloud data', 'backups follow the provider’s actual expiry/overwrite cycle', 'Privacy Policy §7', 'Revoke', 'Redeem an invite code', 'Direct access', 'People who approved you', 'operating-system version', 'time and timezone', 'no published response-time', 'do not assume continuous monitoring', 'not emergency services']) assert.ok(support.includes(text), text);
+  assert.doesNotMatch(support, /This permanently removes|sign out only after confirming the device is online/);
+  const ids = [...support.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.match(support, /href="\/privacy-policy#retention"/);
+});
+
+test('terms bind material changes to written notice and a usable refusal/cancellation process', async () => {
+  const terms = await read('public/terms.html');
+  for (const text of ['must follow section 13', 'Only non-essential elements', 'require your express agreement', '30 days in advance', 'registered email address', 'notice will contain only', 'old and amended clause', 'Updating the date on this webpage alone is not that notice', 'Terms cancellation', 'without cost, penalty or cancellation indemnity', '30 days after', 'not the same as deleting your account', 'own acts or those of its representatives']) assert.ok(terms.includes(text), text);
+});
