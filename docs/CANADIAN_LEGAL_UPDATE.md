@@ -21,7 +21,8 @@ was invented. An Ontario mailing address was not treated as a governing-law inst
 
 ## Public documents
 
-French is the first-visit language:
+French is the first-visit language **only for the privacy, terms and support pages**.
+The app defaults to English; its language choice is independent of these documents:
 - https://getyere.com/privacy-policy (explicit French: `/fr/privacy-policy`)
 - https://getyere.com/termsofuse (explicit French: `/fr/termsofuse`)
 - https://getyere.com/support.html (explicit French: `/fr/support.html`)
@@ -33,7 +34,7 @@ English:
 
 Terms and Conditions and Terms of Use remain the same agreement. Existing canonical
 URLs and legacy redirects are preserved. An explicit `/en/` or `/fr/` URL chooses that
-language; a saved English preference redirects an unprefixed legal URL to its English
+language; a saved English **legal-page** preference redirects an unprefixed legal URL to its English
 version without showing the wrong-language document. French documents are real static
 HTML, not a network translation widget, and remain French without JavaScript.
 
@@ -120,8 +121,12 @@ notification references can be cleared while logs remain until normal cleanup/ho
 ## Language module
 
 - `public/language.js`, `language.css`, `locales/app.js`: shared local-only UI catalog,
-  accessible selectors, French default, `Yere.language` preference, explicit document
+  accessible selectors, English app default and French legal/support default,
+  independent `Yere.appLanguage` / `Yere.legalLanguage` preferences, explicit document
   routes, `fr-CA`/`en-CA` dates and voice locale, and a small French date-grammar bridge.
+- The former shared `Yere.language` key is ignored (not deleted), so an old default
+  or legal-page choice cannot make the app open in French. Explicit new app choices
+  still persist. Storage events are scoped to the corresponding preference key.
 - `index.html` explicitly marks source-authored labels and attributes. Translation
   never walks arbitrary text, translates stored content, changes business enum values,
   rewrites form values or calls a remote translation service. Dynamic UI parameters
@@ -168,11 +173,19 @@ isolated PostgreSQL tests for age thresholds, closed/open cases, grace period,
 row/category holds, audit immutability and role restrictions. Production migration,
 cron activation, grace response and RPC permissions were verified without user data.
 
-Headless browser: French default, remembered English, live sign-in/tour/editor changes,
+Original implementation headless browser: French default, remembered English, live sign-in/tour/editor changes,
 unchanged names/form/recurrence machine values, French date parsing, all six legal/support
 language variants, 320/390/768/1440 widths, light/dark, print, language navigation and no
 JavaScript errors. Native build verification was unavailable because this checkout has
 no `.env.local` cloud configuration; the existing native no-demo guard is unchanged.
+
+The scope correction restores English app markup/title/voice fallback, keeps French
+legal/support defaults, and adds regression tests for independent preferences and
+legacy-key isolation. Corrected-scope validation: **271 tests passing**, production
+build and `git diff --check` passing. Headless browser passed English app startup with
+the legacy French preference present, live switch/input preservation, independent
+app/legal choices across navigation, all six document variants at 320–1440px, and no
+JavaScript errors. No native build was generated for this web correction.
 
 ## Official references
 

@@ -6,12 +6,17 @@
   'use strict';
   const messages = globalThis.YERE_MESSAGES || { en: {}, fr: {} };
   const keyFor = new Map(Object.entries(messages.en).map(([key, value]) => [value, key]));
-  const storageKey = 'Yere.language';
+  // Legal/support language is independent of the app UI. Do not reuse the old
+  // global Yere.language key: it could have been written on either surface.
+  const documentPath = location.pathname.replace(/^\/(en|fr)(?=\/)/, '').replace(/\/$/, '');
+  const legalDocument = ['/privacy-policy', '/termsofuse', '/support.html', '/privacy.html', '/privacy-fr.html', '/terms.html', '/terms-fr.html', '/support-en.html'].includes(documentPath);
+  const storageKey = legalDocument ? 'Yere.legalLanguage' : 'Yere.appLanguage';
+  const defaultLanguage = legalDocument ? 'fr' : 'en';
   const valid = value => value === 'en' || value === 'fr';
   const stored = () => { try { return localStorage.getItem(storageKey); } catch { return null; } };
   const internalAdmin = /^\/admin(?:\/|$|-access$)/.test(location.pathname);
-  const explicit = location.pathname.startsWith('/en/') ? 'en' : location.pathname.startsWith('/fr/') ? 'fr' : null;
-  let language = internalAdmin ? 'en' : explicit || (valid(stored()) ? stored() : 'fr');
+  const explicit = legalDocument ? (/^\/(en|fr)\//.exec(location.pathname)?.[1] || null) : null;
+  let language = internalAdmin ? 'en' : explicit || (valid(stored()) ? stored() : defaultLanguage);
   const save = value => { try { localStorage.setItem(storageKey, value); } catch { /* Session preference still works. */ } };
   if (explicit) save(language);
   document.documentElement.lang = language;

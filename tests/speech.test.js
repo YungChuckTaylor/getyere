@@ -696,7 +696,7 @@ test('the browser keeps window.SpeechRecognition as its only fallback', async ()
   await flush();
   assert.equal(ui.speechInstances.length, 1, 'the Web Speech API is used in the browser');
   assert.equal(ui.plugin.calls.start.length, 0, 'the native plugin is never started on the web');
-  assert.equal(ui.speechInstances[0].lang, 'fr-CA');
+  assert.equal(ui.speechInstances[0].lang, 'en-CA');
   assert.equal(ui.speechInstances[0].interimResults, true);
   assert.equal(ui.voice().voiceEngine, 'web');
   assert.equal(ui.elements.get('micBtn').classList.contains('listening'), true);
@@ -722,7 +722,7 @@ test('native partials stream into quickInput and run the existing live parser', 
   assert.equal(preview.classList.contains('hidden'), false, 'the live parse chips are shown');
   assert.match(preview.queryChild.innerHTML, /Call Aunty/);
   assert.match(preview.queryChild.innerHTML, /Tomorrow/);
-  assert.match(preview.queryChild.innerHTML, /16 h 00/);
+  assert.match(preview.queryChild.innerHTML, /4:00\s*p\.?m\.?/);
 });
 
 test('the native final transcript goes through the existing reminder confirmation flow once', async () => {

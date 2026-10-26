@@ -6,32 +6,57 @@ import { parseHTML } from 'linkedom';
 const read = path => readFile(new URL(`../${path}`, import.meta.url),'utf8');
 const source = await read('public/language.js');
 const catalog = await read('public/locales/app.js');
-function harness({ preference, path = '/', denied = false, body = '<main></main>' } = {}) {
+function harness({ preference, path = '/', denied = false, body = '<main></main>', values = new Map() } = {}) {
  const { document, window } = parseHTML(`<html><head></head><body>${body}</body></html>`);
- const values = new Map(preference ? [['Yere.language',preference]] : []), navigation=[];
+ if (preference) values.set('Yere.appLanguage', preference);
+ const navigation=[], listeners=new Map();
  const context = { document, CustomEvent: window.CustomEvent, MutationObserver: window.MutationObserver,
   localStorage: { getItem: key => {if(denied)throw Error('blocked');return values.get(key)??null;},setItem:(key,value)=>{if(denied)throw Error('blocked');values.set(key,value);} },
-  location: { pathname:path,search:'?source=test',hash:'#retention',assign:value=>navigation.push(value),replace:value=>navigation.push(value) },addEventListener(){}
+  location: { pathname:path,search:'?source=test',hash:'#retention',assign:value=>navigation.push(value),replace:value=>navigation.push(value) },addEventListener:(name,listener)=>listeners.set(name,listener)
  };
  vm.createContext(context);vm.runInContext(catalog,context);vm.runInContext(source,context);
- return { api:context.YERE_I18N, messages:context.YERE_MESSAGES,document,values,navigation,context };
+ return { api:context.YERE_I18N, messages:context.YERE_MESSAGES,document,values,navigation,context,listeners };
 }
-test('French is the first-visit default, including unavailable/invalid storage; explicit choices persist',()=>{
- for(const options of [{},{denied:true},{preference:'de'}]){const h=harness(options);assert.equal(h.api.language,'fr');assert.equal(h.document.documentElement.lang,'fr');}
- const h=harness();assert.equal(h.api.setLanguage('en'),true);assert.equal(h.values.get('Yere.language'),'en');assert.equal(h.document.documentElement.lang,'en');assert.equal(h.api.locale,'en-CA');
- assert.equal(h.api.setLanguage('xx'),false);assert.equal(h.api.language,'en');
- assert.equal(harness({preference:'en'}).api.language,'en');assert.equal(harness({preference:'fr',path:'/admin'}).document.documentElement.lang,'en');assert.equal(harness({preference:'en',path:'/fr/privacy-policy'}).api.language,'fr');
+test('the app defaults to English, including blocked/invalid storage and the former shared preference',()=>{
+ for(const options of [{},{denied:true},{preference:'de'},...['en','fr'].map(value=>({values:new Map([['Yere.language',value],['Yere.legalLanguage','fr']])}))]){
+  const h=harness(options);assert.equal(h.api.language,'en');assert.equal(h.document.documentElement.lang,'en');assert.equal(h.api.locale,'en-CA');
+ }
+ const h=harness();assert.equal(h.api.setLanguage('fr'),true);assert.equal(h.values.get('Yere.appLanguage'),'fr');assert.equal(h.api.locale,'fr-CA');
+ assert.equal(h.api.setLanguage('xx'),false);assert.equal(h.api.language,'fr');
+ assert.equal(harness({preference:'fr'}).api.language,'fr');
+ assert.equal(harness({preference:'fr',path:'/admin'}).document.documentElement.lang,'en');
+});
+test('only privacy, terms and support default to French; explicit document routes override their own preference',()=>{
+ for(const path of ['/privacy-policy','/termsofuse','/support.html','/privacy.html','/privacy-fr.html','/terms.html','/terms-fr.html','/support-en.html']){
+  for(const options of [{},{denied:true},{values:new Map([['Yere.appLanguage','en'],['Yere.language','en'],['Yere.legalLanguage','de']])}])assert.equal(harness({path,...options}).api.language,'fr',path);
+ }
+ assert.equal(harness({path:'/privacy-policy',values:new Map([['Yere.legalLanguage','en']])}).api.language,'en');
+ assert.equal(harness({path:'/fr/privacy-policy',values:new Map([['Yere.legalLanguage','en']])}).api.language,'fr');
  assert.equal(harness({denied:true,path:'/en/termsofuse'}).api.language,'en');
 });
+test('app and legal choices are independent across navigation and cross-tab storage events',()=>{
+ const values=new Map([['Yere.language','fr']]);
+ const legal=harness({path:'/fr/privacy-policy',values});legal.document.body.dataset.legalLanguage='fr';
+ assert.equal(values.get('Yere.legalLanguage'),'fr');
+ const app=harness({values});assert.equal(app.api.language,'en');
+ app.api.setLanguage('fr');legal.api.setLanguage('en');
+ assert.equal(values.get('Yere.appLanguage'),'fr');assert.equal(values.get('Yere.legalLanguage'),'en');
+ assert.equal(harness({values}).api.language,'fr');assert.equal(harness({path:'/support.html',values}).api.language,'en');
+ app.api.setLanguage('en');app.listeners.get('storage')({key:'Yere.legalLanguage',newValue:'fr'});assert.equal(app.api.language,'en');
+ app.listeners.get('storage')({key:'Yere.language',newValue:'fr'});assert.equal(app.api.language,'en');
+ app.listeners.get('storage')({key:'Yere.appLanguage',newValue:'fr'});assert.equal(app.api.language,'fr');
+ legal.listeners.get('storage')({key:'Yere.appLanguage',newValue:'fr'});assert.equal(legal.api.language,'en');
+ assert.equal(values.get('Yere.language'),'fr','legacy value is ignored, not deleted');
+});
 test('translations are marked-only: form values, stored titles, custom names and identifiers stay unchanged',()=>{
- const h=harness({body:'<p id="custom">Home</p><input id="title" value="Settings"><textarea id="notes">Delete</textarea><input id="email" value="person@example.com"><div id="ui"></div>'});
+ const h=harness({preference:'fr',body:'<p id="custom">Home</p><input id="title" value="Settings"><textarea id="notes">Delete</textarea><input id="email" value="person@example.com"><div id="ui"></div>'});
  h.document.getElementById('ui').innerHTML=h.api.html('Home');h.api.apply();
  assert.equal(h.document.querySelector('[data-i18n]').textContent,'Accueil');
  for(const language of ['en','fr']){h.api.setLanguage(language);assert.equal(h.document.getElementById('custom').textContent,'Home');assert.equal(h.document.getElementById('title').value,'Settings');assert.equal(h.document.getElementById('notes').value,'Delete');assert.equal(h.document.getElementById('email').value,'person@example.com');}
  assert.equal(h.api.text('Unknown provider error'),'Unknown provider error');
 });
 test('dynamic names are escaped and preserved across translation; option machine values never translate',()=>{
- const h=harness(),name='<img src=x onerror=alert(1)> Home';
+ const h=harness({preference:'fr'}),name='<img src=x onerror=alert(1)> Home';
  h.document.body.innerHTML=h.api.html('Send reminder to {name}',{name})+`<select>${h.api.option('hours','hours',true)}</select>`;
  h.api.apply();assert.equal(h.document.querySelector('img'),null);assert.equal(h.document.querySelector('span').textContent,`Envoyer le rappel à ${name}`);
  assert.equal(h.document.querySelector('option').textContent,'heures');assert.equal(h.document.querySelector('option').getAttribute('value'),'hours');
@@ -56,6 +81,9 @@ test('every marked source UI message has both catalog entries and matching inter
   const params=value=>[...value.matchAll(/\{([a-zA-Z][a-zA-Z0-9_]*)\}/g)].map(m=>m[1]).sort();
   assert.deepEqual(params(h.messages.fr[key]),params(en),key);assert.doesNotMatch(h.messages.fr[key],/<script|onerror\s*=/i);
  }
+ assert.match(app,/<html lang="en">/);
+ assert.match(app,/<title[^>]*>Yere — Remember the times, together!<\/title>/);
+ assert.match(app,/YERE_I18N\?\.locale \|\| 'en-CA'/);
  assert.match(app,/function voiceLanguage\(\)\{ return uiLocale\(\); \}/);
  assert.match(await read('public/sw.js'),/new URL\('locales\/app.js'/);
 });

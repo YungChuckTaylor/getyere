@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Yere">
-<title data-i18n="m100655e414">Yere — Souvenons-nous des moments, ensemble !</title>
+<title data-i18n="m100655e414">Yere — Remember the times, together!</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-v2-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-v2.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -264,7 +264,7 @@ const t = (source, params) => window.YERE_I18N?.text(source, params) ?? source;
 const ui = (source, params) => window.YERE_I18N?.html(source, params) ?? esc(t(source,params));
 const uiOption = (value,label,selected) => window.YERE_I18N?.option(value,label,selected) ?? `<option value="${esc(value)}"${selected?' selected':''}>${esc(label)}</option>`;
 const uiText = (element, source) => { if(window.YERE_I18N) window.YERE_I18N.bindText(element, source); else if(element) element.textContent=source; };
-const uiLocale = () => window.YERE_I18N?.locale || 'fr-CA';
+const uiLocale = () => window.YERE_I18N?.locale || 'en-CA';
 function languagePicker(){return '<label class="yere-language-picker">Langue / Language <select data-language-select><option value="fr" lang="fr">Français</option><option value="en" lang="en">English</option></select></label>';}
 const WEEKDAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 const WEEKDAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];

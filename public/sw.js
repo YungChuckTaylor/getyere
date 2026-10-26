@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'yere-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v3-language`;
+const CACHE_NAME = `${CACHE_PREFIX}v4-language-scope`;
 const APP_URL = new URL(self.registration.scope);
 
 async function precacheShell() {
