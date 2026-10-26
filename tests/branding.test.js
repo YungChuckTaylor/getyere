@@ -71,7 +71,7 @@ test('iOS launcher is 1024px without transparency and splash assets are valid', 
 
 test('service worker rotates the old brand cache and uses a monochrome notification badge', async () => {
   const source = await text('public/sw.js');
-  assert.match(source, /CACHE_PREFIX}v2-brand/);
+  assert.match(source, /CACHE_PREFIX}v3-language/);
   assert.match(source, /badge: '\/icons\/badge-v2-96\.png'/);
   assert.match(source, /new URL\('yere-logo-v2\.png'/);
   assert.doesNotMatch(source, /yere-mark\.svg|icon-192\.png/);

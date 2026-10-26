@@ -1,135 +1,186 @@
-# Canadian legal/support update — published 25 October 2026 (Toronto)
+# Canadian legal, bilingual UI and operational retention update
 
-Public URLs remain:
-- https://getyere.com/privacy-policy
-- https://getyere.com/termsofuse — one agreement also called Terms and Conditions.
-- https://getyere.com/support.html
+Published/revised 25 October 2026 (America/Toronto); legal revision effective
+26 October 2026 (Toronto), subject to any existing-user notice/agreement requirement.
+The publishing clock was checked in Toronto rather than inferred from Lagos's date.
 
-The HTML files, canonical links, local/Vercel rewrites, legacy redirects, app links,
-branding and responsive legal-page design are retained. This is a legal-copy change,
-not a change to notification, authentication, billing or backend behavior.
+## Confirmed operator
 
-## Changes
+**Maple Dominion Consulting Inc.** — supplied explicitly by the owner.
 
-Removed Nigerian governing-law, NDPA and Nigerian-regulator references from both legal
-pages. Privacy now addresses PIPEDA where applicable, provincial private-sector law,
-meaningful consent, access/correction, complaints, conditional portability/deletion,
-processing outside Canada, incidents and CASL. Existing explanations of actual auth,
-voice processing, providers, local/offline copies, retention and deletion remain.
+1004 Kicking Horse Path
+Oshawa, Ontario L1J 0B4
+Canada
 
-Terms now use applicable Canadian federal/provincial/territorial law without inventing
-a province, exclusive venue or Canadian incorporation. The follow-up publishes the
-user-supplied Ontario business address without treating it as a governing-law selection. Consumer
-protections, Québec civil-law/language rights, billing disclosures, anti-spam duties
-and non-waivable remedies are preserved. No mandatory arbitration or class-action
-waiver was added. The service's minimum-age wording now consistently excludes under-14
-users in Québec rather than claiming a blanket right to collect their information.
-This is a service restriction, not a statement that Canadian law universally sets
-14 as the age of consent or that all minors can contract.
+English and French legal/support documents identify the same contracting operator.
+Privacy contact: **Privacy Officer / Responsable de la protection des renseignements
+personnels**, support@getyere.com and the business address above. The actual assigned
+person/delegation and mailbox staffing still need the operator's confirmation.
+No incorporation jurisdiction, corporate number, telephone number or individual name
+was invented. An Ontario mailing address was not treated as a governing-law instruction.
 
-## Not a compliance certification
+## Public documents
 
-The operator must have a Canadian lawyer review the text against the actual business,
-province, user population and provider arrangements. In particular:
+French is the first-visit language:
+- https://getyere.com/privacy-policy (explicit French: `/fr/privacy-policy`)
+- https://getyere.com/termsofuse (explicit French: `/fr/termsofuse`)
+- https://getyere.com/support.html (explicit French: `/fr/support.html`)
 
-- **Still required: full legal operator name/entity.** Only the service name Yere is
-  known. The user supplied the business mailing address: 1004 Kicking Horse Path,
-  Oshawa, Ontario L1J 0B4, Canada. It is now identical across privacy, terms and
-  support; it does not establish incorporation or identify the contracting legal person.
-  No company suffix, personal name or governing-law selection was inferred from it.
-- Privacy enquiries are explicitly routed to **Privacy Officer — person responsible
-  for the protection of personal information**, support@getyere.com and the supplied
-  postal address on all three pages. The operator must still confirm the actual
-  responsible person/delegation and mailbox monitoring. No named officer, staffing
-  hours, response-time guarantee or continuous monitoring was invented.
-- Ensure access-request deadlines, identity checks, correction, deletion, portability,
-  incident records/reporting, retention schedules and processor contracts work in practice.
-  This change does not implement new privacy-request automation or audit those processes.
-- Verify hosting locations and transfer assessments/agreements, including Québec rules
-  where applicable. No Canadian-only data-residency guarantee or completed assessment
-  was claimed. Read-only production metadata confirms the Supabase database project
-  region `eu-west-1` (Ireland) and Vercel function region `iad1` (United States); the
-  policy names these but does not present them as an exhaustive provider/country list.
-  Other processing locations and transfer assessments/agreements still need review.
-- Assess Québec French-language requirements. No French translation or French-first
-  contracting/consent flow was implemented by this copy change. A rights-preservation
-  sentence is not a substitute for those obligations.
-- Align actual age/consent handling and store audience disclosures with the service's
-  eligibility limits; no age verification or parental-consent collection was added.
-- Before sending marketing or covered invitations, verify the actual CASL consent,
-  sender identity/mailing address, unsubscribe and suppression mechanisms. No marketing
-  system or consent capture was added; accepting terms is not marketing opt-in.
-- Give existing users any legally required material-change notice and obtain agreement
-  or consent where required. Merely changing the date on the site does not do that.
-- If paid features are introduced, verify real pricing/tax/renewal/cancellation/refund
-  flows and province-specific disclosure requirements, not just these conditional terms.
+English:
+- https://getyere.com/en/privacy-policy
+- https://getyere.com/en/termsofuse
+- https://getyere.com/en/support.html
 
-The documents are Canadian-focused drafts published at the user's request; tests prove
-copy/routes/layout, not legal compliance or that the operational duties are fulfilled.
+Terms and Conditions and Terms of Use remain the same agreement. Existing canonical
+URLs and legacy redirects are preserved. An explicit `/en/` or `/fr/` URL chooses that
+language; a saved English preference redirects an unprefixed legal URL to its English
+version without showing the wrong-language document. French documents are real static
+HTML, not a network translation widget, and remain French without JavaScript.
 
-## Follow-up implementation and evidence
+Canadian privacy/consumer protections, PIPEDA where applicable, provincial rights,
+meaningful consent, access/correction, complaints, conditional deletion/portability,
+incident duties and CASL remain covered. No Nigerian governing law, mandatory arbitration
+or class-action waiver was reintroduced. Québec consumers' non-waivable liability and
+French-language protections remain intact.
 
-- Last updated **25 October 2026, Toronto** is separate from the announced effective
-  date **26 October 2026, Toronto**. The actual publishing clock was checked in
-  `America/Toronto`, not inferred from the agent's Lagos local date. Existing users'
-  required notice/consent process is explicitly not replaced by that effective date.
-  No email amendment campaign or re-acceptance flow was sent/implemented here.
-- Terms §§3/13 replace broad unilateral-change powers with specified non-essential
-  elements, 30-day advance written email notice containing only clause/date/rights
-  details, and a manual email refusal/cancellation route (including the 30-day
-  post-effective window for adverse amendments). Essential changes require express
-  agreement. These are commitments the operator must fulfil, not proof of an
-  automated notice/cancellation system. No billing system was added.
-- Terms §11 explicitly preserves Québec protections against exoneration for the
-  merchant's own acts. French rights are not presented as an implemented French-first
-  contracting process. Whether Québec is included at launch is still unanswered;
-  neither a translation/contracting rollout nor a geographic block was implemented.
-- Privacy §7 separates active account/workspace data, notification/security/audit
-  logs, support/legal records, backups and device/recipient copies. It gives
-  category-specific necessity criteria without inventing expiry periods. A fixed
-  provider backup window and enforced log-purge schedule remain **unverified**;
-  this edit does not create a retention job or make indefinite retention lawful.
-- Source review: `delete-account` removes attachment paths, calls the detach RPC,
-  then deletes the auth user. Its attachment lookup currently caps at **5,000**;
-  complete removal for a very large account needs a separate backend review/fix.
-  No destructive production deletion test was performed or authorized.
-- Read-only production foreign-key metadata confirms account-linked support tickets
-  cascade on deletion, but notification-log account/reminder references use SET NULL.
-  Source schema retains administrative audit entries without an account foreign key.
-  The detach RPC preserves reminders belonging to a recipient and removes contact
-  relationships. These findings explain the support/retention qualifications; they
-  do not prove every historical row, file, email or backup is erased in practice.
-- Support now distinguishes deletion targeting **active cloud data** from retained
-  records, backups and recipient/device copies. It says **online does not mean
-  synced**, asks users to verify recent edits before sign-out/clearing/reinstall,
-  and provides trusted-contact help, safer bug-report details and realistic email
-  support/emergency expectations. No support SLA was asserted.
+Terms §§3/13 identify amendable non-essential elements, 30-day advance written email
+notice with only amendment/date/rights details, express agreement for essential changes,
+and email refusal/cancellation without cost, penalty or cancellation indemnity within
+at least the applicable 30-day post-effective window. A dated page is not proof of notice.
+No notice campaign, billing cancellation integration or consent ledger was implemented.
 
-### Operator follow-through (not completed by copy changes)
+Support distinguishes active cloud deletion from separately retained records, backups
+and recipient/device copies; online is not proof that syncing completed. Instructions
+include confirming recent edits before sign-out/clearing/reinstall, contact invitation
+and revocation help, redacted bug reports and realistic non-emergency email availability.
 
-1. Supply the full contracting legal name and confirm the responsible privacy officer.
-2. Decide Québec launch scope; obtain advice and implement French-first contracting,
-   transfer assessments and required agreements before the relevant activity.
-3. Verify actual backup configurations and adopt/enforce a category-specific retention
-   schedule, log expiry, review/holds and deletion verification (including large accounts).
-4. Staff the published privacy/cancellation inbox; handle notice delivery, consent,
-   requests, cancellations and any refunds in practice. Check notice requirements for
-   existing users before treating this revision as binding on them.
+## Adopted retention schedule — not a universal industry mandate
 
-## Official references reviewed
+The owner asked for industry-standard schedules. There is no single period suitable for
+all Canadian data categories. These purpose-based Yere business limits are implemented
+in the application database; they are not represented as statutory periods or certification.
 
-- Federal/provincial scope: [7](https://www.priv.gc.ca/en/privacy-topics/privacy-laws-in-canada/the-personal-information-protection-and-electronic-documents-act-pipeda/pipeda_brief/).
-- Meaningful consent: [4](https://www.priv.gc.ca/en/privacy-topics/business-privacy/collecting-personal-information/consent/gl_omc_201805/).
-- Access requests: [15](https://www.priv.gc.ca/en/privacy-topics/accessing-personal-information/obligations-for-organizations/02_05_d_54_ati_02/).
-- Breach duties: [6](https://www.priv.gc.ca/en/privacy-topics/business-privacy/breaches-and-safeguards/privacy-breaches-at-your-business/gd_pb_201810/).
-- CASL consent, identification and unsubscribe: [1](https://crtc.gc.ca/eng/com500/faq500.htm).
-- Québec private-sector Act, including sections 4.1, 8, 17 and 27: [Official statute](https://www.legisquebec.gouv.qc.ca/en/document/cs/P-39.1).
-- Québec French-language contract guidance: [4](https://cdn-contenu.quebec.ca/cdn-contenu/adm/min/langue-francaise/fr/publications/emissaires/Guide_Contrats.pdf).
+| Application record | Normal eligibility for cleanup | Purpose |
+| --- | --- | --- |
+| Notification delivery logs | 90 days from creation | Delivery troubleshooting and misuse investigation |
+| Closed/resolved in-app support tickets | 12 months after last update, while still closed/resolved | Follow-up and complaint handling |
+| Administrative audit logs | 24 months from creation | Administrative accountability, security and disputes |
+| Expired/revoked admin sessions | 30 days after expiry/revocation, whichever is later | Session security investigation; does not extend access |
+| Retention job aggregate counters | 90 days | Operational monitoring; no content, tokens or user identifiers |
+| Active account/workspace | Until content/account deletion, subject to documented exceptions | Providing the account and selected features |
 
-- Québec Consumer Protection Act §§10, 11.1–11.4: [Official statute](https://www.legisquebec.gouv.qc.ca/en/document/cs/P-40.1), current official text fetched 25 October 2026 (Toronto); §11.2 checked in full for notice, cancellation and essential-element limits.
+Migration **20261025234615_operational_retention.sql** is applied to production project
+`nttspzlszckaxjsjdlqi`; the version was confirmed from migration history. The private
+`yere-operational-retention` cron is active at `17 * * * *` UTC. It processes at most
+5,000 eligible rows per category each hour, with an advisory lock to avoid overlapping
+runs. Cleanup cannot start before **25 November 2026 00:00 Toronto / 05:00 UTC**. The
+production verification returned `grace_period`; no production purge was performed.
+The existing reminder-dispatch cron was not changed.
 
-## Checks
+### Holds and audit protection
 
-`npm test`, `npm run build`, `git diff --check`; browser checks for both canonical legal routes and support,
-legacy redirects in production, contents anchors, mobile/desktop overflow, stylesheet
-and branding loads, current dates, Canadian text and absence of Nigerian-law text.
+- Only database-owner administration can create/release `retention_holds`. It supports
+  a row-specific or category-wide hold, documented reason and review date. Release is
+  explicit; passing the review date does **not** silently drop a legal hold.
+- Hold changes serialize with the retention lock. Operators must review due holds,
+  document the continued need, or release them when the basis ends.
+- Ordinary audit updates/deletes still fail. Only the owner-run retention function's
+  scoped transaction may delete an unheld audit row older than 24 months, after the
+  grace date. Browser roles and service_role cannot invoke this function or access
+  hold/run tables. Application-role attempts to spoof the flag are tested and denied.
+- The job does not delete reminders, accounts, attachments, contacts or reminder-fire
+  delivery checkpoints. Account deletion remains a separate user-requested flow.
+- Security/privacy-incident records and legal claims must satisfy their own legal
+  minimums, event-based dates and holds; a generic 24-month audit TTL does not prove
+  compliance with a breach-record duty. Counsel must review the schedule in context.
+
+### Monitoring (database-owner operations only)
+
+Check `cron.job` for the named job and `cron.job_run_details` for failures. Inspect
+`retention_runs` for aggregate counts; a repeated batch count of 5,000 signals backlog.
+Check `retention_holds` where `released_at IS NULL AND review_at <= now()` for review.
+Do not put passwords, raw tokens or unnecessary personal content into hold reasons.
+Do not grant application roles access to the maintenance function or hold tables.
+
+### Not covered by database cleanup
+
+Backup expiry is provider-plan/configuration dependent and remains **unverified**;
+no invented 7/30/90-day maximum is published for backups. Provider-managed platform/auth
+logs and separate support email are not controlled by this database job. Their actual
+settings, necessity and legal obligations still need verification. Recipient/device
+copies are not a purge guarantee. Production metadata confirms database region
+`eu-west-1` (Ireland) and web function region `iad1` (United States), not an exhaustive
+list of all processing locations or a completed transfer assessment.
+
+Source review of `delete-account` still finds an attachment lookup cap of 5,000. Complete
+removal for a larger account needs separate backend work and verification. No destructive
+account-deletion test was performed. Recipient-owned reminders survive sender deletion;
+notification references can be cleared while logs remain until normal cleanup/hold rules.
+
+## Language module
+
+- `public/language.js`, `language.css`, `locales/app.js`: shared local-only UI catalog,
+  accessible selectors, French default, `Yere.language` preference, explicit document
+  routes, `fr-CA`/`en-CA` dates and voice locale, and a small French date-grammar bridge.
+- `index.html` explicitly marks source-authored labels and attributes. Translation
+  never walks arbitrary text, translates stored content, changes business enum values,
+  rewrites form values or calls a remote translation service. Dynamic UI parameters
+  are escaped; select options keep explicit machine values.
+- Language switches do not re-render auth/editor forms or settings, preserving drafts.
+  Catalog fallbacks leave unknown provider/technical errors unchanged. Admin console
+  and owner release handbooks remain English, as do externally supplied announcements,
+  support replies and user-authored content. The grammar bridge is not a general-purpose
+  French NLP engine; users must still review proposed dates before saving.
+- French/English legal pages use the same section IDs, accessibility/style, contact
+  details, retention criteria and rights. Long French headings wrap on small screens.
+- Service worker v3 precaches the language module/catalog for offline use and never
+  falls back to the app shell for either language's legal/support routes.
+- This is one shared PWA, not a replacement app. Web deployment updates the website;
+  installed native apps need a new owner-produced native build to bundle these assets.
+  No APK, TestFlight build or new backend project was generated.
+
+To edit a marked UI label, update its English/French entries together in
+`public/locales/app.js`; stable keys identify source-authored copy. `tests/language.test.js`
+checks catalog coverage and interpolation parity. New enum choices must preserve their
+machine `value`; never derive stored values from translated labels. Legal translations
+are static HTML and should be reviewed together by Canadian/Québec-qualified counsel.
+
+## Outstanding operational/legal work
+
+1. Confirm the actual privacy officer and inbox staffing; process requests and
+   cancellation notices in practice. No SLA or continuous-monitoring claim is made.
+2. Determine Québec launch scope and have counsel review both languages. Publishing
+   French pages/default French does **not** alone prove compliant French-first
+   contracting, express English-language agreement, consent records or store flows.
+3. Complete required transfer/privacy-impact assessments and processor agreements.
+4. Verify provider backup/auth/platform-log settings, separate email retention and
+   legal/incident records. Review holds and cleanup health; resolve large-account
+   attachment deletion. No copy change certifies these operational duties.
+5. Provide existing-user notices and obtain consent/agreement where required before
+   treating material amendments as binding. A future effective date is not that notice.
+6. Keep actual age handling, CASL consent/identification/unsubscribe, paid-feature
+   disclosures and refund/cancellation mechanisms aligned with the documents.
+
+## Verification
+
+`npm test` (269 passing at implementation), production build, `git diff --check`;
+isolated PostgreSQL tests for age thresholds, closed/open cases, grace period,
+row/category holds, audit immutability and role restrictions. Production migration,
+cron activation, grace response and RPC permissions were verified without user data.
+
+Headless browser: French default, remembered English, live sign-in/tour/editor changes,
+unchanged names/form/recurrence machine values, French date parsing, all six legal/support
+language variants, 320/390/768/1440 widths, light/dark, print, language navigation and no
+JavaScript errors. Native build verification was unavailable because this checkout has
+no `.env.local` cloud configuration; the existing native no-demo guard is unchanged.
+
+## Official references
+
+- [PIPEDA scope](https://www.priv.gc.ca/en/privacy-topics/privacy-laws-in-canada/the-personal-information-protection-and-electronic-documents-act-pipeda/pipeda_brief/)
+- [Meaningful consent](https://www.priv.gc.ca/en/privacy-topics/business-privacy/collecting-personal-information/consent/gl_omc_201805/)
+- [Access requests](https://www.priv.gc.ca/en/privacy-topics/accessing-personal-information/obligations-for-organizations/02_05_d_54_ati_02/)
+- [Breach duties](https://www.priv.gc.ca/en/privacy-topics/business-privacy/breaches-and-safeguards/privacy-breaches-at-your-business/gd_pb_201810/)
+- [CASL](https://crtc.gc.ca/eng/com500/faq500.htm)
+- [Québec private-sector privacy statute](https://www.legisquebec.gouv.qc.ca/en/document/cs/P-39.1)
+- [Québec Consumer Protection Act, including §§10–11.4](https://www.legisquebec.gouv.qc.ca/en/document/cs/P-40.1)
+- [Québec French-language contracting guidance](https://cdn-contenu.quebec.ca/cdn-contenu/adm/min/langue-francaise/fr/publications/emissaires/Guide_Contrats.pdf)

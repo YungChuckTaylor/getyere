@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Yere">
-<title>Yere — Remember the times, together!</title>
+<title data-i18n="m100655e414">Yere — Souvenons-nous des moments, ensemble !</title>
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-v2-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon-v2.png">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -22,6 +22,9 @@
     document.documentElement.classList.toggle('dark', theme !== 'light');
   })();
 </script>
+<link rel="stylesheet" href="/language.css">
+<script src="/locales/app.js"></script>
+<script src="/language.js"></script>
 <script type="module" src="/src/bootstrap.js"></script>
 </head>
 <body class="text-slate-800 dark:text-slate-100 min-h-screen mesh">
@@ -35,64 +38,64 @@
     <div class="px-5 pt-6 pb-4 flex items-center gap-3">
       <img src="/yere-logo-v2.png" alt="Yere" width="40" height="40" class="h-10 w-10 rounded-2xl shadow-glow">
       <div>
-        <div class="font-extrabold tracking-tight text-lg leading-none">Yere</div>
-        <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Remember the times, together!</div>
+        <div class="font-extrabold tracking-tight text-lg leading-none" data-i18n="ma9eea6410d">Yere</div>
+        <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5" data-i18n="mdbc74437e1">Remember the times, together!</div>
       </div>
     </div>
 
     <nav class="px-3 mt-2 space-y-0.5 flex-1 overflow-y-auto hide-scroll">
-      <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Capture</p>
+      <p class="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400" data-i18n="m772a4bcb65">Capture</p>
       <button class="sidebar-link active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold" data-view="today" onclick="setView('today')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="12" height="12" rx="2"/><path d="M3 8h12M7 2v4M11 2v4"/></svg>
-        Home <span id="todayCount" class="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">0</span>
+        <span data-i18n="m70f8bb9a8a">Home</span> <span id="todayCount" class="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">0</span>
       </button>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="upcoming" onclick="setView('upcoming')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h10M10 6l6 6-6 6"/></svg>
-        Next 7 days
+        <span data-i18n="m8bc3758411">Next 7 days</span>
       </button>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="all" onclick="setView('all')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h10M4 8h10M4 12h7M3 3h1v1H3zM3 7h1v1H3zM3 11h1v1H3z"/></svg>
-        All tasks
+        <span data-i18n="m2eee0bb53a">All tasks</span>
       </button>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="calendar" onclick="setView('calendar')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2.5" y="4" width="13" height="12" rx="2"/><path d="M2.5 8h13M6 2v4M12 2v4"/></svg>
-        Calendar
+        <span data-i18n="madab5090ac">Calendar</span>
       </button>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="recurring" onclick="setView('recurring')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a7 7 0 0112-5l2-2v6h-6l2-2a5 5 0 10.5 6"/></svg>
-        Recurring
+        <span data-i18n="m349f0e5ffd">Recurring</span>
       </button>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="completed" onclick="setView('completed')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12l4 4 8-9"/></svg>
-        Completed
+        <span data-i18n="m1798b3ba42">Completed</span>
       </button>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="pending" onclick="setView('pending')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="9" r="7"/><path d="M9 5v5l3 2"/></svg>
-        Needs approval <span id="pendingCount" class="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 hidden">0</span>
+        <span data-i18n="ma3b42549d1">Needs approval</span> <span id="pendingCount" class="ml-auto text-[11px] px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 hidden">0</span>
       </button>
       <div class="mt-4">
-        <div class="px-3 pt-2 pb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400"><span>Your lists</span><button onclick="addCustomList()" class="text-indigo-500 text-sm" aria-label="Add a list">+</button></div>
+        <div class="px-3 pt-2 pb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400"><span data-i18n="m83c9c6b05f">Your lists</span><button onclick="addCustomList()" class="text-indigo-500 text-sm" aria-label="Add a list" data-i18n-aria-label="mc4e29ed18c">+</button></div>
         <div id="customListsNav" class="space-y-0.5"></div>
       </div>
 
-      <p class="px-3 pt-5 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">People</p>
+      <p class="px-3 pt-5 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400" data-i18n="mb37554f695">People</p>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="contacts" onclick="setView('contacts')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="3"/><path d="M2 16c0-2.5 2.2-4 5-4s5 1.5 5 4"/><circle cx="14" cy="7" r="2.5"/><path d="M14 12c2.4.3 4 1.8 4 4"/></svg>
-        Trusted contacts
+        <span data-i18n="m515bbfdb5b">Trusted contacts</span>
       </button>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="audit" onclick="setView('audit')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h8l3 3v11a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M6 10h6M6 14h4"/></svg>
-        Audit log
+        <span data-i18n="m3cfc5f1cc9">Audit log</span>
       </button>
 
-      <p class="px-3 pt-5 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">System</p>
+      <p class="px-3 pt-5 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400" data-i18n="mbc0792d8dc">System</p>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="insights" onclick="setView('insights')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14l4-4 3 3 6-7"/><path d="M13 6h4v4"/></svg>
-        Pattern insights
+        <span data-i18n="m001985103e">Pattern insights</span>
       </button>
       <button class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300" data-view="settings" onclick="setView('settings')">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="9" r="3"/><path d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.4 3.4l1.4 1.4M13.2 13.2l1.4 1.4M3.4 14.6l1.4-1.4M13.2 4.8l1.4-1.4"/></svg>
-        Settings
+        <span data-i18n="mc7f73bb54d">Settings</span>
       </button>
     </nav>
 
@@ -101,12 +104,12 @@
         <div class="h-9 w-9 rounded-full bg-gradient-to-br from-amber-400 to-rose-500 grid place-items-center text-white font-bold text-sm" id="meAvatar">Y</div>
         <div class="min-w-0 flex-1">
           <div class="text-sm font-semibold truncate" id="meName">Yere</div>
-          <div class="text-[11px] text-slate-500 truncate" id="workspaceLabel">Connecting…</div>
+          <div class="text-[11px] text-slate-500 truncate" id="workspaceLabel" data-i18n="mfd3e796994">Connecting…</div>
         </div>
       </div>
       <div class="flex items-center justify-between px-1 pt-3 text-xs">
-        <button onclick="startTour(true)" class="font-semibold text-indigo-600 dark:text-indigo-300">Take the tour</button>
-        <button id="signOutBtn" onclick="signOut()" class="hidden font-semibold text-slate-500 hover:text-rose-500">Sign out</button>
+        <button onclick="startTour(true)" class="font-semibold text-indigo-600 dark:text-indigo-300" data-i18n="m3a4dad8499">Take the tour</button>
+        <button id="signOutBtn" onclick="signOut()" class="hidden font-semibold text-slate-500 hover:text-rose-500" data-i18n="mdc1649a16c">Sign out</button>
       </div>
     </div>
   </aside>
@@ -116,36 +119,36 @@
     <!-- Top bar -->
     <header class="sticky top-0 z-20 glass border-b border-slate-200/70 dark:border-white/5">
       <div class="px-3 md:px-8 py-3 flex items-center gap-1.5 sm:gap-3">
-        <button class="md:hidden p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" onclick="openDrawer()" aria-label="Menu">
+        <button class="md:hidden p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" onclick="openDrawer()" aria-label="Menu" data-i18n-aria-label="m57f5f5efbc">
           <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h16M3 12h16M3 18h16"/></svg>
         </button>
         <div class="relative flex-1 min-w-0 max-w-xl">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="7" r="5.5"/><path d="M11 11l4 4"/></svg>
-          <input id="search" type="search" placeholder="Search titles, notes, links…" class="w-full pl-10 pr-3 py-2.5 rounded-xl bg-slate-100/80 dark:bg-ink-800 border-0 text-sm outline-none focus:ring-2 focus:ring-indigo-500/40" oninput="onSearch(this.value)">
+          <input id="search" type="search" placeholder="Search titles, notes, links…" data-i18n-placeholder="m5595720bfb" class="w-full pl-10 pr-3 py-2.5 rounded-xl bg-slate-100/80 dark:bg-ink-800 border-0 text-sm outline-none focus:ring-2 focus:ring-indigo-500/40" oninput="onSearch(this.value)">
         </div>
-        <button onclick="toggleTheme()" class="hidden sm:block p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" title="Toggle theme">
+        <button onclick="toggleTheme()" class="hidden sm:block p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" title="Toggle theme" data-i18n-title="m9b0eaf14d3">
           <svg id="sunIcon" class="hidden dark:block" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="9" r="4"/><path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.2 3.2l1.4 1.4M13.4 13.4l1.4 1.4M3.2 14.8l1.4-1.4M13.4 4.6l1.4-1.4"/></svg>
           <svg id="moonIcon" class="dark:hidden" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 11.5A7 7 0 118.5 3 5.5 5.5 0 0015 11.5z"/></svg>
         </button>
-        <button id="installBtn" onclick="installYere()" class="hidden desktop-only p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800 text-indigo-600 dark:text-indigo-300" title="Install Yere" aria-label="Install Yere">
+        <button id="installBtn" onclick="installYere()" class="hidden desktop-only p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800 text-indigo-600 dark:text-indigo-300" title="Install Yere" data-i18n-title="m957624a6de" aria-label="Install Yere" data-i18n-aria-label="m957624a6de">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2v9m0 0 3.5-3.5M9 11 5.5 7.5M3 13v3a2 2 0 002 2h8a2 2 0 002-2v-3"/></svg>
         </button>
-        <button onclick="requestNotif()" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" title="Notifications" aria-label="Notifications">
+        <button onclick="requestNotif()" class="p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" title="Notifications" data-i18n-title="m753a22b2eb" aria-label="Notifications" data-i18n-aria-label="m753a22b2eb">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 15h6a4 4 0 004-4V8a5 5 0 00-10 0v3a4 4 0 004 4z"/><path d="M8 15v1a2 2 0 004 0v-1"/></svg>
         </button>
         <div id="profileMenuRoot" class="relative ml-auto shrink-0" onkeydown="handleProfileMenuKey(event)">
-          <button id="profileMenuButton" type="button" onclick="toggleProfileMenu()" aria-label="Open profile menu" aria-haspopup="menu" aria-expanded="false" aria-controls="profileMenu" class="h-11 w-11 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-200 grid place-items-center ring-1 ring-indigo-200 dark:ring-indigo-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500">
+          <button id="profileMenuButton" type="button" onclick="toggleProfileMenu()" aria-label="Open profile menu" data-i18n-aria-label="m36975801a9" aria-haspopup="menu" aria-expanded="false" aria-controls="profileMenu" class="h-11 w-11 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-200 grid place-items-center ring-1 ring-indigo-200 dark:ring-indigo-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500">
             <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0116 0v2"/></svg>
           </button>
           <div id="profileMenu" role="menu" aria-labelledby="profileMenuButton" class="hidden absolute right-0 top-full mt-3 w-64 max-w-[calc(100vw-1.5rem)] rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-ink-900 p-2 shadow-2xl">
             <div role="none" class="px-3 py-3 border-b border-slate-100 dark:border-white/10 mb-1"><p id="profileMenuName" class="font-bold text-sm truncate">Yere</p><p id="profileMenuEmail" class="text-xs text-slate-500 truncate">Your workspace</p></div>
-            <button type="button" role="menuitem" onclick="profileMenuAction('settings')" class="profile-menu-item">Settings</button>
-            <button type="button" role="menuitem" onclick="profileMenuAction('contacts')" class="profile-menu-item">Trusted contacts</button>
-            <button type="button" role="menuitem" onclick="profileMenuAction('audit')" class="profile-menu-item">Activity log</button>
-            <button type="button" role="menuitem" onclick="profileMenuAction('theme')" class="profile-menu-item">Switch theme</button>
-            <button type="button" role="menuitem" onclick="profileMenuAction('tour')" class="profile-menu-item">Take the tour</button>
-            <button id="profileSignIn" type="button" role="menuitem" onclick="profileMenuAction('signin')" class="hidden profile-menu-item">Sign in</button>
-            <button id="profileSignOut" type="button" role="menuitem" onclick="profileMenuAction('logout')" class="hidden profile-menu-item text-rose-600 dark:text-rose-400">Log out</button>
+            <button type="button" role="menuitem" onclick="profileMenuAction('settings')" class="profile-menu-item" data-i18n="mc7f73bb54d">Settings</button>
+            <button type="button" role="menuitem" onclick="profileMenuAction('contacts')" class="profile-menu-item" data-i18n="m515bbfdb5b">Trusted contacts</button>
+            <button type="button" role="menuitem" onclick="profileMenuAction('audit')" class="profile-menu-item" data-i18n="mcce84423cb">Activity log</button>
+            <button type="button" role="menuitem" onclick="profileMenuAction('theme')" class="profile-menu-item" data-i18n="m9a9a20fae1">Switch theme</button>
+            <button type="button" role="menuitem" onclick="profileMenuAction('tour')" class="profile-menu-item" data-i18n="m3a4dad8499">Take the tour</button>
+            <button id="profileSignIn" type="button" role="menuitem" onclick="profileMenuAction('signin')" class="hidden profile-menu-item" data-i18n="mada2e9e96f">Sign in</button>
+            <button id="profileSignOut" type="button" role="menuitem" onclick="profileMenuAction('logout')" class="hidden profile-menu-item text-rose-600 dark:text-rose-400" data-i18n="m6e78c91f5a">Log out</button>
           </div>
         </div>
       </div>
@@ -154,27 +157,27 @@
     <div class="flex-1 px-4 md:px-8 py-6 pb-28 md:pb-6 max-w-5xl w-full mx-auto">
       <!-- Quick add -->
       <section id="quickAddSection" class="mb-8">
-        <h1 id="viewTitle" class="text-3xl md:text-4xl font-extrabold tracking-tight mb-1">Good morning</h1>
-        <p id="viewSub" class="text-slate-500 dark:text-slate-400 mb-5">Capture anything — type or speak. We’ll parse the when.</p>
+        <h1 id="viewTitle" class="text-3xl md:text-4xl font-extrabold tracking-tight mb-1" data-i18n="m0f7689264b">Good morning</h1>
+        <p id="viewSub" class="text-slate-500 dark:text-slate-400 mb-5" data-i18n="m5c992b7f39">Capture anything — type or speak. We’ll parse the when.</p>
 
         <div class="relative rounded-3xl bg-white dark:bg-ink-900 shadow-card border border-slate-200/80 dark:border-white/5 p-2 md:p-2.5">
           <div class="flex items-end gap-2">
             <div class="flex-1">
-              <textarea id="quickInput" rows="1" placeholder="Remind me to call Mom tomorrow at 3pm…" class="w-full resize-none bg-transparent px-3 py-3 text-[15px] outline-none max-h-32" oninput="autoGrow(this); liveParse()" onkeydown="onQuickKey(event)"></textarea>
+              <textarea id="quickInput" rows="1" placeholder="Remind me to call Mom tomorrow at 3pm…" data-i18n-placeholder="mdadd0c0ce0" class="w-full resize-none bg-transparent px-3 py-3 text-[15px] outline-none max-h-32" oninput="autoGrow(this); liveParse()" onkeydown="onQuickKey(event)"></textarea>
               <div id="livePreview" class="px-3 pb-2 hidden">
                 <div class="flex flex-wrap gap-1.5 text-xs"></div>
               </div>
             </div>
-            <button id="micBtn" onclick="toggleVoice()" class="h-11 w-11 shrink-0 rounded-2xl bg-slate-100 dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 grid place-items-center transition" title="Voice input">
+            <button id="micBtn" onclick="toggleVoice()" class="h-11 w-11 shrink-0 rounded-2xl bg-slate-100 dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 grid place-items-center transition" title="Voice input" data-i18n-title="mc0b2cee024">
               <svg id="micIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M4 9a5 5 0 0010 0M9 14v3"/></svg>
               <div id="micWave" class="wave hidden"><span></span><span></span><span></span><span></span><span></span></div>
             </button>
-            <button onclick="openConfirmFromInput()" class="h-11 px-4 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-glow hover:opacity-95">
+            <button onclick="openConfirmFromInput()" class="h-11 px-4 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-glow hover:opacity-95" data-i18n="m61cc55aa04">
               Add
             </button>
           </div>
         </div>
-        <p class="mt-2 text-[11px] text-slate-400 px-1">Try “every Monday at 9”, “first Friday of the month”, “in 45 minutes”, or “pay rent on the 1st”.</p>
+        <p class="mt-2 text-[11px] text-slate-400 px-1" data-i18n="m6c1ef13d90">Try “every Monday at 9”, “first Friday of the month”, “in 45 minutes”, or “pay rent on the 1st”.</p>
       </section>
 
       <!-- Content views -->
@@ -193,10 +196,10 @@
   <div class="min-h-full flex items-center justify-center">
     <div class="w-full max-w-md text-center">
       <img src="/yere-logo-v2.png" alt="" class="mx-auto h-14 w-14 rounded-2xl mb-4">
-      <h1 id="nativeConfigErrorTitle" class="text-2xl font-extrabold">Yere can’t connect yet</h1>
-      <p class="text-sm text-slate-300 mt-3">This app build is missing its cloud configuration, so it cannot sign you in or sync your reminders. No sample data is shown.</p>
+      <h1 id="nativeConfigErrorTitle" class="text-2xl font-extrabold" data-i18n="m7c1c41cdb5">Yere can’t connect yet</h1>
+      <p class="text-sm text-slate-300 mt-3" data-i18n="mb92ee58b3c">This app build is missing its cloud configuration, so it cannot sign you in or sync your reminders. No sample data is shown.</p>
       <ul id="nativeConfigErrorList" class="text-left text-xs text-amber-200 bg-amber-500/10 rounded-xl p-4 mt-5 space-y-2 list-disc pl-8"></ul>
-      <p class="text-xs text-slate-400 mt-5">Install a build produced with the GitHub repository variables VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY. Developers: run <code>npm run build:native</code> with those variables set.</p>
+      <p class="text-xs text-slate-400 mt-5"><span data-i18n="maeb4b359b3">Install a build produced with the GitHub repository variables VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY. Developers: run</span> <code><span data-i18n="m81929106db">npm run build:native</span></code> <span data-i18n="m5ffc94583d">with those variables set.</span></p>
     </div>
   </div>
 </div>
@@ -208,8 +211,8 @@
 
 <!-- iOS Safari does not expose beforeinstallprompt; give people the A2HS steps. -->
 <div id="iosInstallBanner" class="hidden fixed bottom-20 md:bottom-6 left-4 z-[65] max-w-sm rounded-2xl border border-indigo-200 dark:border-indigo-400/20 bg-white dark:bg-ink-900 shadow-2xl p-4">
-  <button onclick="closeInstallBanner()" class="absolute top-2 right-2 p-1 text-slate-400" aria-label="Dismiss">✕</button>
-  <div class="flex gap-3 pr-5"><img src="/yere-logo-v2.png" alt="" class="h-10 w-10 rounded-xl"><div><strong class="text-sm">Keep Yere close</strong><p class="text-xs text-slate-500 mt-1">Tap <strong>Share</strong>, then <strong>Add to Home Screen</strong> to install.</p></div></div>
+  <button onclick="closeInstallBanner()" class="absolute top-2 right-2 p-1 text-slate-400" aria-label="Dismiss" data-i18n-aria-label="m70afe9eff3">✕</button>
+  <div class="flex gap-3 pr-5"><img src="/yere-logo-v2.png" alt="" class="h-10 w-10 rounded-xl"><div><strong class="text-sm" data-i18n="m6371483131">Keep Yere close</strong><p class="text-xs text-slate-500 mt-1"><span data-i18n="m6aeb017fb9">Tap</span> <strong data-i18n="m09ca55ca52">Share</strong><span data-i18n="me189049326">, then</span> <strong data-i18n="m7bd938bc58">Add to Home Screen</strong> <span data-i18n="m2b4d0ad416">to install.</span></p></div></div>
 </div>
 
 <!-- Confirmation / edit modal -->
@@ -224,9 +227,9 @@
 <div id="imagePreview" class="image-preview hidden" role="dialog" aria-modal="true" aria-labelledby="imagePreviewTitle">
   <div class="image-preview-backdrop" data-close-image></div>
   <div class="image-preview-panel">
-    <header class="image-preview-header"><div><p class="image-preview-eyebrow">Private image</p><h2 id="imagePreviewTitle"></h2></div><button id="imagePreviewClose" type="button" aria-label="Close expanded image">✕</button></header>
-    <div class="image-preview-content"><img id="imagePreviewImage" hidden alt="" referrerpolicy="no-referrer"><p id="imagePreviewStatus" role="status" aria-live="polite"></p><button id="imagePreviewRetry" type="button" hidden>Try again</button></div>
-    <p class="image-preview-hint">Press Escape, tap outside, or use Back to return to your reminder.</p>
+    <header class="image-preview-header"><div><p class="image-preview-eyebrow" data-i18n="m030168c028">Private image</p><h2 id="imagePreviewTitle"></h2></div><button id="imagePreviewClose" type="button" aria-label="Close expanded image" data-i18n-aria-label="m85100ecb23">✕</button></header>
+    <div class="image-preview-content"><img id="imagePreviewImage" hidden alt="" referrerpolicy="no-referrer"><p id="imagePreviewStatus" role="status" aria-live="polite"></p><button id="imagePreviewRetry" type="button" hidden data-i18n="m042c862e44">Try again</button></div>
+    <p class="image-preview-hint" data-i18n="mb1fee41206">Press Escape, tap outside, or use Back to return to your reminder.</p>
   </div>
 </div>
 
@@ -236,19 +239,19 @@
 <!-- Mobile bottom nav -->
 <nav class="md:hidden fixed bottom-0 inset-x-0 z-30 glass border-t border-slate-200/80 dark:border-white/5 px-2 py-2 pb-[max(.5rem,env(safe-area-inset-bottom))] grid grid-cols-5">
   <button onclick="setView('today')" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-300" data-mnav="today">
-    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14"/></svg>Home
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14"/></svg><span data-i18n="m70f8bb9a8a">Home</span>
   </button>
   <button onclick="setView('upcoming')" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium text-slate-500" data-mnav="upcoming">
-    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h12M12 6l6 6-6 6"/></svg>Soon
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h12M12 6l6 6-6 6"/></svg><span data-i18n="m32d3b26b90">Soon</span>
   </button>
   <button onclick="document.getElementById('quickInput').focus()" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium text-slate-500">
     <span class="h-9 w-9 -mt-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white grid place-items-center shadow-glow"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 4v10M4 9h10"/></svg></span>
   </button>
   <button onclick="setView('calendar')" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium text-slate-500" data-mnav="calendar">
-    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2v4M13 2v4"/></svg>Calendar
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="14" height="13" rx="2"/><path d="M3 8h14M7 2v4M13 2v4"/></svg><span data-i18n="madab5090ac">Calendar</span>
   </button>
   <button onclick="setView('settings')" class="flex flex-col items-center gap-0.5 py-1 text-[10px] font-medium text-slate-500" data-mnav="settings">
-    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2"/></svg>More
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2"/></svg><span data-i18n="m4bab2d8fe1">More</span>
   </button>
 </nav>
 
@@ -256,6 +259,13 @@
 /* ============================================================
    Yere — client-side reminder OS
    ============================================================ */
+// UI-only translations: content, names, addresses, codes and form values are never translated.
+const t = (source, params) => window.YERE_I18N?.text(source, params) ?? source;
+const ui = (source, params) => window.YERE_I18N?.html(source, params) ?? esc(t(source,params));
+const uiOption = (value,label,selected) => window.YERE_I18N?.option(value,label,selected) ?? `<option value="${esc(value)}"${selected?' selected':''}>${esc(label)}</option>`;
+const uiText = (element, source) => { if(window.YERE_I18N) window.YERE_I18N.bindText(element, source); else if(element) element.textContent=source; };
+const uiLocale = () => window.YERE_I18N?.locale || 'fr-CA';
+function languagePicker(){return '<label class="yere-language-picker">Langue / Language <select data-language-select><option value="fr" lang="fr">Français</option><option value="en" lang="en">English</option></select></label>';}
 const WEEKDAYS = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 const WEEKDAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS = ['january','february','march','april','may','june','july','august','september','october','november','december'];
@@ -354,6 +364,7 @@ function parseTimeToken(s) {
 
 function parseNaturalLanguage(raw) {
   let text = (raw||'').trim();
+  if(window.YERE_I18N?.language==='fr') text=window.YERE_I18N.frenchDateInput(text);
   const original = text;
   const result = {
     title: text,
@@ -630,7 +641,7 @@ function recLabel(rec) {
 
 function formatDue(iso) {
   const d = new Date(iso);
-  const t = d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+  const t = d.toLocaleTimeString(uiLocale(), {hour:'numeric', minute:'2-digit'});
   const today = startOfDay(now());
   const day = startOfDay(d);
   const diff = Math.round((day - today)/86400000);
@@ -638,8 +649,9 @@ function formatDue(iso) {
   if (diff===0) dayLabel='Today';
   else if (diff===1) dayLabel='Tomorrow';
   else if (diff===-1) dayLabel='Yesterday';
-  else if (diff>1 && diff<7) dayLabel = WEEKDAYS_SHORT[d.getDay()];
-  else dayLabel = MONTHS_SHORT[d.getMonth()]+' '+d.getDate();
+  else if (diff>1 && diff<7) dayLabel = d.toLocaleDateString(uiLocale(),{weekday:'short'});
+  else dayLabel = d.toLocaleDateString(uiLocale(),{month:'short',day:'numeric'});
+  dayLabel=window.YERE_I18N?.text(dayLabel)||dayLabel;
   return { dayLabel, t, diff, overdue: d < now() };
 }
 
@@ -812,31 +824,31 @@ function setAuthMode(mode, message='') {
   const subtitle=isSignup?'Start remembering the little things, together.':isReset?'We’ll send a secure reset link to your inbox.':isRecovery?'Your new password will protect your reminders across devices.':'Sign in to sync your reminders across devices.';
   const submitText=isSignup?'Create account':isReset?'Send reset link':isRecovery?'Save new password':'Sign in';
   const fields=`
-    ${isSignup?`<label class="block text-left text-xs font-semibold text-slate-500 mb-1">Your name<input id="authName" required maxlength="60" autocomplete="name" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40" placeholder="Amina Okafor"></label>`:''}
-    ${isRecovery?'':`<label class="block text-left text-xs font-semibold text-slate-500 mb-1">Email address<input id="authEmail" type="email" required autocomplete="email" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40" placeholder="you@example.com"></label>`}
-    ${isReset?'':`<label class="block text-left text-xs font-semibold text-slate-500 mb-1">Password<input id="authPassword" type="password" required minlength="8" autocomplete="${isSignup||isRecovery?'new-password':'current-password'}" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40" placeholder="At least 8 characters"></label>`}
+    ${isSignup?`<label class="block text-left text-xs font-semibold text-slate-500 mb-1"><span data-i18n="mab42293e29">Your name</span><input id="authName" required maxlength="60" autocomplete="name" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40" placeholder="Amina Okafor" data-i18n-placeholder="m2d748bae82"></label>`:''}
+    ${isRecovery?'':`<label class="block text-left text-xs font-semibold text-slate-500 mb-1"><span data-i18n="mc94d3175a6">Email address</span><input id="authEmail" type="email" required autocomplete="email" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40" placeholder="you@example.com"></label>`}
+    ${isReset?'':`<label class="block text-left text-xs font-semibold text-slate-500 mb-1"><span data-i18n="m8be3c943b1">Password</span><input id="authPassword" type="password" required minlength="8" autocomplete="${isSignup||isRecovery?'new-password':'current-password'}" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 outline-none focus:ring-2 focus:ring-indigo-500/40" placeholder="At least 8 characters" data-i18n-placeholder="m1fe494b252"></label>`}
   `;
   host.innerHTML=`<div class="w-full max-w-md rounded-[2rem] bg-white dark:bg-ink-900 border border-slate-200 dark:border-white/10 shadow-2xl p-6 md:p-8 text-center anim-rise">
     <img src="/yere-logo-v2.png" alt="Yere" class="mx-auto h-14 w-14 rounded-2xl shadow-glow mb-4">
-    <p class="text-[10px] uppercase tracking-[.22em] font-extrabold text-indigo-500">Yere · Remember together</p>
-    <h1 id="authTitle" class="text-2xl font-extrabold mt-2">${title}</h1>
-    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 mb-6">${subtitle}</p>
-    ${message?`<div role="status" class="text-sm text-indigo-700 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-500/10 p-3 rounded-xl mb-4">${esc(message)}</div>`:''}
+    <p class="text-[10px] uppercase tracking-[.22em] font-extrabold text-indigo-500" data-i18n="mda8b42bf71">Yere · Remember together</p>
+    ${languagePicker()}<h1 id="authTitle" class="text-2xl font-extrabold mt-2">${ui(title)}</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 mb-6">${ui(subtitle)}</p>
+    ${message?`<div role="status" class="text-sm text-indigo-700 dark:text-indigo-200 bg-indigo-50 dark:bg-indigo-500/10 p-3 rounded-xl mb-4">${ui(message)}</div>`:''}
     <form onsubmit="submitAuth(event,'${mode}')" class="space-y-3">
       ${fields}
-      <button id="authSubmit" type="submit" class="w-full mt-2 py-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-glow">${submitText}</button>
+      <button id="authSubmit" type="submit" class="w-full mt-2 py-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-glow">${ui(submitText)}</button>
     </form>
-    ${!isReset&&!isRecovery?`<div class="flex items-center gap-3 my-4 text-[11px] text-slate-400"><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span>or continue with<span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span></div><div class="grid grid-cols-1 gap-3 mb-3">
-      <button type="button" data-social-provider="google" onclick="signInWithSocial('google','${mode}')" class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-white/15 py-3 font-semibold hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50"><span aria-hidden="true" class="text-lg font-extrabold text-blue-600">G</span>Google</button>
+    ${!isReset&&!isRecovery?`<div class="flex items-center gap-3 my-4 text-[11px] text-slate-400"><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span><span data-i18n="ma1aa5858e0">or continue with</span><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span></div><div class="grid grid-cols-1 gap-3 mb-3">
+      <button type="button" data-social-provider="google" onclick="signInWithSocial('google','${mode}')" class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-white/15 py-3 font-semibold hover:bg-slate-50 dark:hover:bg-white/5 disabled:opacity-50"><span aria-hidden="true" class="text-lg font-extrabold text-blue-600" data-i18n="ma36a6718f5">G</span><span data-i18n="m2b681c0a24">Google</span></button>
     </div>`:''}
-    ${isNativeApp()&&window.YERE_NATIVE.platform==='ios'&&!isReset&&!isRecovery?`<div class="flex items-center gap-3 my-4 text-[11px] text-slate-400"><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span>or<span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span></div><button type="button" onclick="signInWithApple()" class="w-full py-3 rounded-2xl bg-black text-white font-bold">Sign in with Apple</button>`:''}
+    ${isNativeApp()&&window.YERE_NATIVE.platform==='ios'&&!isReset&&!isRecovery?`<div class="flex items-center gap-3 my-4 text-[11px] text-slate-400"><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span><span data-i18n="m1758356db2">or</span><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span></div><button type="button" onclick="signInWithApple()" class="w-full py-3 rounded-2xl bg-black text-white font-bold" data-i18n="ma5331c078a">Sign in with Apple</button>`:''}
     <div class="flex items-center justify-center gap-4 mt-5 text-xs font-semibold text-indigo-600 dark:text-indigo-300">
-      ${!isSignup&&!isReset&&!isRecovery?`<button onclick="setAuthMode('signup')">Create account</button><button onclick="setAuthMode('reset')">Forgot password?</button>`:''}
-      ${isSignup?`<button onclick="setAuthMode('signin')">Already have an account? Sign in</button>`:''}
-      ${isReset||isRecovery?`<button onclick="setAuthMode('signin')">Back to sign in</button>`:''}
+      ${!isSignup&&!isReset&&!isRecovery?`<button onclick="setAuthMode('signup')" data-i18n="maaf3744797">Create account</button><button onclick="setAuthMode('reset')" data-i18n="m4c29f7f033">Forgot password?</button>`:''}
+      ${isSignup?`<button onclick="setAuthMode('signin')" data-i18n="m6603c2f3a1">Already have an account? Sign in</button>`:''}
+      ${isReset||isRecovery?`<button onclick="setAuthMode('signin')" data-i18n="m4da821676b">Back to sign in</button>`:''}
     </div>
-    <p class="mt-5 text-[11px] text-slate-500">${isSignup?'By creating an account, you agree to our':'Read our'} <a href="/termsofuse" target="_blank" rel="noopener" class="underline">Terms of Use</a>${isSignup?' and acknowledge our':' and'} <a href="/privacy-policy" target="_blank" rel="noopener" class="underline">Privacy Policy</a>.</p>
-    ${!window.YERE_ENV?.supabaseConfigured?`<p class="mt-5 text-[11px] text-amber-600">Cloud sign-in needs Supabase URL and public anon key in the environment.</p>`:''}
+    <p class="mt-5 text-[11px] text-slate-500">${ui(isSignup?'By creating an account, you agree to our':'Read our')} <a href="/termsofuse" target="_blank" rel="noopener" class="underline" data-i18n="m97738411d6">Terms of Use</a>${ui(isSignup?' and acknowledge our':' and')} <a href="/privacy-policy" target="_blank" rel="noopener" class="underline" data-i18n="m9db108ba6b">Privacy Policy</a>.</p>
+    ${!window.YERE_ENV?.supabaseConfigured?`<p class="mt-5 text-[11px] text-amber-600" data-i18n="maec866a534">Cloud sign-in needs Supabase URL and public anon key in the environment.</p>`:''}
   </div>`;
   window.YERE_AUTH.enhancePasswordFields(host);
   document.getElementById('authGate').classList.remove('hidden');
@@ -855,7 +867,7 @@ async function submitAuth(event, mode) {
   const email=(document.getElementById('authEmail')?.value||'').trim().toLowerCase();
   const password=document.getElementById('authPassword')?.value||'';
   const name=(document.getElementById('authName')?.value||'').trim();
-  if (button) { button.disabled=true; button.textContent='Please wait…'; }
+  if (button) { button.disabled=true; uiText(button,'Please wait…'); }
   try {
     let result;
     if (mode==='signup') {
@@ -910,7 +922,7 @@ async function signOut() {
   if (!supabase||!currentSession) { toast('There is no signed-in account to log out of.'); return; }
   if(signOutInProgress)return;
   const warning=cloudPending?' You have changes waiting to sync. Stay signed in and reconnect first to avoid losing unsynced changes.':'';
-  if(!confirm('Are you sure you want to log out of Yere?'+warning))return;
+  if(!confirm(t('Are you sure you want to log out of Yere?')+t(warning)))return;
   signOutInProgress=true;
   closeProfileMenu();
   try{
@@ -936,8 +948,8 @@ async function signOut() {
 
 async function deleteAccount(){
   if(!supabase||!currentSession)return;
-  if(!confirm('Permanently delete your Yere account, reminders, contacts, attachments, and settings? This cannot be undone.'))return;
-  if(prompt('Type DELETE to confirm permanent account deletion:')!=='DELETE'){toast('Account deletion cancelled.');return;}
+  if(!confirm(t('Permanently delete your account and associated active cloud data? Retained records, backups and recipient/device copies may remain as explained in the Privacy Policy. This cannot be undone.')))return;
+  if(prompt(t('Type DELETE to confirm permanent account deletion:'))!=='DELETE'){toast('Account deletion cancelled.');return;}
   const userId=currentSession.user.id;
   try{
     const {error}=await supabase.functions.invoke('delete-account',{body:{confirmation:'DELETE'}});
@@ -1104,7 +1116,7 @@ function setAccountLabel() {
   const label=document.getElementById('workspaceLabel');
   const button=document.getElementById('signOutBtn');
   const demo=!supabase;
-  if(label) label.textContent=currentSession?'Synced workspace':(demo?'Local demo workspace':'Sign in to sync');
+  if(label) uiText(label,currentSession?'Synced workspace':(demo?'Local demo workspace':'Sign in to sync'));
   if(button) button.classList.toggle('hidden',!currentSession);
   const profileName=document.getElementById('profileMenuName');
   if(profileName)profileName.textContent=currentSession||demo?(state.user.name||'Yere member'):'Yere';
@@ -1284,7 +1296,7 @@ function renderCustomListsNav() {
 }
 
 function addCustomList() {
-  const raw = prompt('Name this list');
+  const raw = prompt(t('Name this list'));
   const name = (raw||'').trim().slice(0,48);
   if (!name) return;
   if (state.lists.some(l=>l.name.toLowerCase()===name.toLowerCase())) { toast('A list with that name already exists'); return; }
@@ -1294,12 +1306,12 @@ function addCustomList() {
 }
 function renameCustomList(id) {
   const list=state.lists.find(l=>l.id===id); if(!list) return;
-  const raw=prompt('Rename list',list.name); const name=(raw||'').trim().slice(0,48);
+  const raw=prompt(t('Rename list'),list.name); const name=(raw||'').trim().slice(0,48);
   if(!name) return; list.name=name; persist(); render(); toast('List renamed');
 }
 function deleteCustomList(id) {
   const list=state.lists.find(l=>l.id===id); if(!list) return;
-  if(!confirm(`Delete “${list.name}”? Reminders will move to All tasks.`)) return;
+  if(!confirm(t('Delete “{name}”? Reminders will move to All tasks.',{name:list.name}))) return;
   state.lists=state.lists.filter(l=>l.id!==id);
   state.reminders.forEach(r=>{if(r.listId===id) r.listId=null;});
   if(view==='list:'+id) view='all';
@@ -1323,8 +1335,8 @@ function render() {
     settings: ['Settings', 'Your reminders, theme, privacy, and notification preferences.']
   };
   const tt = customList ? [customList.name, 'A shared place for reminders that belong together.'] : (titles[view] || titles.today);
-  document.getElementById('viewTitle').textContent = tt[0];
-  document.getElementById('viewSub').textContent = tt[1];
+  if(customList){const heading=document.getElementById('viewTitle');heading.removeAttribute('data-i18n');heading.textContent=tt[0];}else uiText(document.getElementById('viewTitle'),tt[0]);
+  uiText(document.getElementById('viewSub'),tt[1]);
   document.getElementById('quickAddSection').classList.toggle('hidden', ['contacts','audit','settings','insights'].includes(view));
 
   const todayN = state.reminders.filter(r => !r.completed && !r.rejected && r.approved!==false && !(r.requiresApproval&&!r.approved)).length;
@@ -1347,9 +1359,9 @@ function render() {
     const active=visible.filter(r=>r.approved!==false&&!(r.requiresApproval&&!r.approved)&&!r.completed).sort(compareReminders);
     const completed=visible.filter(r=>r.approved!==false&&!(r.requiresApproval&&!r.approved)&&r.completed).sort((a,b)=>new Date(b.completedAt||b.due)-new Date(a.completedAt||a.due));
     const pending=visible.filter(r=>r.requiresApproval&&!r.approved);
-    root.innerHTML=renderHomeDashboard()+`<section aria-labelledby="homeRemindersTitle"><div class="flex flex-wrap items-center justify-between gap-2 mb-4"><h2 id="homeRemindersTitle" class="text-lg font-bold">All reminders</h2><span class="text-xs text-slate-500">${searchQ?'Matching your search · ':''}${active.length} open · No date limit</span></div>${active.length?renderByDay(active):emptyState(searchQ?'No matching open reminders':'No open reminders',searchQ?'Try a different search.':'Capture a reminder above to get started.')}</section>`;
-    if(pending.length)root.innerHTML+=`<section aria-label="Reminders awaiting approval" class="mt-6"><h2 class="text-lg font-bold mb-3">Needs approval · ${pending.length}</h2>${renderPending(pending)}</section>`;
-    if(completed.length)root.innerHTML+=`<details class="mt-6"><summary class="cursor-pointer font-semibold py-3">Completed reminders · ${completed.length}</summary>${renderList(completed)}</details>`;
+    root.innerHTML=renderHomeDashboard()+`<section aria-labelledby="homeRemindersTitle"><div class="flex flex-wrap items-center justify-between gap-2 mb-4"><h2 id="homeRemindersTitle" class="text-lg font-bold" data-i18n="mad4d7b69ae">All reminders</h2><span class="text-xs text-slate-500">${searchQ?'Matching your search · ':''}${active.length} open · No date limit</span></div>${active.length?renderByDay(active):emptyState(searchQ?'No matching open reminders':'No open reminders',searchQ?'Try a different search.':'Capture a reminder above to get started.')}</section>`;
+    if(pending.length)root.innerHTML+=`<section aria-label="Reminders awaiting approval" data-i18n-aria-label="m5ac000c7c0" class="mt-6"><h2 class="text-lg font-bold mb-3"><span data-i18n="m5afb8187e5">Needs approval ·</span> ${pending.length}</h2>${renderPending(pending)}</section>`;
+    if(completed.length)root.innerHTML+=`<details class="mt-6"><summary class="cursor-pointer font-semibold py-3"><span data-i18n="m90cdbe15e5">Completed reminders ·</span> ${completed.length}</summary>${renderList(completed)}</details>`;
   } else if (view==='upcoming') {
     const today=startOfDay(now()), end=addDays(today,7); end.setHours(23,59,59,999);
     items = items.filter(r => !r.completed && r.approved!==false && !r.rejected && new Date(r.due) >= today && new Date(r.due) <= end);
@@ -1362,7 +1374,7 @@ function render() {
   } else if (customList) {
     items = items.filter(r => r.listId===customList.id && !r.rejected);
     items.sort(compareReminders);
-    root.innerHTML = `<div class="flex items-center gap-2 mb-4"><button onclick="renameCustomList('${esc(customList.id)}')" class="text-xs font-semibold text-indigo-600 dark:text-indigo-300">Rename list</button><button onclick="deleteCustomList('${esc(customList.id)}')" class="text-xs font-semibold text-rose-500">Delete list</button></div>${renderList(items)}`;
+    root.innerHTML = `<div class="flex items-center gap-2 mb-4"><button onclick="renameCustomList('${esc(customList.id)}')" class="text-xs font-semibold text-indigo-600 dark:text-indigo-300"><span data-i18n="m80b1e871c7">Rename list</span></button><button onclick="deleteCustomList('${esc(customList.id)}')" class="text-xs font-semibold text-rose-500"><span data-i18n="ma1ebff81bb">Delete list</span></button></div>${renderList(items)}`;
   } else if (view==='recurring') {
     items = items.filter(r => r.recurrence && r.recurrence.type && r.recurrence.type!=='none' && r.approved!==false && !r.rejected);
     items.sort(compareReminders);
@@ -1379,7 +1391,7 @@ function render() {
 
 function renderDetailsDiscovery(){
   const hasReminders=state.reminders.some(r=>!r.rejected);
-  return `<section class="details-discovery" aria-labelledby="detailsDiscoveryTitle"><div class="details-discovery-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div><div class="details-discovery-copy"><p class="details-discovery-eyebrow">More than a reminder</p><h2 id="detailsDiscoveryTitle">Keep notes, photos &amp; files with every reminder</h2><p>Add instructions, a useful link, a cost or a category. Keep everything you need right beside the date.</p><div class="details-discovery-actions"><button type="button" onclick="openDetailedCapture()" class="details-create">Create with details <span aria-hidden="true">↗</span></button>${hasReminders?`<button type="button" onclick="openDetailsPicker()" class="details-existing">Add to an existing reminder</button>`:''}</div><p class="details-discovery-privacy">${currentSession?'Photos and documents stay private to your account.':'Notes and links work here. Sign in to save private photos and files.'}</p></div></section>`;
+  return `<section class="details-discovery" aria-labelledby="detailsDiscoveryTitle"><div class="details-discovery-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg></div><div class="details-discovery-copy"><p class="details-discovery-eyebrow" data-i18n="m49f887f700">More than a reminder</p><h2 id="detailsDiscoveryTitle" data-i18n="mc93320141e">Keep notes, photos &amp; files with every reminder</h2><p data-i18n="m847540495e">Add instructions, a useful link, a cost or a category. Keep everything you need right beside the date.</p><div class="details-discovery-actions"><button type="button" onclick="openDetailedCapture()" class="details-create"><span data-i18n="m1d28c58796">Create with details</span> <span aria-hidden="true">↗</span></button>${hasReminders?`<button type="button" onclick="openDetailsPicker()" class="details-existing" data-i18n="m13d643aa6e">Add to an existing reminder</button>`:''}</div><p class="details-discovery-privacy">${ui(currentSession?'Photos and documents stay private to your account.':'Notes and links work here. Sign in to save private photos and files.')}</p></div></section>`;
 }
 
 function openDetailedCapture(){
@@ -1396,7 +1408,7 @@ function openDetailedCapture(){
 function openDetailsPicker(){
   const reminders=state.reminders.filter(r=>!r.rejected).slice().sort(compareReminders);
   if(!reminders.length){openDetailedCapture();return;}
-  document.getElementById('modalCard').innerHTML=`<div class="p-5 md:p-6"><div class="flex justify-between items-start gap-3"><div><p class="text-xs font-bold text-indigo-500 mb-2">Notes, photos &amp; files</p><h2 class="text-xl font-extrabold">Add details to a reminder</h2></div><button type="button" onclick="closeModal()" class="p-2 rounded-xl" aria-label="Close">✕</button></div><p class="text-sm text-slate-500 mt-3 mb-5">Choose a reminder to open its notes, links, cost, category and private attachments.</p><label for="detailsReminder" class="block text-sm font-semibold mb-2">Reminder</label><select id="detailsReminder" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 mb-4">${reminders.map(r=>`<option value="${esc(r.id)}">${esc(r.title)} · ${esc(formatDue(r.due).dayLabel)}${r.completed?' · Completed':''}</option>`).join('')}</select><button type="button" onclick="editReminderDetails(document.getElementById('detailsReminder').value)" class="w-full rounded-xl bg-indigo-600 text-white font-bold py-3">Open reminder details</button></div>`;
+  document.getElementById('modalCard').innerHTML=`<div class="p-5 md:p-6"><div class="flex justify-between items-start gap-3"><div><p class="text-xs font-bold text-indigo-500 mb-2" data-i18n="meaa4d50f0c">Notes, photos &amp; files</p><h2 class="text-xl font-extrabold" data-i18n="m4aeb572bca">Add details to a reminder</h2></div><button type="button" onclick="closeModal()" class="p-2 rounded-xl" aria-label="Close" data-i18n-aria-label="mbbfa773e5a">✕</button></div><p class="text-sm text-slate-500 mt-3 mb-5" data-i18n="m845da854fb">Choose a reminder to open its notes, links, cost, category and private attachments.</p><label for="detailsReminder" class="block text-sm font-semibold mb-2" data-i18n="mb87a1929f7">Reminder</label><select id="detailsReminder" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 mb-4">${reminders.map(r=>`<option value="${esc(r.id)}">${esc(r.title)} · ${esc(formatDue(r.due).dayLabel)}${r.completed?' · Completed':''}</option>`).join('')}</select><button type="button" onclick="editReminderDetails(document.getElementById('detailsReminder').value)" class="w-full rounded-xl bg-indigo-600 text-white font-bold py-3" data-i18n="m6294cdd0a3">Open reminder details</button></div>`;
   openModal();document.getElementById('detailsReminder').focus();
 }
 function editReminderDetails(id){
@@ -1414,19 +1426,19 @@ function renderHomeDashboard(){
     ['Overdue',metrics.overdue,'text-rose-600 dark:text-rose-300','all'],
     ['Trusted contacts',metrics.contacts,'text-violet-600 dark:text-violet-300','contacts']
   ];
-  return renderDetailsDiscovery()+`<section aria-label="Workspace overview" class="mb-8 space-y-4">
-    <div class="flex flex-wrap items-center justify-between gap-2"><h2 class="font-bold text-lg">Your workspace at a glance</h2><span class="text-[11px] text-slate-500">Workspace totals · Search filters the reminder list below</span></div>
+  return renderDetailsDiscovery()+`<section aria-label="Workspace overview" data-i18n-aria-label="m35b38cf785" class="mb-8 space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-2"><h2 class="font-bold text-lg" data-i18n="m838f887174">Your workspace at a glance</h2><span class="text-[11px] text-slate-500" data-i18n="mdd926589d1">Workspace totals · Search filters the reminder list below</span></div>
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">${cards.map(([label,count,color,destination])=>`<button type="button" onclick="setView('${destination}')" class="text-left rounded-2xl border border-slate-200/80 dark:border-white/5 bg-white dark:bg-ink-900 p-4 hover:border-indigo-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500"><span class="block text-[11px] font-semibold text-slate-500">${label}</span><span class="block text-3xl font-extrabold mt-2 ${color}">${count}</span></button>`).join('')}</div>
     <div class="grid md:grid-cols-2 gap-4">
       <section aria-labelledby="homeProgressTitle" class="rounded-2xl border border-slate-200/80 dark:border-white/5 bg-white dark:bg-ink-900 p-5">
-        <div class="flex items-start justify-between gap-3"><div><h3 id="homeProgressTitle" class="font-bold text-sm">Completion activity</h3><p class="text-xs text-slate-500 mt-1">${metrics.completedThisWeek} completed in the last 7 days</p></div><span class="rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">${metrics.completionRate}% complete</span></div>
-        <div role="progressbar" aria-label="Completed reminders in your workspace" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${metrics.completionRate}" class="mt-4 h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" style="width:${metrics.completionRate}%"></div></div>
-        <div class="grid grid-cols-7 gap-2 mt-5" role="list" aria-label="Daily reminder completions">${metrics.days.map(day=>`<div role="listitem" aria-label="${esc(day.fullLabel)}: ${day.count} completed" class="text-center"><div class="h-20 flex flex-col justify-end"><span class="text-[10px] font-semibold text-slate-500 mb-1">${day.count}</span><div class="mx-auto w-full max-w-7 rounded-t-md bg-indigo-500/80" style="height:${Math.round(day.count/max*52)}px" aria-hidden="true"></div></div><span class="block pt-2 border-t border-slate-200 dark:border-white/10 text-[10px] text-slate-500">${esc(day.label)}</span></div>`).join('')}</div>
-        <p class="text-[10px] text-slate-400 mt-3">Based on reminders currently in this workspace, not lifetime usage tracking.</p>
+        <div class="flex items-start justify-between gap-3"><div><h3 id="homeProgressTitle" class="font-bold text-sm" data-i18n="m435131475b">Completion activity</h3><p class="text-xs text-slate-500 mt-1">${metrics.completedThisWeek} completed in the last 7 days</p></div><span class="rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">${metrics.completionRate}% complete</span></div>
+        <div role="progressbar" aria-label="Completed reminders in your workspace" data-i18n-aria-label="mcf1d8c1721" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${metrics.completionRate}" class="mt-4 h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden"><div class="h-full bg-emerald-500 rounded-full" style="width:${metrics.completionRate}%"></div></div>
+        <div class="grid grid-cols-7 gap-2 mt-5" role="list" aria-label="Daily reminder completions" data-i18n-aria-label="m1d644f1a20">${metrics.days.map(day=>`<div role="listitem" aria-label="${esc(day.fullLabel)}: ${day.count} completed" class="text-center"><div class="h-20 flex flex-col justify-end"><span class="text-[10px] font-semibold text-slate-500 mb-1">${day.count}</span><div class="mx-auto w-full max-w-7 rounded-t-md bg-indigo-500/80" style="height:${Math.round(day.count/max*52)}px" aria-hidden="true"></div></div><span class="block pt-2 border-t border-slate-200 dark:border-white/10 text-[10px] text-slate-500">${esc(day.label)}</span></div>`).join('')}</div>
+        <p class="text-[10px] text-slate-400 mt-3" data-i18n="m74bf90186b">Based on reminders currently in this workspace, not lifetime usage tracking.</p>
       </section>
       <section aria-labelledby="homeActivityTitle" class="rounded-2xl border border-slate-200/80 dark:border-white/5 bg-white dark:bg-ink-900 p-5">
-        <div class="flex items-center justify-between gap-3 mb-4"><h3 id="homeActivityTitle" class="font-bold text-sm">Recent activity</h3><button type="button" onclick="setView('audit')" class="text-xs font-semibold text-indigo-600 dark:text-indigo-300">View log</button></div>
-        ${metrics.recentActivity.length?`<ol class="space-y-3">${metrics.recentActivity.map(entry=>`<li class="border-l-2 border-indigo-200 dark:border-indigo-500/30 pl-3"><p class="text-xs"><span class="font-semibold">${esc(entry.actor||'You')}</span> ${esc(entry.action)}</p>${entry.detail?`<p class="text-[11px] text-slate-500 break-words mt-0.5">${esc(entry.detail)}</p>`:''}<time datetime="${esc(entry.at)}" class="block text-[10px] text-slate-400 mt-0.5">${esc(new Date(entry.at).toLocaleString())}</time></li>`).join('')}</ol>`:'<p class="text-xs text-slate-500 py-6">No activity logged yet. Invitations, approvals, and shared-reminder events appear here.</p>'}
+        <div class="flex items-center justify-between gap-3 mb-4"><h3 id="homeActivityTitle" class="font-bold text-sm" data-i18n="m72d5617f3f">Recent activity</h3><button type="button" onclick="setView('audit')" class="text-xs font-semibold text-indigo-600 dark:text-indigo-300" data-i18n="m7af488b298">View log</button></div>
+        ${metrics.recentActivity.length?`<ol class="space-y-3">${metrics.recentActivity.map(entry=>`<li class="border-l-2 border-indigo-200 dark:border-indigo-500/30 pl-3"><p class="text-xs"><span class="font-semibold">${esc(entry.actor||'You')}</span> ${esc(entry.action)}</p>${entry.detail?`<p class="text-[11px] text-slate-500 break-words mt-0.5">${esc(entry.detail)}</p>`:''}<time datetime="${esc(entry.at)}" class="block text-[10px] text-slate-400 mt-0.5">${esc(new Date(entry.at).toLocaleString(uiLocale()))}</time></li>`).join('')}</ol>`:"<p class=\"text-xs text-slate-500 py-6\" data-i18n=\"mac37be0a9a\">No activity logged yet. Invitations, approvals, and shared-reminder events appear here.</p>"}
       </section>
     </div>
   </section>`;
@@ -1449,8 +1461,8 @@ function emptyState(title, sub) {
     <div class="mx-auto h-16 w-16 rounded-3xl bg-indigo-50 dark:bg-indigo-500/10 grid place-items-center mb-4">
       <svg width="28" height="28" fill="none" stroke="#6366f1" stroke-width="1.8"><circle cx="14" cy="14" r="10"/><path d="M14 8v6l3 2"/></svg>
     </div>
-    <h3 class="font-bold text-lg">${esc(title)}</h3>
-    <p class="text-slate-500 text-sm mt-1 max-w-sm mx-auto">${esc(sub)}</p>
+    <h3 class="font-bold text-lg">${ui(title)}</h3>
+    <p class="text-slate-500 text-sm mt-1 max-w-sm mx-auto">${ui(sub)}</p>
   </div>`;
 }
 
@@ -1467,7 +1479,7 @@ function renderGrouped(items, splitOverdue) {
   });
   let html = '';
   if (overdue.length) {
-    html += `<div class="mb-6"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-rose-500">Overdue</span><span class="h-px flex-1 bg-rose-200 dark:bg-rose-900/50"></span></div>${overdue.map((r,i)=>reminderCard(r,i)).join('')}</div>`;
+    html += `<div class="mb-6"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-rose-500" data-i18n="m07217c7719">Overdue</span><span class="h-px flex-1 bg-rose-200 dark:bg-rose-900/50"></span></div>${overdue.map((r,i)=>reminderCard(r,i)).join('')}</div>`;
   }
   for (const [name, arr] of Object.entries(buckets)) {
     if (!arr.length) continue;
@@ -1486,7 +1498,7 @@ function renderByDay(items) {
   return Object.keys(groups).sort().map(k => {
     const d = new Date(k);
     const f = formatDue(groups[k][0].due);
-    const label = f.diff===0 ? 'Today' : f.diff===1 ? 'Tomorrow' : d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',...(d.getFullYear()!==now().getFullYear()?{year:'numeric'}:{})});
+    const label = f.diff===0 ? 'Today' : f.diff===1 ? 'Tomorrow' : d.toLocaleDateString(uiLocale(),{weekday:'short',month:'short',day:'numeric',...(d.getFullYear()!==now().getFullYear()?{year:'numeric'}:{})});
     return `<div class="mb-6"><div class="flex items-center gap-2 mb-2"><span class="text-xs font-bold uppercase tracking-wider text-slate-400">${label}</span><span class="h-px flex-1 bg-slate-200 dark:bg-white/10"></span></div>${groups[k].map((r,i)=>reminderCard(r,i)).join('')}</div>`;
   }).join('');
 }
@@ -1511,22 +1523,22 @@ function renderCalendarView() {
   const selected=reminders.filter(r=>isSameDay(new Date(r.due),selectedCalendarDate)).sort((a,b)=>new Date(a.due)-new Date(b.due));
   return `<div class="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 shadow-sm overflow-hidden mb-5">
     <div class="flex items-center justify-between p-4 md:p-5 border-b border-slate-100 dark:border-white/5">
-      <button onclick="moveCalendarMonth(-1)" class="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Previous month">‹</button>
-      <div class="text-center"><h2 class="font-extrabold text-lg">${first.toLocaleDateString('en-NG',{month:'long',year:'numeric'})}</h2><button onclick="calendarCursor=new Date(now().getFullYear(),now().getMonth(),1);selectCalendarDate(dayKey(now()))" class="text-xs font-semibold text-indigo-600 dark:text-indigo-300">Jump to today</button></div>
-      <button onclick="moveCalendarMonth(1)" class="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Next month">›</button>
+      <button onclick="moveCalendarMonth(-1)" class="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Previous month" data-i18n-aria-label="m46a2992153">‹</button>
+      <div class="text-center"><h2 class="font-extrabold text-lg">${first.toLocaleDateString(uiLocale(),{month:'long',year:'numeric'})}</h2><button onclick="calendarCursor=new Date(now().getFullYear(),now().getMonth(),1);selectCalendarDate(dayKey(now()))" class="text-xs font-semibold text-indigo-600 dark:text-indigo-300" data-i18n="m61c45e9fc5">Jump to today</button></div>
+      <button onclick="moveCalendarMonth(1)" class="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Next month" data-i18n-aria-label="m8abf7cf1d0">›</button>
     </div>
     <div class="grid grid-cols-7 border-b border-slate-100 dark:border-white/5">${labels.map(d=>`<div class="py-2 text-center text-[10px] md:text-xs font-bold uppercase tracking-wide text-slate-400">${d}</div>`).join('')}</div>
     <div class="grid grid-cols-7">${days.map(d=>{
       const key=dayKey(d), dayItems=reminders.filter(r=>isSameDay(new Date(r.due),d));
       const inMonth=d.getMonth()===month, chosen=isSameDay(d,selectedCalendarDate), today=isSameDay(d,now());
-      return `<button onclick="selectCalendarDate('${key}')" class="calendar-cell p-1 md:p-2 border-r border-b border-slate-100 dark:border-white/5 text-left ${!inMonth?'opacity-40':''} ${chosen?'bg-indigo-50 dark:bg-indigo-500/10':''} hover:bg-slate-50 dark:hover:bg-ink-800" aria-label="${d.toLocaleDateString('en-NG',{weekday:'long',day:'numeric',month:'long'})}, ${dayItems.length} reminders">
+      return `<button onclick="selectCalendarDate('${key}')" class="calendar-cell p-1 md:p-2 border-r border-b border-slate-100 dark:border-white/5 text-left ${!inMonth?'opacity-40':''} ${chosen?'bg-indigo-50 dark:bg-indigo-500/10':''} hover:bg-slate-50 dark:hover:bg-ink-800" aria-label="${d.toLocaleDateString(uiLocale(),{weekday:'long',day:'numeric',month:'long'})}, ${dayItems.length} reminders">
         <span class="mx-auto md:mx-0 grid place-items-center h-7 w-7 rounded-full text-xs font-semibold ${today?'bg-indigo-600 text-white':chosen?'text-indigo-600 dark:text-indigo-300':'text-slate-600 dark:text-slate-300'}">${d.getDate()}</span>
         <span class="hidden md:flex flex-col gap-1 mt-1">${dayItems.slice(0,2).map(r=>`<span class="truncate rounded px-1 py-0.5 text-[10px] ${r.completed?'bg-slate-100 dark:bg-ink-800 line-through text-slate-400':'bg-indigo-100 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-200'}">${esc(r.title)}</span>`).join('')}${dayItems.length>2?`<span class="text-[10px] text-slate-400">+${dayItems.length-2} more</span>`:''}</span>
         ${dayItems.length?`<span class="md:hidden block mx-auto mt-0.5 h-1.5 w-1.5 rounded-full bg-indigo-500"></span>`:''}
       </button>`;
     }).join('')}</div>
   </div>
-  <div class="flex items-center justify-between mb-3"><h3 class="font-bold">${selectedCalendarDate.toLocaleDateString('en-NG',{weekday:'long',day:'numeric',month:'long'})}</h3><span class="text-xs text-slate-400">${selected.length} reminder${selected.length===1?'':'s'}</span></div>
+  <div class="flex items-center justify-between mb-3"><h3 class="font-bold">${selectedCalendarDate.toLocaleDateString(uiLocale(),{weekday:'long',day:'numeric',month:'long'})}</h3><span class="text-xs text-slate-400">${selected.length} reminder${selected.length===1?'':'s'}</span></div>
   ${selected.length?renderList(selected):emptyState('A little breathing room', 'No reminders on this day. Tap + to add one.')}`;
 }
 
@@ -1540,8 +1552,8 @@ function reminderCard(r, i) {
   const overdue = !r.completed && new Date(r.due) < now();
   const category=state.lists.find(l=>l.id===r.listId);
   const typeLabel=r.type==='expiry'?'Expiry':r.type==='renewal'?'Renewal':'';
-  const cost=r.cost?`<span class="text-slate-500">₦${Number(r.cost).toLocaleString('en-NG')}</span>`:'';
-  return `<article draggable="true" data-reminder-id="${esc(r.id)}" class="card-row anim-rise touch-pan-y bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 shadow-sm mb-2 p-3.5 flex gap-3 ${overdue && !r.completed ? 'overdue-pulse' : ''}" style="animation-delay:${Math.min(i,8)*40}ms" title="Swipe left to snooze · swipe right to complete">
+  const cost=r.cost?`<span class="text-slate-500">₦${Number(r.cost).toLocaleString(uiLocale())}</span>`:'';
+  return `<article draggable="true" data-reminder-id="${esc(r.id)}" class="card-row anim-rise touch-pan-y bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 shadow-sm mb-2 p-3.5 flex gap-3 ${overdue && !r.completed ? 'overdue-pulse' : ''}" style="animation-delay:${Math.min(i,8)*40}ms" title="Swipe left to snooze · swipe right to complete" data-i18n-title="m743eac4740">
     <input type="checkbox" class="pretty mt-1" ${r.completed?'checked':''} onchange="toggleComplete('${esc(r.id)}')" ${r.approved===false?'disabled':''} aria-label="${r.completed?'Undo completion':'Complete reminder'}">
     <div class="min-w-0 flex-1 cursor-pointer" onclick="openDetail('${esc(r.id)}')">
       <div class="flex items-start gap-2"><h3 class="font-semibold text-[15px] leading-snug ${r.completed?'line-through text-slate-400':''}">${esc(r.title)}</h3></div>
@@ -1550,13 +1562,13 @@ function reminderCard(r, i) {
         ${rec?`<span class="text-indigo-500">↻ ${esc(rec)}</span>`:''}
         ${typeLabel?`<span class="px-1.5 py-0.5 rounded-md bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-200 font-semibold">${typeLabel}</span>`:''}
         ${category?`<span class="text-slate-400">${esc(category.name)}</span>`:''}
-        ${cost}${r.attachments?.length?`<span aria-label="Attachments">📎 ${r.attachments.length}</span>`:''}
-        ${r.fromContact?`<span class="badge-from text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200">From ${esc(r.fromContact.name)}</span>`:''}
+        ${cost}${r.attachments?.length?`<span aria-label="Attachments" data-i18n-aria-label="m6771ade6e8">📎 ${r.attachments.length}</span>`:''}
+        ${r.fromContact?`<span class="badge-from text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200"><span data-i18n="m3f66052a10">From</span> ${esc(r.fromContact.name)}</span>`:''}
       </div>
       ${r.notes?`<p class="mt-1.5 text-[13px] text-slate-600 dark:text-slate-300 line-clamp-2">${esc(r.notes)}</p>`:''}
       ${r.link?`<a href="${esc(safeLink(r.link))}" target="_blank" rel="noopener noreferrer" class="mt-1 inline-flex items-center gap-1 text-[12px] text-indigo-600 dark:text-indigo-300 hover:underline" onclick="event.stopPropagation()"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 7l5-5M7 2h4v4M10 8v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h4"/></svg>${esc(prettyUrl(r.link))}</a>`:''}
     </div>
-    <button class="self-start p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 text-slate-400" onclick="openDetail('${esc(r.id)}')" aria-label="Open reminder details"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l5 4-5 4"/></svg></button>
+    <button class="self-start p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 text-slate-400" onclick="openDetail('${esc(r.id)}')" aria-label="Open reminder details" data-i18n-aria-label="m6294cdd0a3"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4l5 4-5 4"/></svg></button>
   </article>`;
 }
 
@@ -1566,14 +1578,14 @@ function renderPending(items) {
     const f = formatDue(r.due);
     return `<article class="anim-rise bg-white dark:bg-ink-900 rounded-2xl border border-amber-200 dark:border-amber-500/30 p-4 mb-3" style="animation-delay:${i*40}ms">
       <div class="flex items-center gap-2 mb-2">
-        <span class="badge-from text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200">From ${esc(r.fromContact && r.fromContact.name)}</span>
+        <span class="badge-from text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200"><span data-i18n="m3f66052a10">From</span> ${esc(r.fromContact && r.fromContact.name)}</span>
         <span class="text-xs text-slate-500">${f.dayLabel} · ${f.t}</span>
       </div>
       <h3 class="font-bold text-lg">${esc(r.title)}</h3>
       ${r.notes?`<p class="text-sm text-slate-600 dark:text-slate-300 mt-1">${esc(r.notes)}</p>`:''}
       <div class="mt-4 flex gap-2">
-        <button onclick="approveRem('${r.id}')" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Approve</button>
-        <button onclick="rejectRem('${r.id}')" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Decline</button>
+        <button onclick="approveRem('${r.id}')" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold"><span data-i18n="m7b2c7f146a">Approve</span></button>
+        <button onclick="rejectRem('${r.id}')" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold"><span data-i18n="mb59cf9ed55">Decline</span></button>
       </div>
     </article>`;
   }).join('');
@@ -1588,31 +1600,31 @@ function renderContacts() {
   const relationships=state.relationships||[];
   return `<div class="space-y-6 pb-24">
     <div class="flex flex-wrap gap-2">
-      <button onclick="openInviteModal()" class="px-4 py-2.5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-glow">Invite someone</button>
-      <button onclick="openRedeemModal()" class="px-4 py-2.5 rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-white/10 font-semibold text-sm">Redeem an invite code</button>
-      ${!currentSession?`<button onclick="openSimulateContact()" class="px-4 py-2.5 rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-white/10 font-semibold text-sm">Try a shared reminder</button>`:''}
+      <button onclick="openInviteModal()" class="px-4 py-2.5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-semibold text-sm shadow-glow" data-i18n="m9768ea31dc">Invite someone</button>
+      <button onclick="openRedeemModal()" class="px-4 py-2.5 rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-white/10 font-semibold text-sm" data-i18n="m353cb1f511">Redeem an invite code</button>
+      ${!currentSession?`<button onclick="openSimulateContact()" class="px-4 py-2.5 rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-white/10 font-semibold text-sm" data-i18n="mc9654dff3a">Try a shared reminder</button>`:''}
     </div>
-    ${currentSession&&relationships.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">People who approved you · ${relationships.length}</h3>${relationships.map(c=>`<div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-4 mb-2 flex items-center gap-3"><div class="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-rose-500 text-white grid place-items-center font-bold">${esc(c.avatar||c.name.slice(0,2).toUpperCase())}</div><div class="min-w-0 flex-1"><div class="font-semibold">${esc(c.name)}</div><div class="text-xs text-slate-500">${c.mode==='approve'?'Your reminders need approval':'You can set reminders directly'}</div></div><button onclick="openSetOnBehalfModal('${esc(c.ownerId)}')" class="px-3 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold">Set a reminder</button></div>`).join('')}</section>`:''}
-    ${active.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Your trusted contacts · ${active.length}</h3>${active.map(contactRow).join('')}</section>`:`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Your trusted contacts</h3><div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-5 text-sm text-slate-500">No approved contacts yet. Invite someone you trust; they can accept with a private link or a one-time code.</div></section>`}
-    ${pending.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-2">Waiting for your approval · ${pending.length}</h3>${pending.map(contactRow).join('')}</section>`:''}
-    ${invited.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Invited · ${invited.length}</h3>${invited.map(contactRow).join('')}</section>`:''}
-    ${revoked.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Revoked · ${revoked.length}</h3>${revoked.map(contactRow).join('')}</section>`:''}
-    ${invites.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Open invitations</h3>${invites.map(inv=>`<div class="bg-white dark:bg-ink-900 rounded-2xl border border-dashed border-indigo-300 dark:border-indigo-500/40 p-4 mb-2 flex flex-wrap items-center gap-3"><div class="min-w-0 flex-1"><div class="text-sm font-semibold">${inv.method==='code'?(inv.display?`Code · <span class="font-mono tracking-widest">${esc(inv.display)}</span>`:'Single-use invite code'):inv.method==='email'?'Email invitation':'SMS invitation'}</div><div class="text-xs text-slate-500">${esc(inv.recipient||'Shared manually')} · expires ${new Date(inv.expires).toLocaleString('en-NG',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div></div><button onclick="revokeInvite('${esc(inv.id)}')" class="text-xs font-semibold text-rose-500">Revoke</button></div>`).join('')}</section>`:''}
-    ${state.settings.suspended?`<div class="p-3 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 text-sm font-medium">Invitations are temporarily paused after too many failed attempts. Try again after the cooldown.</div>`:''}
-    <div class="rounded-2xl bg-slate-100 dark:bg-ink-800 p-4 text-xs text-slate-500 leading-relaxed"><strong class="text-slate-700 dark:text-slate-200">${currentSession?'Your privacy':'Local demo only'}:</strong> ${currentSession?'Invitations are hashed server-side, single-use, rate-limited, and expire after 24 hours. Contacts only see reminders shared with them; approval and revocation are audited.':'This browser-only demo has no real invite security. Configure Supabase before sharing a code with anyone.'}</div>
+    ${currentSession&&relationships.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2"><span data-i18n="m868087cc9a">People who approved you ·</span> ${relationships.length}</h3>${relationships.map(c=>`<div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-4 mb-2 flex items-center gap-3"><div class="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-rose-500 text-white grid place-items-center font-bold">${esc(c.avatar||c.name.slice(0,2).toUpperCase())}</div><div class="min-w-0 flex-1"><div class="font-semibold">${esc(c.name)}</div><div class="text-xs text-slate-500">${ui(c.mode==='approve'?'Your reminders need approval':'You can set reminders directly')}</div></div><button onclick="openSetOnBehalfModal('${esc(c.ownerId)}')" class="px-3 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold"><span data-i18n="m22c7a4c12b">Set a reminder</span></button></div>`).join('')}</section>`:''}
+    ${active.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2"><span data-i18n="mb3b8b3a405">Your trusted contacts ·</span> ${active.length}</h3>${active.map(contactRow).join('')}</section>`:`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2" data-i18n="ma8cd5e5029">Your trusted contacts</h3><div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-5 text-sm text-slate-500" data-i18n="m66d11a58b8">No approved contacts yet. Invite someone you trust; they can accept with a private link or a one-time code.</div></section>`}
+    ${pending.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-amber-600 mb-2"><span data-i18n="m83b2b7fa24">Waiting for your approval ·</span> ${pending.length}</h3>${pending.map(contactRow).join('')}</section>`:''}
+    ${invited.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2"><span data-i18n="m7a0b44ba86">Invited ·</span> ${invited.length}</h3>${invited.map(contactRow).join('')}</section>`:''}
+    ${revoked.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2"><span data-i18n="m309dd6b992">Revoked ·</span> ${revoked.length}</h3>${revoked.map(contactRow).join('')}</section>`:''}
+    ${invites.length?`<section><h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2" data-i18n="md419b612de">Open invitations</h3>${invites.map(inv=>`<div class="bg-white dark:bg-ink-900 rounded-2xl border border-dashed border-indigo-300 dark:border-indigo-500/40 p-4 mb-2 flex flex-wrap items-center gap-3"><div class="min-w-0 flex-1"><div class="text-sm font-semibold">${inv.method==='code'?(inv.display?`Code · <span class="font-mono tracking-widest">${esc(inv.display)}</span>`:'Single-use invite code'):inv.method==='email'?'Email invitation':'SMS invitation'}</div><div class="text-xs text-slate-500">${esc(inv.recipient||'Shared manually')} · expires ${new Date(inv.expires).toLocaleString(uiLocale(),{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</div></div><button onclick="revokeInvite('${esc(inv.id)}')" class="text-xs font-semibold text-rose-500"><span data-i18n="m0be720759f">Revoke</span></button></div>`).join('')}</section>`:''}
+    ${state.settings.suspended?`<div class="p-3 rounded-2xl bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-300 text-sm font-medium" data-i18n="m629d07a09a">Invitations are temporarily paused after too many failed attempts. Try again after the cooldown.</div>`:''}
+    <div class="rounded-2xl bg-slate-100 dark:bg-ink-800 p-4 text-xs text-slate-500 leading-relaxed"><strong class="text-slate-700 dark:text-slate-200">${ui(currentSession?'Your privacy':'Local demo only')}:</strong> ${ui(currentSession?'Invitations are hashed server-side, single-use, rate-limited, and expire after 24 hours. Contacts only see reminders shared with them; approval and revocation are audited.':'This browser-only demo has no real invite security. Configure Supabase before sharing a code with anyone.')}</div>
   </div>`;
 }
 
 function contactRow(c) {
   const st=c.status==='approved'?'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10':c.status==='pending'?'text-amber-700 bg-amber-50 dark:bg-amber-500/10':'text-slate-500 bg-slate-100 dark:bg-ink-800';
-  const subtitle=[c.email,c.phone,c.mode==='direct'?'can set directly':'requires your approval'].filter(Boolean).join(' · ');
+  const subtitle=[c.email,c.phone,t(c.mode==='direct'?'can set directly':'requires your approval')].filter(Boolean).join(' · ');
   let actions='';
   const blocked=state.blocklist.includes(c.contactUserId||c.id);
   if(c.status==='pending') actions=`<button onclick="approveContact('${esc(c.id)}','direct')" class="text-xs font-semibold text-indigo-600">Approve</button><button onclick="approveContact('${esc(c.id)}','approve')" class="text-xs font-semibold text-indigo-600">Approve with review</button><button onclick="declineContact('${esc(c.id)}')" class="text-xs font-semibold text-rose-500">Decline</button>`;
-  else if(c.status==='approved') actions=`<button onclick="revokeContact('${esc(c.id)}')" class="text-xs font-semibold text-rose-500">Revoke</button><button onclick="${blocked?'unblockContact':'blockContact'}('${esc(c.id)}')" class="text-xs font-semibold ${blocked?'text-indigo-600':'text-slate-400'}">${blocked?'Unblock':'Block'}</button>`;
+  else if(c.status==='approved') actions=`<button onclick="revokeContact('${esc(c.id)}')" class="text-xs font-semibold text-rose-500">Revoke</button><button onclick="${blocked?'unblockContact':'blockContact'}('${esc(c.id)}')" class="text-xs font-semibold ${blocked?'text-indigo-600':'text-slate-400'}">${ui(blocked?'Unblock':'Block')}</button>`;
   else if(c.status==='invited') actions=`<button onclick="cancelContactInvite('${esc(c.id)}')" class="text-xs font-semibold text-rose-500">Cancel</button>`;
   else actions=`${blocked?`<button onclick="unblockContact('${esc(c.id)}')" class="text-xs font-semibold text-indigo-600">Unblock</button>`:''}<button onclick="reinstateContact('${esc(c.id)}')" class="text-xs font-semibold text-indigo-600">Reinstate</button>`;
-  return `<div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-4 mb-2 flex flex-wrap items-center gap-3"><div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-400 to-fuchsia-500 text-white grid place-items-center font-bold text-sm">${esc(c.avatar||c.name.slice(0,2).toUpperCase())}</div><div class="min-w-0 flex-1"><div class="font-semibold">${esc(c.name)}</div><div class="text-xs text-slate-500">${esc(subtitle||'Invite sent')}</div></div><span class="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg ${st}">${esc(c.status)}</span><div class="flex items-center gap-2">${actions}</div></div>`;
+  return `<div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-4 mb-2 flex flex-wrap items-center gap-3"><div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-400 to-fuchsia-500 text-white grid place-items-center font-bold text-sm">${esc(c.avatar||c.name.slice(0,2).toUpperCase())}</div><div class="min-w-0 flex-1"><div class="font-semibold">${esc(c.name)}</div><div class="text-xs text-slate-500">${esc(subtitle||'Invite sent')}</div></div><span class="text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded-lg ${st}">${ui(c.status)}</span><div class="flex items-center gap-2">${actions}</div></div>`;
 }
 
 function renderAudit() {
@@ -1621,7 +1633,7 @@ function renderAudit() {
     ${state.audit.map(a => `
       <div class="relative">
         <span class="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full bg-indigo-500"></span>
-        <div class="text-[11px] text-slate-400">${new Date(a.at).toLocaleString()}</div>
+        <div class="text-[11px] text-slate-400">${new Date(a.at).toLocaleString(uiLocale())}</div>
         <div class="text-sm"><span class="font-semibold">${esc(a.actor)}</span> ${esc(a.action)}</div>
         <div class="text-xs text-slate-500">${esc(a.detail)}</div>
       </div>`).join('')}
@@ -1640,27 +1652,27 @@ function renderInsights() {
   const peak = hist.indexOf(Math.max(...hist));
   return `<div class="grid md:grid-cols-3 gap-3 mb-6">
     <div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-4">
-      <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Avg. completion delta</div>
-      <div class="text-3xl font-extrabold mt-1">${avg>0?'+':''}${avg}<span class="text-base font-semibold text-slate-400"> min</span></div>
-      <p class="text-xs text-slate-500 mt-1">Positive means you usually finish after the due time. Adaptive recurrence can follow you.</p>
+      <div class="text-xs font-bold uppercase tracking-widest text-slate-400" data-i18n="m0d298b5fb2">Avg. completion delta</div>
+      <div class="text-3xl font-extrabold mt-1">${avg>0?'+':''}${avg}<span class="text-base font-semibold text-slate-400" data-i18n="mb6c935d4f3"> min</span></div>
+      <p class="text-xs text-slate-500 mt-1" data-i18n="m779b740934">Positive means you usually finish after the due time. Adaptive recurrence can follow you.</p>
     </div>
     <div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-4">
-      <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Peak completion hour</div>
+      <div class="text-xs font-bold uppercase tracking-widest text-slate-400" data-i18n="m98d1db463b">Peak completion hour</div>
       <div class="text-3xl font-extrabold mt-1">${completed.length? formatHour(peak): '—'}</div>
-      <p class="text-xs text-slate-500 mt-1">Future reminders in this window are slightly more likely to stick.</p>
+      <p class="text-xs text-slate-500 mt-1" data-i18n="m03658fa070">Future reminders in this window are slightly more likely to stick.</p>
     </div>
     <div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-4">
-      <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Adaptive series</div>
+      <div class="text-xs font-bold uppercase tracking-widest text-slate-400" data-i18n="m6cf3f821b4">Adaptive series</div>
       <div class="text-3xl font-extrabold mt-1">${adaptive}<span class="text-base font-semibold text-slate-400"> / ${rec.length}</span></div>
-      <p class="text-xs text-slate-500 mt-1">Next occurrence based on completion date, not the original clock.</p>
+      <p class="text-xs text-slate-500 mt-1" data-i18n="m9d224d1fe9">Next occurrence based on completion date, not the original clock.</p>
     </div>
   </div>
   <div class="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200/80 dark:border-white/5 p-5">
-    <h3 class="font-bold mb-3">When you actually finish</h3>
+    <h3 class="font-bold mb-3" data-i18n="m102a757906">When you actually finish</h3>
     <div class="flex items-end gap-1 h-28">${hist.map((v,i)=>`<div class="flex-1 bg-indigo-500/80 rounded-t" style="height:${(v/max)*100}%" title="${formatHour(i)} · ${v}"></div>`).join('')}</div>
-    <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
+    <div class="flex justify-between text-[10px] text-slate-400 mt-1"><span data-i18n="m24dec54d13">12a</span><span data-i18n="m024029ee3c">6a</span><span data-i18n="m01f1e66751">12p</span><span data-i18n="m73934c6654">6p</span><span data-i18n="m633f7231e1">11p</span></div>
   </div>
-  <p class="text-xs text-slate-500 mt-4 pb-10">Yere does not train on content of notes. Pattern learning is on-device: completion timestamps only.</p>`;
+  <p class="text-xs text-slate-500 mt-4 pb-10" data-i18n="mbba38f7c62">Yere does not train on content of notes. Pattern learning is on-device: completion timestamps only.</p>`;
 }
 
 function formatHour(h){ const ap=h>=12?'PM':'AM'; const x=((h+11)%12)+1; return x+' '+ap; }
@@ -1668,37 +1680,37 @@ function formatHour(h){ const ap=h>=12?'PM':'AM'; const x=((h+11)%12)+1; return 
 function renderSettings() {
   const s = state.settings;
   if (currentSession) queueMicrotask(() => { if (view === 'settings') loadUserSupportTickets(); });
-  const cloudSecurity=currentSession?`<ul class="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-disc pl-5"><li>Account data is protected by Supabase Auth and row-level security.</li><li>Invite secrets are hashed server-side; delivery tokens expire and are single-use.</li><li>Private attachments stay in a user-scoped Storage bucket.</li><li>Reminder delivery is idempotent and scheduled once per minute.</li></ul>`:`<p class="text-sm text-amber-700 dark:text-amber-200">This is a local demo. Its sample invites and reminders stay in this browser and are not a secure way to share real information. Configure Supabase before inviting real contacts.</p>`;
-  return `<div class="space-y-5 max-w-2xl pb-24">
+  const cloudSecurity=currentSession?`<ul class="text-sm text-slate-600 dark:text-slate-300 space-y-1 list-disc pl-5"><li data-i18n="m7fa13379f6">Account data is protected by Supabase Auth and row-level security.</li><li data-i18n="mfb42f69e21">Invite secrets are hashed server-side; delivery tokens expire and are single-use.</li><li data-i18n="m4b57091320">Private attachments stay in a user-scoped Storage bucket.</li><li data-i18n="m2b5992db6a">Reminder delivery is idempotent and scheduled once per minute.</li></ul>`:`<p class="text-sm text-amber-700 dark:text-amber-200" data-i18n="m0c98c1baf6">This is a local demo. Its sample invites and reminders stay in this browser and are not a secure way to share real information. Configure Supabase before inviting real contacts.</p>`;
+  return `<div class="space-y-5 max-w-2xl pb-24">${languagePicker()}
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-4">
-      <div class="flex items-start justify-between gap-4"><div><h3 class="font-bold">Your theme</h3><p class="text-xs text-slate-500 mt-1">Dark is the first-visit default. Your choice is remembered on this device.</p></div><button onclick="toggleTheme()" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Switch to ${s.theme==='dark'?'light':'dark'}</button></div>
+      <div class="flex items-start justify-between gap-4"><div><h3 class="font-bold" data-i18n="m67f2a0a9fc">Your theme</h3><p class="text-xs text-slate-500 mt-1" data-i18n="m25706781ee">Dark is the first-visit default. Your choice is remembered on this device.</p></div><button onclick="toggleTheme()" class="px-3 py-2 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold"><span data-i18n="m87de32553c">Switch to</span> ${ui(s.theme==='dark'?'light':'dark')}</button></div>
     </div>
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-4">
-      <h3 class="font-bold">Capture defaults</h3>
-      <label class="block text-sm">Default time when none is given<input type="time" value="${pad(s.defaultHour)}:${pad(s.defaultMin)}" onchange="setDefaultTime(this.value)" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2 outline-none"></label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${s.skipWeekendsDefault?'checked':''} onchange="state.settings.skipWeekendsDefault=this.checked;persist()"> Skip weekends by default</label>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${s.skipHolidaysDefault?'checked':''} onchange="state.settings.skipHolidaysDefault=this.checked;persist()"> Skip public holidays by default</label>
-      <label class="block text-sm">Adaptive recurrence default<select onchange="state.settings.adaptiveDefault=this.value;persist()" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2 outline-none"><option value="original" ${s.adaptiveDefault==='original'?'selected':''}>From original due date</option><option value="completion" ${s.adaptiveDefault==='completion'?'selected':''}>From completion date</option></select></label>
+      <h3 class="font-bold" data-i18n="mb0a239ded3">Capture defaults</h3>
+      <label class="block text-sm"><span data-i18n="m74cbd78cb0">Default time when none is given</span><input type="time" value="${pad(s.defaultHour)}:${pad(s.defaultMin)}" onchange="setDefaultTime(this.value)" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2 outline-none"></label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${s.skipWeekendsDefault?'checked':''} onchange="state.settings.skipWeekendsDefault=this.checked;persist()"> <span data-i18n="mdb9d984fca">Skip weekends by default</span></label>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${s.skipHolidaysDefault?'checked':''} onchange="state.settings.skipHolidaysDefault=this.checked;persist()"> <span data-i18n="mb2465673b9">Skip public holidays by default</span></label>
+      <label class="block text-sm"><span data-i18n="maa522d9505">Adaptive recurrence default</span><select onchange="state.settings.adaptiveDefault=this.value;persist()" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2 outline-none"><option value="original" ${s.adaptiveDefault==='original'?'selected':''} data-i18n="m0c9637a2c8">From original due date</option><option value="completion" ${s.adaptiveDefault==='completion'?'selected':''} data-i18n="m3fd52daea9">From completion date</option></select></label>
     </div>
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-3">
-      <div><h3 class="font-bold">Notifications</h3><p class="text-sm text-slate-500 mt-1">${isNativeApp()?'Native push can reach this device even when Yere is closed.':'Web Push works in supported browsers. iPhone users can install Yere from Safari’s Share menu first.'}</p></div>
-      <div class="flex flex-wrap gap-2"><button onclick="togglePushNotifications()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">${s.pushEnabled?'Turn off push':'Turn on push'}</button><button onclick="sendTestNotification()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Send a test notification</button>${isNativeApp()?'':`<button onclick="installYere()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Install Yere</button>`}</div>
-      <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${s.emailReminders?'checked':''} onchange="state.settings.emailReminders=this.checked;persist()"> Use email for reminders when available</label>
-      <p class="text-xs text-slate-400">Permission status: ${notificationPermissionLabel()} · Delivery can also be selected on each reminder.</p>
+      <div><h3 class="font-bold" data-i18n="m753a22b2eb">Notifications</h3><p class="text-sm text-slate-500 mt-1">${ui(isNativeApp()?'Native push can reach this device even when Yere is closed.':'Web Push works in supported browsers. iPhone users can install Yere from Safari’s Share menu first.')}</p></div>
+      <div class="flex flex-wrap gap-2"><button onclick="togglePushNotifications()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">${ui(s.pushEnabled?'Turn off push':'Turn on push')}</button><button onclick="sendTestNotification()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold" data-i18n="m75c42cd1d8">Send a test notification</button>${isNativeApp()?'':`<button onclick="installYere()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold" data-i18n="m957624a6de">Install Yere</button>`}</div>
+      <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${s.emailReminders?'checked':''} onchange="state.settings.emailReminders=this.checked;persist()"> <span data-i18n="ma1ea122452">Use email for reminders when available</span></label>
+      <p class="text-xs text-slate-400"><span data-i18n="mdf100406d8">Permission status:</span> ${notificationPermissionLabel()} · Delivery can also be selected on each reminder.</p>
     </div>
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="font-bold">Trusted-contact reminders</h3><button type="button" onclick="openInviteModal()" class="rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white">Add trusted contact</button></div><p class="text-sm text-slate-500">Accepting an invitation connects the trusted contact automatically. Choose whether their reminders are added immediately or wait for your review:</p>
-      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='direct'?'checked':''} onchange="state.settings.approvalMode='direct';persist()"> Add their reminders immediately (global default for new contacts)</label>
-      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='approve'?'checked':''} onchange="state.settings.approvalMode='approve';persist()"> Require my approval for each reminder (global default for new contacts)</label>
+      <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="font-bold" data-i18n="mc9afb21889">Trusted-contact reminders</h3><button type="button" onclick="openInviteModal()" class="rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white" data-i18n="m1267178058">Add trusted contact</button></div><p class="text-sm text-slate-500" data-i18n="ma1d8a1c193">Accepting an invitation connects the trusted contact automatically. Choose whether their reminders are added immediately or wait for your review:</p>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='direct'?'checked':''} onchange="state.settings.approvalMode='direct';persist()"> <span data-i18n="md2a30ebf29">Add their reminders immediately (global default for new contacts)</span></label>
+      <label class="flex items-center gap-2 text-sm"><input type="radio" name="amode" ${s.approvalMode==='approve'?'checked':''} onchange="state.settings.approvalMode='approve';persist()"> <span data-i18n="m0a636c43a4">Require my approval for each reminder (global default for new contacts)</span></label>
     </div>
-    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-3"><h3 class="font-bold">Privacy & security</h3>${cloudSecurity}<p class="text-xs text-slate-400">Your notes are not used to train a model. Pattern insights use completion timing only.</p></div>
-    ${currentSession?`<div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-4"><div><h3 class="font-bold">Contact Yere support</h3><p class="text-sm text-slate-500 mt-1">Send a private message to the support team. Replies currently appear here in your account; email notification is not connected.</p></div><form id="userSupportForm" onsubmit="submitSupportTicket(event)" class="space-y-3"><label class="block text-sm font-semibold">Subject<input name="subject" maxlength="200" required class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></label><label class="block text-sm font-semibold">Message<textarea name="body" maxlength="10000" rows="4" required class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></textarea></label><button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white">Send to support</button></form><div id="userSupportTickets" class="space-y-3"><p class="text-xs text-slate-400">Loading your tickets…</p></div></div>`:''}
+    <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-3"><h3 class="font-bold" data-i18n="m75c011f4bf">Privacy & security</h3>${cloudSecurity}<p class="text-xs text-slate-400" data-i18n="m62e7302c8b">Your notes are not used to train a model. Pattern insights use completion timing only.</p></div>
+    ${currentSession?`<div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-4"><div><h3 class="font-bold" data-i18n="m756ec1289b">Contact Yere support</h3><p class="text-sm text-slate-500 mt-1" data-i18n="me424cbe905">Send a private message to the support team. Replies currently appear here in your account; email notification is not connected.</p></div><form id="userSupportForm" onsubmit="submitSupportTicket(event)" class="space-y-3"><label class="block text-sm font-semibold"><span data-i18n="m8d183dbdce">Subject</span><input name="subject" maxlength="200" required class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></label><label class="block text-sm font-semibold"><span data-i18n="m68f4145fee">Message</span><textarea name="body" maxlength="10000" rows="4" required class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></textarea></label><button type="submit" class="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-bold text-white" data-i18n="me0b3861ba9">Send to support</button></form><div id="userSupportTickets" class="space-y-3"><p class="text-xs text-slate-400" data-i18n="m7d1b2c5f49">Loading your tickets…</p></div></div>`:''}
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-3">
-      <h3 class="font-bold">Account & data</h3><p class="text-sm text-slate-500">${currentSession?`Signed in as <strong>${esc(state.user.email)}</strong>. Your reminders sync securely across devices.`:'Local demo data is saved in this browser only.'}</p>
-      ${currentSession?`<div class="flex flex-wrap gap-4"><button onclick="signOut()" class="text-sm font-semibold text-slate-500">Sign out</button><button onclick="deleteAccount()" class="text-sm font-semibold text-rose-500">Delete account and cloud data</button></div>`:`<button onclick="openAuthGate('signin')" class="text-sm font-semibold text-indigo-600 dark:text-indigo-300">Connect an account for sync</button>`}
-      ${!currentSession?`<button onclick="if(confirm('Reset demo data?')){localStorage.removeItem(activeStorageKey());localStorage.removeItem('Yere.v1');location.reload()}" class="block text-sm font-semibold text-rose-500">Reset demo workspace</button>`:''}
-      <div class="flex flex-wrap gap-4 text-sm font-semibold"><a href="/privacy-policy" target="_blank" rel="noopener">Privacy policy</a><a href="/termsofuse" target="_blank" rel="noopener">Terms of use</a><a href="/support.html" target="_blank" rel="noopener">Support</a></div>
-      <button onclick="startTour(true)" class="block text-sm font-semibold text-indigo-600 dark:text-indigo-300">Replay the feature tour</button>
+      <h3 class="font-bold" data-i18n="m7839ab247e">Account & data</h3><p class="text-sm text-slate-500">${currentSession?`Signed in as <strong>${esc(state.user.email)}</strong><span data-i18n="m2d06a37a01">. Your reminders sync securely across devices.</span>`:'Local demo data is saved in this browser only.'}</p>
+      ${currentSession?`<div class="flex flex-wrap gap-4"><button onclick="signOut()" class="text-sm font-semibold text-slate-500" data-i18n="mdc1649a16c">Sign out</button><button onclick="deleteAccount()" class="text-sm font-semibold text-rose-500" data-i18n="md41584c227">Delete account and cloud data</button></div>`:`<button onclick="openAuthGate('signin')" class="text-sm font-semibold text-indigo-600 dark:text-indigo-300" data-i18n="m25529f1cdf">Connect an account for sync</button>`}
+      ${!currentSession?`<button onclick="if(confirm(t('Reset demo data?'))){localStorage.removeItem(activeStorageKey());localStorage.removeItem('Yere.v1');location.reload()}" class="block text-sm font-semibold text-rose-500" data-i18n="m774f712256">Reset demo workspace</button>`:''}
+      <div class="flex flex-wrap gap-4 text-sm font-semibold"><a href="/privacy-policy" target="_blank" rel="noopener" data-i18n="m7ceacdcaab">Privacy policy</a><a href="/termsofuse" target="_blank" rel="noopener" data-i18n="m8a069ed1c6">Terms of use</a><a href="/support.html" target="_blank" rel="noopener" data-i18n="mf32d5a3b17">Support</a></div>
+      <button onclick="startTour(true)" class="block text-sm font-semibold text-indigo-600 dark:text-indigo-300" data-i18n="me45fbcf575">Replay the feature tour</button>
     </div>
   </div>`;
 }
@@ -1707,8 +1719,8 @@ async function loadUserSupportTickets(){
   const host=document.getElementById('userSupportTickets');
   if(!host||!supabase||!currentSession)return;
   const {data,error}=await supabase.from('support_tickets').select('id,subject,body,status,admin_response,created_at,updated_at').order('created_at',{ascending:false}).limit(20);
-  if(error){host.innerHTML='<p class="text-sm text-rose-500">Could not load your support tickets.</p>';return;}
-  host.innerHTML=(data||[]).map(ticket=>`<article class="rounded-xl border border-slate-200 dark:border-white/10 p-4"><div class="flex flex-wrap justify-between gap-2"><strong class="text-sm">${esc(ticket.subject)}</strong><span class="text-xs font-semibold text-indigo-600 dark:text-indigo-300">${esc(ticket.status.replace('_',' '))}</span></div><p class="mt-2 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-300">${esc(ticket.body)}</p>${ticket.admin_response?`<div class="mt-3 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 p-3"><p class="text-[10px] font-bold uppercase tracking-wide text-indigo-600 dark:text-indigo-300">Yere support reply</p><p class="mt-1 whitespace-pre-wrap text-sm">${esc(ticket.admin_response)}</p></div>`:''}<p class="mt-2 text-[11px] text-slate-400">Opened ${esc(new Date(ticket.created_at).toLocaleString())}</p></article>`).join('')||'<p class="text-sm text-slate-500">You have not opened a support ticket yet.</p>';
+  if(error){host.innerHTML="<p class=\"text-sm text-rose-500\" data-i18n=\"me636bd6949\">Could not load your support tickets.</p>";return;}
+  host.innerHTML=(data||[]).map(ticket=>`<article class="rounded-xl border border-slate-200 dark:border-white/10 p-4"><div class="flex flex-wrap justify-between gap-2"><strong class="text-sm">${esc(ticket.subject)}</strong><span class="text-xs font-semibold text-indigo-600 dark:text-indigo-300">${ui(ticket.status.replace('_',' '))}</span></div><p class="mt-2 whitespace-pre-wrap text-sm text-slate-600 dark:text-slate-300">${esc(ticket.body)}</p>${ticket.admin_response?`<div class="mt-3 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 p-3"><p class="text-[10px] font-bold uppercase tracking-wide text-indigo-600 dark:text-indigo-300" data-i18n="mddd6a06e9c">Yere support reply</p><p class="mt-1 whitespace-pre-wrap text-sm">${esc(ticket.admin_response)}</p></div>`:''}<p class="mt-2 text-[11px] text-slate-400"><span data-i18n="mc4f1f5b1d4">Opened</span> ${esc(new Date(ticket.created_at).toLocaleString(uiLocale()))}</p></article>`).join('')||"<p class=\"text-sm text-slate-500\" data-i18n=\"m9b8c894d69\">You have not opened a support ticket yet.</p>";
 }
 
 async function submitSupportTicket(event){
@@ -1781,53 +1793,53 @@ function showConfirmModal() {
   const listOptions=listSource.map(l=>`<option value="${esc(l.id)}" ${r.listId===l.id?'selected':''}>${esc(l.name)}</option>`).join('');
   const savedFiles=renderAttachmentFiles(r.attachments||[]);
   const saveAction=isDelegated?'submitDelegatedReminder()':'saveDraft()';
-  const saveLabel=isDelegated?`Send reminder to ${esc(r.delegatedName)}`:'Save reminder';
+  const saveLabel=isDelegated?ui('Send reminder to {name}',{name:r.delegatedName}):ui('Save reminder');
   document.getElementById('modalCard').innerHTML = `
     <div class="p-5 md:p-6">
       <div class="flex items-start justify-between gap-3 mb-4">
-        <div><div class="text-[11px] font-bold uppercase tracking-widest text-indigo-500">${isDelegated?`For ${esc(r.delegatedName)}`:'Confirm capture'}</div><h2 class="text-xl font-extrabold mt-0.5">${isDelegated?'Set reminder details':'Does this look right?'}</h2></div>
-        <button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Close">✕</button>
+        <div><div class="text-[11px] font-bold uppercase tracking-widest text-indigo-500">${isDelegated?ui('For {name}',{name:r.delegatedName}):ui('Confirm capture')}</div><h2 class="text-xl font-extrabold mt-0.5">${ui(isDelegated?'Set reminder details':'Does this look right?')}</h2></div>
+        <button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Close" data-i18n-aria-label="mbbfa773e5a">✕</button>
       </div>
-      ${isDelegated?`<p class="text-sm text-slate-500 mb-4">This reminder will be added to ${esc(r.delegatedName)}’s account. Their reminder-approval setting determines whether it appears immediately or waits for review.</p>`:''}
+      ${isDelegated?`<p class="text-sm text-slate-500 mb-4"><span data-i18n="m5b73e6a140">This reminder will be added to</span> ${esc(r.delegatedName)}’s account. Their reminder-approval setting determines whether it appears immediately or waits for review.</p>`:''}
       ${chips?`<div class="flex flex-wrap gap-1.5 mb-3">${chips}</div>`:''}
-      <div class="flex flex-wrap items-center gap-2 mb-3 text-xs"><span class="font-semibold text-slate-400">Quick set</span><button type="button" onclick="setQuickDate('today')" class="nl-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 font-semibold">Today · 9:00</button><button type="button" onclick="setQuickDate('tomorrow')" class="nl-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 font-semibold">Tomorrow · 9:00</button><button type="button" onclick="setQuickDate('evening')" class="nl-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 font-semibold">This evening</button></div>
-      <label class="block text-xs font-semibold text-slate-500 mb-1">Title</label>
+      <div class="flex flex-wrap items-center gap-2 mb-3 text-xs"><span class="font-semibold text-slate-400" data-i18n="mde67f729ad">Quick set</span><button type="button" onclick="setQuickDate('today')" class="nl-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 font-semibold" data-i18n="m6ec8e5b594">Today · 9:00</button><button type="button" onclick="setQuickDate('tomorrow')" class="nl-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 font-semibold" data-i18n="mab2a8c3342">Tomorrow · 9:00</button><button type="button" onclick="setQuickDate('evening')" class="nl-chip px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 font-semibold" data-i18n="m4f0544b710">This evening</button></div>
+      <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="m768e0c1c69">Title</label>
       <input id="dTitle" value="${esc(r.title)}" maxlength="180" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500/40">
       <div class="grid grid-cols-2 gap-2 mb-3">
-        <div><label class="block text-xs font-semibold text-slate-500 mb-1">Date</label><input id="dDate" type="date" value="${dateVal}" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></div>
-        <div><label class="block text-xs font-semibold text-slate-500 mb-1">Time <span class="font-normal text-slate-400">(defaults 9:00 AM)</span></label><input id="dTime" type="time" value="${timeVal}" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></div>
+        <div><label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="meb9a4bc1c0">Date</label><input id="dDate" type="date" value="${dateVal}" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></div>
+        <div><label class="block text-xs font-semibold text-slate-500 mb-1"><span data-i18n="m6c82e6dd86">Time</span> <span class="font-normal text-slate-400" data-i18n="m9af7e71d45">(defaults 9:00 AM)</span></label><input id="dTime" type="time" value="${timeVal}" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"></div>
       </div>
       <section id="reminderDetails" aria-labelledby="reminderDetailsTitle" class="reminder-details-section">
-      <h3 id="reminderDetailsTitle" class="font-bold mb-1">Notes, photos &amp; files</h3>
-      <p class="text-xs text-slate-500 mb-4">Keep the instructions, link, cost and category with your reminder.</p>
-      <label for="dNotes" class="block text-xs font-semibold text-slate-500 mb-1">Why / notes</label>
-      <textarea id="dNotes" rows="2" maxlength="4000" placeholder="Context you’ll thank yourself for later" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none resize-none">${esc(r.notes||'')}</textarea>
-      <label class="block text-xs font-semibold text-slate-500 mb-1">Helpful link</label>
+      <h3 id="reminderDetailsTitle" class="font-bold mb-1" data-i18n="meaa4d50f0c">Notes, photos &amp; files</h3>
+      <p class="text-xs text-slate-500 mb-4" data-i18n="m0e430e72af">Keep the instructions, link, cost and category with your reminder.</p>
+      <label for="dNotes" class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="md4474d0d78">Why / notes</label>
+      <textarea id="dNotes" rows="2" maxlength="4000" placeholder="Context you’ll thank yourself for later" data-i18n-placeholder="m6f6ff2f934" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none resize-none">${esc(r.notes||'')}</textarea>
+      <label class="block text-xs font-semibold text-slate-500 mb-1" data-i18n="m178f73845c">Helpful link</label>
       <input id="dLink" value="${esc(r.link||'')}" type="url" placeholder="https://" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none">
       <div class="grid grid-cols-2 gap-2 mb-3">
-        <label class="block text-xs font-semibold text-slate-500">List
-          <select id="dList" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"><option value="">Inbox</option>${listOptions}</select>
+        <label class="block text-xs font-semibold text-slate-500"><span data-i18n="ma1fffaaafb">List</span>
+          <select id="dList" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"><option value="" data-i18n="m44caf74675" data-i18n="m44caf74675">Inbox</option>${listOptions}</select>
         </label>
-        <label class="block text-xs font-semibold text-slate-500">Reminder type
-          <select id="dType" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"><option value="standard" ${(r.type||'standard')==='standard'?'selected':''}>Standard</option><option value="expiry" ${r.type==='expiry'?'selected':''}>Expiry</option><option value="renewal" ${r.type==='renewal'?'selected':''}>Renewal</option></select>
+        <label class="block text-xs font-semibold text-slate-500"><span data-i18n="m9cd52c655f">Reminder type</span>
+          <select id="dType" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"><option value="standard" ${(r.type||'standard')==='standard'?'selected':''} data-i18n="m2dfa66079d">Standard</option><option value="expiry" ${r.type==='expiry'?'selected':''} data-i18n="mba8f571e0f">Expiry</option><option value="renewal" ${r.type==='renewal'?'selected':''} data-i18n="m578e19a8f7">Renewal</option></select>
         </label>
       </div>
       <div class="grid grid-cols-2 gap-2 mb-4">
-        <label class="block text-xs font-semibold text-slate-500">Notify by
-          <select id="dChannel" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"><option value="push" ${(r.channel||'push')==='push'?'selected':''}>Push notification</option><option value="email" ${r.channel==='email'?'selected':''}>Email</option><option value="both" ${r.channel==='both'?'selected':''}>Push + email</option><option value="none" ${r.channel==='none'?'selected':''}>No notification</option></select>
+        <label class="block text-xs font-semibold text-slate-500"><span data-i18n="m1c5f74fb4a">Notify by</span>
+          <select id="dChannel" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none"><option value="push" ${(r.channel||'push')==='push'?'selected':''} data-i18n="maa6955bc1a">Push notification</option><option value="email" ${r.channel==='email'?'selected':''} data-i18n="m84add5b295">Email</option><option value="both" ${r.channel==='both'?'selected':''} data-i18n="m7847c7f875">Push + email</option><option value="none" ${r.channel==='none'?'selected':''} data-i18n="mc9c8bb216c">No notification</option></select>
         </label>
-        <label class="block text-xs font-semibold text-slate-500">Cost (optional · ₦)
+        <label class="block text-xs font-semibold text-slate-500"><span data-i18n="m5101a32816">Cost (optional · ₦)</span>
           <input id="dCost" type="number" min="0" step="0.01" value="${r.cost??''}" placeholder="0" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5 outline-none">
         </label>
       </div>
-      ${isDelegated?`<div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-3 mb-4 text-xs text-slate-500">File attachments stay private to the account owner. They can add an attachment after this reminder appears in their Yere account.</div>`:`<div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-3 mb-4">
-        <label class="block text-xs font-semibold text-slate-500">Photo or attachment <input id="dAttachment" type="file" accept="image/*,.pdf,.doc,.docx" class="attachment-file-input mt-2 block w-full text-xs" onchange="setDraftAttachment(this.files[0])"></label>
-        ${savedFiles?`<p class="mt-2 mb-2 text-xs font-semibold">Attached</p><div class="attachment-files">${savedFiles}</div>`:''}
-        <p class="mt-1 text-[10px] text-slate-400">Files are stored privately with your Yere account. Local demo can save notes and links only.</p>
+      ${isDelegated?`<div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-3 mb-4 text-xs text-slate-500" data-i18n="m0ceaf2e472">File attachments stay private to the account owner. They can add an attachment after this reminder appears in their Yere account.</div>`:`<div class="rounded-2xl border border-dashed border-slate-300 dark:border-white/10 p-3 mb-4">
+        <label class="block text-xs font-semibold text-slate-500"><span data-i18n="m348014686a">Photo or attachment</span> <input id="dAttachment" type="file" accept="image/*,.pdf,.doc,.docx" class="attachment-file-input mt-2 block w-full text-xs" onchange="setDraftAttachment(this.files[0])"></label>
+        ${savedFiles?`<p class="mt-2 mb-2 text-xs font-semibold" data-i18n="m8e632ceca6">Attached</p><div class="attachment-files">${savedFiles}</div>`:''}
+        <p class="mt-1 text-[10px] text-slate-400" data-i18n="md7ef214925">Files are stored privately with your Yere account. Local demo can save notes and links only.</p>
       </div>`}
       </section>
       ${recurrenceEditor(rec)}
-      <div class="mt-5 flex gap-2"><button onclick="${saveAction}" class="flex-1 py-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-glow">${saveLabel}</button><button onclick="closeModal()" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-ink-800 font-semibold">Cancel</button></div>
+      <div class="mt-5 flex gap-2"><button onclick="${saveAction}" class="flex-1 py-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold shadow-glow">${saveLabel}</button><button onclick="closeModal()" class="px-4 py-3 rounded-2xl bg-slate-100 dark:bg-ink-800 font-semibold" data-i18n="m77dfd2135f">Cancel</button></div>
     </div>`;
   openModal();
   reminderAttachmentController().hydrate(document.getElementById('modalCard'));
@@ -1843,59 +1855,59 @@ function recurrenceEditor(rec) {
   const end = rec.end || { type:'never', count:10, date:'' };
   const adaptive = rec.adaptive || state.settings.adaptiveDefault;
   return `<details class="rounded-2xl border border-slate-200 dark:border-white/10 p-3" ${type!=='none'?'open':''}>
-    <summary class="cursor-pointer font-semibold text-sm">Recurrence ${type!=='none'?'<span class="text-indigo-500 font-bold">· '+esc(recLabel(rec))+'</span>':''}</summary>
+    <summary class="cursor-pointer font-semibold text-sm"><span data-i18n="mf7ad40f58c">Recurrence</span> ${type!=='none'?'<span class="text-indigo-500 font-bold">· '+esc(recLabel(rec))+'</span>':''}</summary>
     <div class="mt-3 space-y-3 text-sm">
       <div class="flex flex-wrap gap-1.5">
-        ${['none','daily','weekdays','weekly','monthly','yearly','custom'].map(p => `<button type="button" onclick="applyPreset('${p}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold ${presetActive(type,rec,p)?'bg-indigo-600 text-white':'bg-slate-100 dark:bg-ink-800'}">${p}</button>`).join('')}
+        ${['none','daily','weekdays','weekly','monthly','yearly','custom'].map(p => `<button type="button" onclick="applyPreset('${p}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold ${presetActive(type,rec,p)?'bg-indigo-600 text-white':'bg-slate-100 dark:bg-ink-800'}">${ui(p)}</button>`).join('')}
       </div>
       <div id="recCustom" class="${type==='none'?'hidden':''} space-y-3">
         <div class="grid grid-cols-2 gap-2">
-          <label>Every
+          <label><span data-i18n="m3560d90b70">Every</span>
             <input id="rVal" type="number" min="1" value="${iv.value}" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
           </label>
-          <label>Unit
+          <label><span data-i18n="mf6b935ab33">Unit</span>
             <select id="rUnit" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
-              ${['minutes','hours','days','weeks','months','years'].map(u=>`<option ${iv.unit===u?'selected':''}>${u}</option>`).join('')}
+              ${['minutes','hours','days','weeks','months','years'].map(u=>uiOption(u,u,iv.unit===u)).join('')}
             </select>
           </label>
         </div>
-        <label class="block">Calendar-aware pattern
+        <label class="block"><span data-i18n="m698d1da4f7">Calendar-aware pattern</span>
           <select id="rCal" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
-            <option value="">Use interval above</option>
-            <option value="first-day" ${type==='calendar'&&cal.pattern==='first-day'?'selected':''}>First day of month</option>
-            <option value="last-day" ${type==='calendar'&&cal.pattern==='last-day'?'selected':''}>Last day of month</option>
-            <option value="nth-day" ${type==='calendar'&&cal.pattern==='nth-day'?'selected':''}>Nth day of month</option>
-            <option value="nth-weekday" ${type==='calendar'&&cal.pattern==='nth-weekday'?'selected':''}>Nth weekday of month</option>
+            <option value="" data-i18n="m9fe8c94087">Use interval above</option>
+            <option value="first-day" ${type==='calendar'&&cal.pattern==='first-day'?'selected':''} data-i18n="md5357bd007">First day of month</option>
+            <option value="last-day" ${type==='calendar'&&cal.pattern==='last-day'?'selected':''} data-i18n="m73e105513b">Last day of month</option>
+            <option value="nth-day" ${type==='calendar'&&cal.pattern==='nth-day'?'selected':''} data-i18n="m0fd64840f9">Nth day of month</option>
+            <option value="nth-weekday" ${type==='calendar'&&cal.pattern==='nth-weekday'?'selected':''} data-i18n="md90f48eb01">Nth weekday of month</option>
           </select>
         </label>
         <div class="grid grid-cols-2 gap-2">
           <label>N
             <input id="rN" type="number" value="${cal.n||1}" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
           </label>
-          <label>Weekday
+          <label><span data-i18n="mbeb258e968">Weekday</span>
             <select id="rWd" class="w-full mt-1 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
-              ${WEEKDAYS.map((w,i)=>`<option value="${i}" ${(cal.weekday??1)===i?'selected':''}>${w}</option>`).join('')}
+              ${WEEKDAYS.map((w,i)=>uiOption(i,w,(cal.weekday??1)===i)).join('')}
             </select>
           </label>
         </div>
         <div>
-          <div class="text-xs font-semibold text-slate-500 mb-1">Ends</div>
+          <div class="text-xs font-semibold text-slate-500 mb-1" data-i18n="m91856dcb7d">Ends</div>
           <select id="rEnd" class="w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
-            <option value="never" ${end.type==='never'?'selected':''}>Never</option>
-            <option value="after" ${end.type==='after'?'selected':''}>After N occurrences</option>
-            <option value="on" ${end.type==='on'?'selected':''}>On date</option>
+            <option value="never" ${end.type==='never'?'selected':''} data-i18n="m80c3052d33">Never</option>
+            <option value="after" ${end.type==='after'?'selected':''} data-i18n="mc1ce45910c">After N occurrences</option>
+            <option value="on" ${end.type==='on'?'selected':''} data-i18n="m594e71c956">On date</option>
           </select>
           <div class="grid grid-cols-2 gap-2 mt-2">
             <input id="rEndN" type="number" min="1" value="${end.count||10}" class="rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
             <input id="rEndD" type="date" value="${end.date? end.date.slice(0,10):''}" class="rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2">
           </div>
         </div>
-        <label class="flex items-center gap-2"><input id="rSkipW" type="checkbox" ${rec.skipWeekends?'checked':''}> Skip weekends</label>
-        <label class="flex items-center gap-2"><input id="rSkipH" type="checkbox" ${rec.skipHolidays?'checked':''}> Skip holidays</label>
+        <label class="flex items-center gap-2"><input id="rSkipW" type="checkbox" ${rec.skipWeekends?'checked':''}> <span data-i18n="m1372ef06d6">Skip weekends</span></label>
+        <label class="flex items-center gap-2"><input id="rSkipH" type="checkbox" ${rec.skipHolidays?'checked':''}> <span data-i18n="mc191a0261b">Skip holidays</span></label>
         <div>
-          <div class="text-xs font-semibold text-slate-500 mb-1">Next occurrence based on</div>
-          <label class="flex items-center gap-2"><input type="radio" name="adapt" value="original" ${adaptive==='original'?'checked':''}> Original due date</label>
-          <label class="flex items-center gap-2"><input type="radio" name="adapt" value="completion" ${adaptive==='completion'?'checked':''}> Completion date (adaptive)</label>
+          <div class="text-xs font-semibold text-slate-500 mb-1" data-i18n="m5d2e6ac3ef">Next occurrence based on</div>
+          <label class="flex items-center gap-2"><input type="radio" name="adapt" value="original" ${adaptive==='original'?'checked':''}> <span data-i18n="m397deb7c09">Original due date</span></label>
+          <label class="flex items-center gap-2"><input type="radio" name="adapt" value="completion" ${adaptive==='completion'?'checked':''}> <span data-i18n="md95d91e749">Completion date (adaptive)</span></label>
         </div>
       </div>
     </div>
@@ -2027,7 +2039,7 @@ function reminderAttachmentController(){
 }
 function renderAttachmentFiles(files){
   return files.map(file=>window.YERE_ATTACHMENTS.isPreviewableImage(file)
-    ?`<button type="button" class="attachment-thumb" data-image-attachment="${esc(file.id)}" aria-label="Expand image: ${esc(file.name)}"><img hidden alt="${esc(file.name)}" decoding="async" referrerpolicy="no-referrer"><span data-attachment-status>Loading photo…</span><span class="attachment-expand" aria-hidden="true">⤢</span></button>`
+    ?`<button type="button" class="attachment-thumb" data-image-attachment="${esc(file.id)}" aria-label="Expand image: ${esc(file.name)}"><img hidden alt="${esc(file.name)}" decoding="async" referrerpolicy="no-referrer"><span data-attachment-status data-i18n="m3bfd9db4b1">Loading photo…</span><span class="attachment-expand" aria-hidden="true">⤢</span></button>`
     :`<button type="button" onclick="openAttachment('${esc(file.id)}')" class="attachment-document">📎 ${esc(file.name)}</button>`
   ).join('');
 }
@@ -2037,23 +2049,23 @@ function openDetail(id) {
   if (!r) return;
   const f=formatDue(r.due), rec=recLabel(r.recurrence), category=state.lists.find(l=>l.id===r.listId);
   const files=renderAttachmentFiles(r.attachments||[]);
-  const meta=[category?.name,r.type==='expiry'?'Expiry':r.type==='renewal'?'Renewal':'',r.cost?`₦${Number(r.cost).toLocaleString('en-NG')}`:''].filter(Boolean).join(' · ');
+  const meta=[category?.name,r.type==='expiry'?'Expiry':r.type==='renewal'?'Renewal':'',r.cost?`₦${Number(r.cost).toLocaleString(uiLocale())}`:''].filter(Boolean).join(' · ');
   document.getElementById('modalCard').innerHTML=`
     <div class="p-5 md:p-6">
-      <div class="flex items-start justify-between mb-4"><div>${r.fromContact?`<div class="badge-from inline-block text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200 mb-2">From ${esc(r.fromContact.name)}</div>`:''}<h2 class="text-2xl font-extrabold leading-tight ${r.completed?'line-through text-slate-400':''}">${esc(r.title)}</h2><p class="text-sm text-slate-500 mt-1">${f.dayLabel} · ${f.t}${rec?' · ↻ '+esc(rec):''}</p>${meta?`<p class="text-xs text-slate-400 mt-1">${esc(meta)}</p>`:''}</div><button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Close">✕</button></div>
-      ${r.notes?`<div class="rounded-2xl bg-slate-50 dark:bg-ink-800 p-4 mb-3"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Why</div><p class="text-sm leading-relaxed whitespace-pre-wrap">${esc(r.notes)}</p></div>`:`<p class="text-sm text-slate-400 mb-3">No notes yet — keep the instructions, photo or useful link here.</p>`}
+      <div class="flex items-start justify-between mb-4"><div>${r.fromContact?`<div class="badge-from inline-block text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md text-indigo-700 dark:text-indigo-200 mb-2"><span data-i18n="m3f66052a10">From</span> ${esc(r.fromContact.name)}</div>`:''}<h2 class="text-2xl font-extrabold leading-tight ${r.completed?'line-through text-slate-400':''}">${esc(r.title)}</h2><p class="text-sm text-slate-500 mt-1">${f.dayLabel} · ${f.t}${rec?' · ↻ '+esc(rec):''}</p>${meta?`<p class="text-xs text-slate-400 mt-1">${esc(meta)}</p>`:''}</div><button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800" aria-label="Close" data-i18n-aria-label="mbbfa773e5a">✕</button></div>
+      ${r.notes?`<div class="rounded-2xl bg-slate-50 dark:bg-ink-800 p-4 mb-3"><div class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1" data-i18n="m21e2caea44">Why</div><p class="text-sm leading-relaxed whitespace-pre-wrap">${esc(r.notes)}</p></div>`:`<p class="text-sm text-slate-400 mb-3" data-i18n="mfa4239458d">No notes yet — keep the instructions, photo or useful link here.</p>`}
       ${r.link?`<a class="block text-sm text-indigo-600 dark:text-indigo-300 font-semibold break-all mb-3" href="${esc(safeLink(r.link))}" target="_blank" rel="noopener noreferrer">${esc(r.link)}</a>`:''}
       ${files?`<div class="attachment-files mb-3">${files}</div>`:''}
-      ${r.recurrence&&r.recurrence.adaptive==='completion'?`<p class="text-xs text-amber-600 mt-3">Adaptive · next occurrence follows completion, not the original clock.</p>`:''}
-      <button type="button" onclick="editReminderDetails('${esc(r.id)}')" class="detail-add-button">${r.notes||r.link||r.attachments?.length?'Edit notes, photos &amp; files':'Add notes, photos &amp; files'} <span aria-hidden="true">↗</span></button>
+      ${r.recurrence&&r.recurrence.adaptive==='completion'?`<p class="text-xs text-amber-600 mt-3" data-i18n="me8f5b6041c">Adaptive · next occurrence follows completion, not the original clock.</p>`:''}
+      <button type="button" onclick="editReminderDetails('${esc(r.id)}')" class="detail-add-button">${ui(r.notes||r.link||r.attachments?.length?'Edit notes, photos &amp; files':'Add notes, photos &amp; files')} <span aria-hidden="true">↗</span></button>
       <div class="mt-6 flex flex-wrap gap-2">
         ${!r.completed?`<button onclick="toggleComplete('${esc(r.id)}');closeModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Mark done</button>`:`<button onclick="toggleComplete('${esc(r.id)}');closeModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Undo</button>`}
         ${r.recurrence?`<button onclick="skipOnce('${esc(r.id)}')" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Skip once</button>`:''}
-        <button onclick="snooze('${esc(r.id)}',10)" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Snooze 10m</button>
-        <button onclick="snooze('${esc(r.id)}',60)" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Snooze 1h</button>
-        <button onclick="snoozeUntilTomorrow('${esc(r.id)}')" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Tomorrow morning</button>
-        <button onclick="editReminder('${esc(r.id)}')" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold">Edit</button>
-        <button onclick="deleteReminder('${esc(r.id)}')" class="px-4 py-2.5 rounded-xl text-rose-500 text-sm font-semibold ml-auto">Delete</button>
+        <button onclick="snooze('${esc(r.id)}',10)" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold"><span data-i18n="m93821f2035">Snooze 10m</span></button>
+        <button onclick="snooze('${esc(r.id)}',60)" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold"><span data-i18n="m6fd6cd5b20">Snooze 1h</span></button>
+        <button onclick="snoozeUntilTomorrow('${esc(r.id)}')" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold"><span data-i18n="m4883fe6d7c">Tomorrow morning</span></button>
+        <button onclick="editReminder('${esc(r.id)}')" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold"><span data-i18n="m5301648dcf">Edit</span></button>
+        <button onclick="deleteReminder('${esc(r.id)}')" class="px-4 py-2.5 rounded-xl text-rose-500 text-sm font-semibold ml-auto"><span data-i18n="mf6fdbe48dc">Delete</span></button>
       </div>
     </div>`;
   openModal();
@@ -2157,13 +2169,13 @@ function closeModal(){ attachmentController?.close(false); document.getElementBy
 function openInviteModal() {
   if (state.settings.suspended) { toast('Invitations are paused.'); return; }
   document.getElementById('modalCard').innerHTML=`<div class="p-5 md:p-6">
-    <div class="flex items-start justify-between mb-4"><div><p class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500">Trusted circle</p><h2 class="text-xl font-extrabold mt-1">Invite someone you trust</h2></div><button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800">✕</button></div>
-    <label class="block text-xs font-semibold text-slate-500">How would you like to invite them?</label>
-    <select id="inviteMethod" onchange="toggleInviteFields()" class="w-full mt-1 mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3"><option value="code">One-time invite code</option>${currentSession?'<option value="email">Email invitation</option><option value="sms">SMS invitation</option>':''}</select>
-    <label class="block text-xs font-semibold text-slate-500">Their name (optional)<input id="inviteName" maxlength="80" class="mt-1 mb-3 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3" placeholder="Amina Okafor"></label>
-    <div id="inviteTargetField" class="hidden"><label id="inviteTargetLabel" class="block text-xs font-semibold text-slate-500">Email or phone<input id="inviteTarget" class="mt-1 mb-3 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3" placeholder="name@example.com"></label></div>
-    <div class="rounded-xl bg-slate-50 dark:bg-ink-800/70 p-3 text-xs text-slate-500 mb-4">${currentSession?'Invite links and codes are single-use and expire after 24 hours. The secret is hashed on the server.':'Local preview only: this sample code is stored in this browser and is not safe to share. Connect Supabase to send a secure email, SMS, or invite code.'}</div>
-    <button onclick="sendContactInvite()" class="w-full py-3 rounded-2xl bg-indigo-600 text-white font-bold">Create invite</button>
+    <div class="flex items-start justify-between mb-4"><div><p class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500" data-i18n="m03c94f0e40">Trusted circle</p><h2 class="text-xl font-extrabold mt-1" data-i18n="m8e4d7868d5">Invite someone you trust</h2></div><button onclick="closeModal()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800">✕</button></div>
+    <label class="block text-xs font-semibold text-slate-500" data-i18n="m67983330ea">How would you like to invite them?</label>
+    <select id="inviteMethod" onchange="toggleInviteFields()" class="w-full mt-1 mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3"><option value="code" data-i18n="m703227c8a4" data-i18n="m703227c8a4">One-time invite code</option>${currentSession?"<option value=\"email\" data-i18n=\"m732ad7f12b\">Email invitation</option><option value=\"sms\" data-i18n=\"m920a67351b\">SMS invitation</option>":''}</select>
+    <label class="block text-xs font-semibold text-slate-500"><span data-i18n="m39690e2496">Their name (optional)</span><input id="inviteName" maxlength="80" class="mt-1 mb-3 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3" placeholder="Amina Okafor" data-i18n-placeholder="m2d748bae82"></label>
+    <div id="inviteTargetField" class="hidden"><label id="inviteTargetLabel" class="block text-xs font-semibold text-slate-500"><span data-i18n="m5a698f5f3b">Email or phone</span><input id="inviteTarget" class="mt-1 mb-3 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3" placeholder="name@example.com"></label></div>
+    <div class="rounded-xl bg-slate-50 dark:bg-ink-800/70 p-3 text-xs text-slate-500 mb-4">${ui(currentSession?'Invite links and codes are single-use and expire after 24 hours. The secret is hashed on the server.':'Local preview only: this sample code is stored in this browser and is not safe to share. Connect Supabase to send a secure email, SMS, or invite code.')}</div>
+    <button onclick="sendContactInvite()" class="w-full py-3 rounded-2xl bg-indigo-600 text-white font-bold" data-i18n="ma84046224e">Create invite</button>
   </div>`;
   openModal();
 }
@@ -2173,7 +2185,7 @@ function toggleInviteFields(){
   if(!host) return;
   host.classList.toggle('hidden',method==='code');
   const label=document.getElementById('inviteTargetLabel');
-  if(label) label.firstChild.textContent=method==='sms'?'Phone number':'Email address';
+  if(label) label.firstElementChild ? uiText(label.firstElementChild,method==='sms'?'Phone number':'Email address') : null;
   const input=document.getElementById('inviteTarget');
   if(input){input.type=method==='sms'?'tel':'email';input.placeholder=method==='sms'?'+234 800 000 0000':'name@example.com';input.required=method!=='code';}
 }
@@ -2196,7 +2208,7 @@ async function sendContactInvite(){
     if(error){toast(error.message||'Invite could not be created.');return;}
     await pullCloudSnapshot(false);
     const code=data?.code;
-    document.getElementById('modalCard').innerHTML=`<div class="p-6 text-center"><div class="mx-auto h-12 w-12 rounded-2xl bg-emerald-100 dark:bg-emerald-500/10 grid place-items-center text-emerald-600 text-2xl">✓</div><p class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 mt-4">Invite ready · expires in 24 hours</p><h2 class="text-xl font-extrabold mt-1">${method==='code'?'Share this one-time code':'Invitation sent'}</h2>${code?`<div class="font-mono text-3xl font-extrabold tracking-[.22em] text-indigo-600 py-5 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 mt-4">${esc(code)}</div><button onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>toast('Copied'))" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm">Copy code</button>`:`<p class="text-sm text-slate-500 mt-3">We sent a secure invite link to ${esc(target)}.</p>`}<p class="text-xs text-slate-400 mt-4">This is the only time Yere will show a code. The server stores only its hash.</p><button onclick="closeModal();setView('contacts')" class="block mx-auto mt-4 text-sm text-slate-500">Done</button></div>`;
+    document.getElementById('modalCard').innerHTML=`<div class="p-6 text-center"><div class="mx-auto h-12 w-12 rounded-2xl bg-emerald-100 dark:bg-emerald-500/10 grid place-items-center text-emerald-600 text-2xl">✓</div><p class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500 mt-4" data-i18n="me5598efdf4">Invite ready · expires in 24 hours</p><h2 class="text-xl font-extrabold mt-1">${ui(method==='code'?'Share this one-time code':'Invitation sent')}</h2>${code?`<div class="font-mono text-3xl font-extrabold tracking-[.22em] text-indigo-600 py-5 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 mt-4">${esc(code)}</div><button onclick="navigator.clipboard.writeText('${esc(code)}').then(()=>toast('Copied'))" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm"><span data-i18n="m6c10692719">Copy code</span></button>`:`<p class="text-sm text-slate-500 mt-3"><span data-i18n="m9c9d19132e">We sent a secure invite link to</span> ${esc(target)}.</p>`}<p class="text-xs text-slate-400 mt-4" data-i18n="m230182d794">This is the only time Yere will show a code. The server stores only its hash.</p><button onclick="closeModal();setView('contacts')" class="block mx-auto mt-4 text-sm text-slate-500" data-i18n="me9b450d14b">Done</button></div>`;
     return;
   }
   if(method!=='code'){toast('Email and SMS invitations need a configured Supabase project.');return;}
@@ -2206,11 +2218,11 @@ async function sendContactInvite(){
   const raw=makeCode(), inv={id:uid(),display:raw,method:'code',recipient:name||'Shared manually',expires:new Date(Date.now()+86400000).toISOString(),used:false,createdAt:now().toISOString()};
   state.invites.unshift(inv); state.settings.rate.invites.push(Date.now());
   logAudit('You','generated demo invite code',raw+' · 24h · single-use'); persist();
-  document.getElementById('modalCard').innerHTML=`<div class="p-6 text-center"><p class="text-[10px] font-extrabold uppercase tracking-widest text-amber-600">Local demo · not secure</p><h2 class="text-xl font-extrabold mt-1 mb-4">Copy the sample code</h2><div class="font-mono text-3xl font-extrabold tracking-[.25em] text-indigo-600 py-5 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10">${esc(raw)}</div><p class="text-xs text-slate-500 mt-3">For preview only. Connect Supabase before sharing real invitations.</p><button onclick="navigator.clipboard.writeText('${esc(raw)}').then(()=>toast('Copied'))" class="mt-5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm">Copy code</button><button onclick="closeModal();setView('contacts')" class="block mx-auto mt-3 text-sm text-slate-500">Done</button></div>`;
+  document.getElementById('modalCard').innerHTML=`<div class="p-6 text-center"><p class="text-[10px] font-extrabold uppercase tracking-widest text-amber-600" data-i18n="m88fb816496">Local demo · not secure</p><h2 class="text-xl font-extrabold mt-1 mb-4" data-i18n="m428d0f05d9">Copy the sample code</h2><div class="font-mono text-3xl font-extrabold tracking-[.25em] text-indigo-600 py-5 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10">${esc(raw)}</div><p class="text-xs text-slate-500 mt-3" data-i18n="ma5df4e0ae6">For preview only. Connect Supabase before sharing real invitations.</p><button onclick="navigator.clipboard.writeText('${esc(raw)}').then(()=>toast('Copied'))" class="mt-5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm"><span data-i18n="m6c10692719">Copy code</span></button><button onclick="closeModal();setView('contacts')" class="block mx-auto mt-3 text-sm text-slate-500" data-i18n="me9b450d14b">Done</button></div>`;
   openModal(); render();
 }
 function openRedeemModal(){
-  document.getElementById('modalCard').innerHTML=`<div class="p-6"><p class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500">Join a trusted circle</p><h2 class="text-xl font-extrabold mt-1">Redeem an invite</h2><p class="text-sm text-slate-500 mt-2 mb-4">Enter the 8-character code. It can only be used once and expires after 24 hours.</p><label class="block text-xs font-semibold text-slate-500">Invite code<input id="redeemCode" maxlength="9" autocapitalize="characters" autocomplete="one-time-code" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 font-mono text-lg tracking-widest uppercase" placeholder="ABCD-EFGH"></label><button onclick="redeemContactInvite(document.getElementById('redeemCode').value)" class="w-full mt-4 py-3 rounded-2xl bg-indigo-600 text-white font-bold">Continue</button></div>`;
+  document.getElementById('modalCard').innerHTML=`<div class="p-6"><p class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500" data-i18n="m2651df00ee">Join a trusted circle</p><h2 class="text-xl font-extrabold mt-1" data-i18n="m3761585232">Redeem an invite</h2><p class="text-sm text-slate-500 mt-2 mb-4" data-i18n="mecdef02288">Enter the 8-character code. It can only be used once and expires after 24 hours.</p><label class="block text-xs font-semibold text-slate-500"><span data-i18n="me91cf27d1a">Invite code</span><input id="redeemCode" maxlength="9" autocapitalize="characters" autocomplete="one-time-code" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-3 font-mono text-lg tracking-widest uppercase" placeholder="ABCD-EFGH" data-i18n-placeholder="mfe0a3c1a67"></label><button onclick="redeemContactInvite(document.getElementById('redeemCode').value)" class="w-full mt-4 py-3 rounded-2xl bg-indigo-600 text-white font-bold" data-i18n="m2e02623966">Continue</button></div>`;
   openModal();
 }
 async function revokeInvite(id){
@@ -2272,7 +2284,7 @@ async function unblockContact(id){
 async function openSetOnBehalfModal(ownerId){
   const relationship=(state.relationships||[]).find(c=>c.ownerId===ownerId); if(!relationship)return;
   if(!supabase||!currentSession){toast('Sign in to set a reminder for a trusted contact.');return;}
-  document.getElementById('modalCard').innerHTML='<div class="p-6 text-sm text-slate-500">Loading their reminder lists…</div>';
+  document.getElementById('modalCard').innerHTML="<div class=\"p-6 text-sm text-slate-500\" data-i18n=\"m07017c6c0c\">Loading their reminder lists…</div>";
   openModal();
   const {data,error}=await supabase.rpc('list_delegated_lists',{p_owner_id:ownerId});
   if(document.getElementById('modal').classList.contains('hidden'))return;
@@ -2313,15 +2325,15 @@ function openSimulateContact() {
   if (!approved.length) { toast('Approve a contact first'); return; }
   document.getElementById('modalCard').innerHTML = `
     <div class="p-6">
-      <h2 class="text-xl font-extrabold mb-1">Set a reminder on your behalf</h2>
-      <p class="text-sm text-slate-500 mb-4">Simulates an approved contact writing into your list. Server would auth the hashed relationship first.</p>
-      <label class="text-xs font-semibold text-slate-500">Contact</label>
+      <h2 class="text-xl font-extrabold mb-1" data-i18n="ma2fe704c6a">Set a reminder on your behalf</h2>
+      <p class="text-sm text-slate-500 mb-4" data-i18n="m77163564f3">Simulates an approved contact writing into your list. Server would auth the hashed relationship first.</p>
+      <label class="text-xs font-semibold text-slate-500" data-i18n="mb37456c453">Contact</label>
       <select id="simC" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5">${approved.map(c=>`<option value="${c.id}">${esc(c.name)} · ${c.mode}</option>`).join('')}</select>
-      <label class="text-xs font-semibold text-slate-500">Natural language</label>
-      <input id="simT" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5" placeholder="Review contract Friday at 11">
-      <label class="text-xs font-semibold text-slate-500">Notes (the why)</label>
+      <label class="text-xs font-semibold text-slate-500" data-i18n="ma7b936a41d">Natural language</label>
+      <input id="simT" class="w-full mb-3 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5" placeholder="Review contract Friday at 11" data-i18n-placeholder="m1cd257c748">
+      <label class="text-xs font-semibold text-slate-500" data-i18n="m9b989ccf8d">Notes (the why)</label>
       <textarea id="simN" rows="2" class="w-full mb-4 rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2.5"></textarea>
-      <button onclick="simulateInbound()" class="w-full py-3 rounded-2xl bg-indigo-600 text-white font-bold">Send to workspace</button>
+      <button onclick="simulateInbound()" class="w-full py-3 rounded-2xl bg-indigo-600 text-white font-bold" data-i18n="m66fac2f83e">Send to workspace</button>
     </div>`;
   openModal();
 }
@@ -2366,7 +2378,7 @@ const WEB_SPEECH_ERROR_CODES = {
 
 function nativeSpeech(){ const speech=window.YERE_NATIVE?.speech; return speech?.supported?speech:null; }
 function webSpeechCtor(){ return window.SpeechRecognition||window.webkitSpeechRecognition||null; }
-function voiceLanguage(){ return navigator.language||document.documentElement.lang||'en-US'; }
+function voiceLanguage(){ return uiLocale(); }
 function voiceErrorMessage(code){
   const speech=window.YERE_NATIVE?.speech;
   if(typeof speech?.messageFor==='function'){
@@ -2517,7 +2529,7 @@ function toast(msg) {
   const host = document.getElementById('toasts');
   const el = document.createElement('div');
   el.className = 'toast-in rounded-2xl bg-ink-900 dark:bg-white text-white dark:text-ink-900 px-4 py-3 text-sm font-semibold shadow-xl';
-  el.textContent = msg;
+  uiText(el,msg);
   host.appendChild(el);
   setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 2600);
 }
@@ -2779,7 +2791,7 @@ function handleNotificationIntent(){
 function openSnoozeScreen(id,minutes=60){
   const r=state.reminders.find(item=>item.id===id);
   if(!r){toast('That reminder is no longer available.');return;}
-  document.getElementById('modalCard').innerHTML=`<div class="p-6"><p class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500">Back to this gently</p><h2 class="text-xl font-extrabold mt-1">${esc(r.title)}</h2><p class="text-sm text-slate-500 mt-2 mb-5">Choose when you would like Yere to bring this back.</p><div class="grid grid-cols-2 gap-2"><button onclick="snooze('${esc(id)}',10)" class="py-3 rounded-xl bg-slate-100 dark:bg-ink-800 font-semibold">10 minutes</button><button onclick="snooze('${esc(id)}',60)" class="py-3 rounded-xl bg-indigo-600 text-white font-semibold">1 hour</button><button onclick="snooze('${esc(id)}',240)" class="py-3 rounded-xl bg-slate-100 dark:bg-ink-800 font-semibold">4 hours</button><button onclick="snoozeUntilTomorrow('${esc(id)}')" class="py-3 rounded-xl bg-slate-100 dark:bg-ink-800 font-semibold">Tomorrow 9 AM</button></div><button onclick="openDetail('${esc(id)}')" class="w-full mt-3 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-300">Open reminder details</button></div>`;
+  document.getElementById('modalCard').innerHTML=`<div class="p-6"><p class="text-[10px] font-extrabold uppercase tracking-widest text-indigo-500" data-i18n="m65d94eebbc">Back to this gently</p><h2 class="text-xl font-extrabold mt-1">${esc(r.title)}</h2><p class="text-sm text-slate-500 mt-2 mb-5" data-i18n="mcb10c7050a">Choose when you would like Yere to bring this back.</p><div class="grid grid-cols-2 gap-2"><button onclick="snooze('${esc(id)}',10)" class="py-3 rounded-xl bg-slate-100 dark:bg-ink-800 font-semibold"><span data-i18n="ma6f151883b">10 minutes</span></button><button onclick="snooze('${esc(id)}',60)" class="py-3 rounded-xl bg-indigo-600 text-white font-semibold"><span data-i18n="mf030c3d667">1 hour</span></button><button onclick="snooze('${esc(id)}',240)" class="py-3 rounded-xl bg-slate-100 dark:bg-ink-800 font-semibold"><span data-i18n="m7b47150d43">4 hours</span></button><button onclick="snoozeUntilTomorrow('${esc(id)}')" class="py-3 rounded-xl bg-slate-100 dark:bg-ink-800 font-semibold"><span data-i18n="m1ba693bf54">Tomorrow 9 AM</span></button></div><button onclick="openDetail('${esc(id)}')" class="w-full mt-3 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-300"><span data-i18n="m6294cdd0a3">Open reminder details</span></button></div>`;
   openModal();
 }
 
@@ -2866,15 +2878,15 @@ const TOUR_STEPS=[
 ];
 let tourIndex=0;
 function tourArtwork(index){
-  if(index===0)return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-[2.5rem] bg-indigo-100 dark:bg-indigo-500/10 rotate-6"></div><div class="absolute inset-7 rounded-[2.5rem] bg-white dark:bg-ink-800 shadow-xl grid place-items-center sprite-float"><div class="relative h-40 w-40 rounded-full border-[10px] border-indigo-500 grid place-items-center"><svg width="76" height="76" viewBox="0 0 76 76" fill="none"><path d="M38 13v26l17 10" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="38" cy="39" r="32" stroke="currentColor" stroke-width="4" opacity=".25"/></svg><div class="absolute -bottom-5 -right-8 h-16 w-16 rounded-2xl bg-amber-400 text-white grid place-items-center text-3xl shadow-lg">✓</div></div></div><div class="absolute top-1 left-2 h-14 w-14 rounded-2xl bg-rose-400 text-white grid place-items-center text-lg font-extrabold shadow-lg sprite-orbit">A</div><div class="absolute bottom-2 right-0 h-14 w-14 rounded-full bg-emerald-500 text-white grid place-items-center text-lg font-extrabold shadow-lg sprite-orbit-reverse">C</div></div>`;
-  if(index===1)return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-[2.5rem] bg-indigo-100 dark:bg-indigo-500/10 -rotate-3"></div><div class="absolute inset-8 rounded-[2rem] bg-white dark:bg-ink-800 p-5 shadow-xl sprite-float"><div class="flex items-center gap-2 text-xs text-slate-400"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Yere heard you</div><div class="mt-5 rounded-2xl bg-indigo-600 text-white p-4 text-sm font-semibold">Call Aunty Ngozi<br><span class="text-indigo-100">tomorrow at 4</span></div><div class="mt-3 flex gap-2"><span class="px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 text-[10px] font-bold">Tomorrow</span><span class="px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 text-[10px] font-bold">4:00 PM</span></div><div class="absolute -right-3 -bottom-3 h-14 w-14 rounded-2xl bg-rose-500 text-white grid place-items-center shadow-lg"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></div></div></div>`;
-  if(index===2)return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-full bg-violet-100 dark:bg-violet-500/10"></div><div class="absolute inset-12 rounded-[2rem] bg-white dark:bg-ink-800 shadow-xl grid place-items-center sprite-float"><div class="h-36 w-36 rounded-3xl border-2 border-dashed border-indigo-300 dark:border-indigo-500/40 grid place-items-center"><div class="text-center"><div class="text-4xl">↻</div><div class="font-extrabold mt-1">Every week</div><div class="text-xs text-slate-400">Next: Friday</div></div></div></div><div class="absolute top-2 left-1/2 -translate-x-1/2 h-12 w-12 rounded-2xl bg-amber-400 text-white grid place-items-center text-xl font-bold shadow-lg sprite-orbit">7</div><div class="absolute right-2 top-1/3 h-12 w-12 rounded-2xl bg-emerald-500 text-white grid place-items-center text-xl font-bold shadow-lg sprite-orbit-reverse">✓</div><div class="absolute bottom-2 left-4 h-12 w-12 rounded-2xl bg-indigo-500 text-white grid place-items-center text-xl font-bold shadow-lg sprite-orbit">↗</div></div>`;
-  if(index===3)return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-[2.5rem] bg-amber-100 dark:bg-amber-500/10 rotate-3"></div><div class="absolute inset-8 rounded-[2rem] bg-white dark:bg-ink-800 p-5 shadow-xl sprite-float"><div class="h-8 w-8 rounded-xl bg-amber-400 text-white grid place-items-center font-bold">Y</div><div class="mt-5 h-3 rounded-full bg-slate-100 dark:bg-ink-700 w-4/5"></div><div class="mt-2 h-3 rounded-full bg-slate-100 dark:bg-ink-700 w-3/5"></div><div class="mt-5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 p-3"><div class="text-[10px] uppercase tracking-wider text-indigo-500 font-bold">The why</div><div class="text-xs font-semibold mt-1">Bring the signed form to Mum.</div></div><div class="mt-3 flex items-center gap-2 text-xs text-slate-400"><span class="text-indigo-500">↗</span> clinic.example.ng</div><div class="absolute -right-3 -bottom-3 h-14 w-14 rounded-2xl bg-emerald-500 text-white grid place-items-center text-xl shadow-lg">♥</div></div></div>`;
-  return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-[2.5rem] bg-rose-100 dark:bg-rose-500/10 -rotate-3"></div><div class="absolute inset-8 rounded-[2rem] bg-white dark:bg-ink-800 p-5 shadow-xl sprite-float"><div class="mx-auto h-20 w-20 rounded-full bg-indigo-100 dark:bg-indigo-500/15 text-indigo-600 grid place-items-center"><svg width="42" height="42" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 28h26l-3-4v-7a10 10 0 00-20 0v7l-3 4z"/><path d="M16 32a5 5 0 0010 0"/></svg></div><div class="mt-5 text-center font-extrabold">A gentle reminder</div><div class="mt-1 text-center text-xs text-slate-400">Your chosen time · your chosen channel</div><div class="mt-5 flex gap-2"><span class="flex-1 rounded-xl bg-indigo-600 text-white text-center py-2 text-xs font-bold">Done</span><span class="flex-1 rounded-xl bg-slate-100 dark:bg-ink-700 text-center py-2 text-xs font-bold">Snooze</span></div><div class="absolute -top-3 -right-3 h-12 w-12 rounded-full bg-amber-400 text-white grid place-items-center text-xl shadow-lg sprite-orbit">☼</div></div></div>`;
+  if(index===0)return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-[2.5rem] bg-indigo-100 dark:bg-indigo-500/10 rotate-6"></div><div class="absolute inset-7 rounded-[2.5rem] bg-white dark:bg-ink-800 shadow-xl grid place-items-center sprite-float"><div class="relative h-40 w-40 rounded-full border-[10px] border-indigo-500 grid place-items-center"><svg width="76" height="76" viewBox="0 0 76 76" fill="none"><path d="M38 13v26l17 10" stroke="currentColor" stroke-width="7" stroke-linecap="round"/><circle cx="38" cy="39" r="32" stroke="currentColor" stroke-width="4" opacity=".25"/></svg><div class="absolute -bottom-5 -right-8 h-16 w-16 rounded-2xl bg-amber-400 text-white grid place-items-center text-3xl shadow-lg">✓</div></div></div><div class="absolute top-1 left-2 h-14 w-14 rounded-2xl bg-rose-400 text-white grid place-items-center text-lg font-extrabold shadow-lg sprite-orbit" data-i18n="m6dcd4ce23d">A</div><div class="absolute bottom-2 right-0 h-14 w-14 rounded-full bg-emerald-500 text-white grid place-items-center text-lg font-extrabold shadow-lg sprite-orbit-reverse" data-i18n="m32096c2e0e">C</div></div>`;
+  if(index===1)return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-[2.5rem] bg-indigo-100 dark:bg-indigo-500/10 -rotate-3"></div><div class="absolute inset-8 rounded-[2rem] bg-white dark:bg-ink-800 p-5 shadow-xl sprite-float"><div class="flex items-center gap-2 text-xs text-slate-400"><span class="h-2 w-2 rounded-full bg-emerald-500"></span><span data-i18n="m0c74e8e2b9">Yere heard you</span></div><div class="mt-5 rounded-2xl bg-indigo-600 text-white p-4 text-sm font-semibold"><span data-i18n="me88fa02fe1">Call Aunty Ngozi</span><br><span class="text-indigo-100" data-i18n="m2d4e57dc51">tomorrow at 4</span></div><div class="mt-3 flex gap-2"><span class="px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 text-[10px] font-bold" data-i18n="m1948bf2dfa">Tomorrow</span><span class="px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 text-[10px] font-bold" data-i18n="m3b9991cb12">4:00 PM</span></div><div class="absolute -right-3 -bottom-3 h-14 w-14 rounded-2xl bg-rose-500 text-white grid place-items-center shadow-lg"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></div></div></div>`;
+  if(index===2)return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-full bg-violet-100 dark:bg-violet-500/10"></div><div class="absolute inset-12 rounded-[2rem] bg-white dark:bg-ink-800 shadow-xl grid place-items-center sprite-float"><div class="h-36 w-36 rounded-3xl border-2 border-dashed border-indigo-300 dark:border-indigo-500/40 grid place-items-center"><div class="text-center"><div class="text-4xl">↻</div><div class="font-extrabold mt-1" data-i18n="m043058e205">Every week</div><div class="text-xs text-slate-400" data-i18n="ma46f9b245e">Next: Friday</div></div></div></div><div class="absolute top-2 left-1/2 -translate-x-1/2 h-12 w-12 rounded-2xl bg-amber-400 text-white grid place-items-center text-xl font-bold shadow-lg sprite-orbit">7</div><div class="absolute right-2 top-1/3 h-12 w-12 rounded-2xl bg-emerald-500 text-white grid place-items-center text-xl font-bold shadow-lg sprite-orbit-reverse">✓</div><div class="absolute bottom-2 left-4 h-12 w-12 rounded-2xl bg-indigo-500 text-white grid place-items-center text-xl font-bold shadow-lg sprite-orbit">↗</div></div>`;
+  if(index===3)return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-[2.5rem] bg-amber-100 dark:bg-amber-500/10 rotate-3"></div><div class="absolute inset-8 rounded-[2rem] bg-white dark:bg-ink-800 p-5 shadow-xl sprite-float"><div class="h-8 w-8 rounded-xl bg-amber-400 text-white grid place-items-center font-bold" data-i18n="m23eb4d3f41">Y</div><div class="mt-5 h-3 rounded-full bg-slate-100 dark:bg-ink-700 w-4/5"></div><div class="mt-2 h-3 rounded-full bg-slate-100 dark:bg-ink-700 w-3/5"></div><div class="mt-5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 p-3"><div class="text-[10px] uppercase tracking-wider text-indigo-500 font-bold" data-i18n="m72661e1a93">The why</div><div class="text-xs font-semibold mt-1" data-i18n="mdc59f02eb4">Bring the signed form to Mum.</div></div><div class="mt-3 flex items-center gap-2 text-xs text-slate-400"><span class="text-indigo-500">↗</span> <span data-i18n="mefcc62e7ee">clinic.example.ng</span></div><div class="absolute -right-3 -bottom-3 h-14 w-14 rounded-2xl bg-emerald-500 text-white grid place-items-center text-xl shadow-lg">♥</div></div></div>`;
+  return `<div class="relative w-full max-w-[280px] aspect-square mx-auto"><div class="absolute inset-6 rounded-[2.5rem] bg-rose-100 dark:bg-rose-500/10 -rotate-3"></div><div class="absolute inset-8 rounded-[2rem] bg-white dark:bg-ink-800 p-5 shadow-xl sprite-float"><div class="mx-auto h-20 w-20 rounded-full bg-indigo-100 dark:bg-indigo-500/15 text-indigo-600 grid place-items-center"><svg width="42" height="42" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 28h26l-3-4v-7a10 10 0 00-20 0v7l-3 4z"/><path d="M16 32a5 5 0 0010 0"/></svg></div><div class="mt-5 text-center font-extrabold" data-i18n="m3bab290664">A gentle reminder</div><div class="mt-1 text-center text-xs text-slate-400" data-i18n="m0adfa172b0">Your chosen time · your chosen channel</div><div class="mt-5 flex gap-2"><span class="flex-1 rounded-xl bg-indigo-600 text-white text-center py-2 text-xs font-bold" data-i18n="me9b450d14b">Done</span><span class="flex-1 rounded-xl bg-slate-100 dark:bg-ink-700 text-center py-2 text-xs font-bold" data-i18n="me2b51688f4">Snooze</span></div><div class="absolute -top-3 -right-3 h-12 w-12 rounded-full bg-amber-400 text-white grid place-items-center text-xl shadow-lg sprite-orbit">☼</div></div></div>`;
 }
 function renderTour(){
   const step=TOUR_STEPS[tourIndex];
-  document.getElementById('tourCard').innerHTML=`<div class="w-full max-w-4xl rounded-[2rem] bg-white dark:bg-ink-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden anim-rise"><div class="flex items-center justify-between px-5 md:px-8 pt-5"><div class="flex items-center gap-2"><img src="/yere-logo-v2.png" class="h-9 w-9 rounded-xl" alt=""><span class="font-extrabold">Yere</span></div><button onclick="closeTour()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800 text-sm font-semibold text-slate-500">Skip tour</button></div><div class="grid md:grid-cols-2 items-center gap-2 md:gap-8 px-5 md:px-10 py-4 md:py-8"><div class="order-2 md:order-1 py-3"><p class="text-[10px] uppercase tracking-[.2em] text-indigo-500 font-extrabold">${step.eyebrow}</p><p class="mt-4 inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[10px] uppercase tracking-wider font-bold">${step.label}</p><h1 id="tourTitle" class="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">${step.title}</h1><p class="mt-4 text-sm md:text-base leading-relaxed text-slate-500 dark:text-slate-400 max-w-md">${step.body}</p><div class="flex items-center gap-2 mt-6">${TOUR_STEPS.map((_,i)=>`<span class="h-1.5 rounded-full transition-all ${i===tourIndex?'w-8 bg-indigo-600':'w-2 bg-slate-200 dark:bg-ink-700'}"></span>`).join('')}<span class="ml-2 text-xs text-slate-400">${tourIndex+1} / ${TOUR_STEPS.length}</span></div><div class="flex gap-2 mt-6"><button onclick="previousTour()" ${tourIndex===0?'disabled':''} class="px-4 py-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold disabled:opacity-40">Back</button><button onclick="nextTour()" class="flex-1 px-4 py-3 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-bold shadow-glow">${tourIndex===TOUR_STEPS.length-1?'Start remembering':'Next'}</button></div></div><div class="order-1 md:order-2 py-4">${tourArtwork(tourIndex)}</div></div></div>`;
+  document.getElementById('tourCard').innerHTML=`<div class="w-full max-w-4xl rounded-[2rem] bg-white dark:bg-ink-900 border border-slate-200 dark:border-white/10 shadow-2xl overflow-hidden anim-rise"><div class="flex items-center justify-between px-5 md:px-8 pt-5"><div class="flex items-center gap-2"><img src="/yere-logo-v2.png" class="h-9 w-9 rounded-xl" alt=""><span class="font-extrabold" data-i18n="ma9eea6410d">Yere</span></div><button onclick="closeTour()" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800 text-sm font-semibold text-slate-500" data-i18n="m57bc79e3c9">Skip tour</button></div>${languagePicker()}<div class="grid md:grid-cols-2 items-center gap-2 md:gap-8 px-5 md:px-10 py-4 md:py-8"><div class="order-2 md:order-1 py-3"><p class="text-[10px] uppercase tracking-[.2em] text-indigo-500 font-extrabold">${ui(step.eyebrow)}</p><p class="mt-4 inline-flex px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 text-[10px] uppercase tracking-wider font-bold">${ui(step.label)}</p><h1 id="tourTitle" class="mt-3 text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">${ui(step.title)}</h1><p class="mt-4 text-sm md:text-base leading-relaxed text-slate-500 dark:text-slate-400 max-w-md">${ui(step.body)}</p><div class="flex items-center gap-2 mt-6">${TOUR_STEPS.map((_,i)=>`<span class="h-1.5 rounded-full transition-all ${i===tourIndex?'w-8 bg-indigo-600':'w-2 bg-slate-200 dark:bg-ink-700'}"></span>`).join('')}<span class="ml-2 text-xs text-slate-400">${tourIndex+1} / ${TOUR_STEPS.length}</span></div><div class="flex gap-2 mt-6"><button onclick="previousTour()" ${tourIndex===0?'disabled':''} class="px-4 py-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold disabled:opacity-40"><span data-i18n="mb52b36b726">Back</span></button><button onclick="nextTour()" class="flex-1 px-4 py-3 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-bold shadow-glow">${ui(tourIndex===TOUR_STEPS.length-1?'Start remembering':'Next')}</button></div></div><div class="order-1 md:order-2 py-4">${tourArtwork(tourIndex)}</div></div></div>`;
 }
 function startTour(force=false){
   if(!force){try{if(localStorage.getItem(`Yere.tour.${currentSession?.user?.id||'demo'}`))return;}catch(_){}}
@@ -3014,6 +3026,7 @@ async function bootApp(){
   window.YERE_NATIVE?.setTheme(state.settings.theme||'dark');
   dueTimer=setInterval(tickDue,15000);
 }
+document.addEventListener('yere:languagechange',()=>{if(view!=='settings' && document.getElementById('authGate')?.classList.contains('hidden'))render();});
 document.addEventListener('DOMContentLoaded',bootApp,{once:true});
 </script>
 </body>

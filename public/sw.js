@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'yere-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v2-brand`;
+const CACHE_NAME = `${CACHE_PREFIX}v3-language`;
 const APP_URL = new URL(self.registration.scope);
 
 async function precacheShell() {
@@ -11,6 +11,9 @@ async function precacheShell() {
 
   const assets = new Set([
     new URL('manifest.webmanifest', APP_URL).href,
+    new URL('language.js', APP_URL).href,
+    new URL('language.css', APP_URL).href,
+    new URL('locales/app.js', APP_URL).href,
     new URL('yere-logo-v2.png', APP_URL).href,
     new URL('icons/icon-192-v2.png', APP_URL).href,
     new URL('icons/icon-512-v2.png', APP_URL).href,
@@ -49,7 +52,7 @@ self.addEventListener('fetch', (event) => {
 
   // Public legal documents must never fall back to the signed-in app shell.
   // Let the browser navigate normally (including showing an honest offline error).
-  if (['/privacy-policy', '/termsofuse', '/privacy.html', '/terms.html'].includes(url.pathname.replace(/\/$/, ''))) return;
+  if (['/privacy-policy', '/termsofuse', '/support.html', '/privacy.html', '/terms.html'].includes(url.pathname.replace(/^\/(en|fr)(?=\/)/, '').replace(/\/$/, ''))) return;
 
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
@@ -68,7 +71,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname === '/yere-logo-v2.png' || url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/') || url.pathname.endsWith('.svg') || url.pathname.endsWith('.webmanifest')) {
+  if (['/language.js','/language.css','/locales/app.js'].includes(url.pathname) || url.pathname === '/yere-logo-v2.png' || url.pathname.startsWith('/assets/') || url.pathname.startsWith('/icons/') || url.pathname.endsWith('.svg') || url.pathname.endsWith('.webmanifest')) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match(request);

@@ -34,7 +34,7 @@ function legalRoutes() {
   const install = (server) => {
     server.middlewares.use((req, _res, next) => {
       const [pathname, query] = (req.url || '').split('?');
-      const routes = { '/privacy-policy': '/privacy.html', '/termsofuse': '/terms.html', '/ios-release-guide': '/ios-release-guide.html', '/ios-guide.html': '/ios-release-guide.html' };
+      const routes = { '/privacy-policy': '/privacy-fr.html', '/termsofuse': '/terms-fr.html', '/en/privacy-policy': '/privacy.html', '/en/termsofuse': '/terms.html', '/fr/privacy-policy': '/privacy-fr.html', '/fr/termsofuse': '/terms-fr.html', '/en/support.html': '/support-en.html', '/fr/support.html': '/support.html', '/ios-release-guide': '/ios-release-guide.html', '/ios-guide.html': '/ios-release-guide.html' };
       const destination = routes[pathname.replace(/\/$/, '')];
       if (destination) req.url = destination + (query ? `?${query}` : '');
       next();

@@ -21,8 +21,10 @@ const eye = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke=
 export function togglePasswordVisibility(input, button) {
   const visible = input.type === 'password';
   input.type = visible ? 'text' : 'password';
-  button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
-  button.setAttribute('title', visible ? 'Hide password' : 'Show password');
+  button.setAttribute('aria-label', globalThis.YERE_I18N?.text(visible ? 'Hide password' : 'Show password') ?? (visible ? 'Hide password' : 'Show password'));
+  button.setAttribute('title', globalThis.YERE_I18N?.text(visible ? 'Hide password' : 'Show password') ?? (visible ? 'Hide password' : 'Show password'));
+  globalThis.YERE_I18N?.bindAttribute(button,'aria-label',visible ? 'Hide password' : 'Show password');
+  globalThis.YERE_I18N?.bindAttribute(button,'title',visible ? 'Hide password' : 'Show password');
   button.setAttribute('aria-pressed', String(visible));
   button.querySelector('[data-eye-slash]').toggleAttribute('hidden', !visible);
 }
@@ -42,8 +44,10 @@ export function enhancePasswordFields(root) {
     button.type = 'button';
     button.className = 'absolute right-1 bottom-1 flex h-11 w-11 items-center justify-center rounded-lg text-slate-500 hover:text-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-indigo-500';
     button.setAttribute('aria-controls', input.id);
-    button.setAttribute('aria-label', 'Show password');
-    button.setAttribute('title', 'Show password');
+    button.setAttribute('aria-label', globalThis.YERE_I18N?.text('Show password') ?? 'Show password');
+    button.setAttribute('title', globalThis.YERE_I18N?.text('Show password') ?? 'Show password');
+    globalThis.YERE_I18N?.bindAttribute(button,'aria-label','Show password');
+    globalThis.YERE_I18N?.bindAttribute(button,'title','Show password');
     button.setAttribute('aria-pressed', 'false');
     button.innerHTML = eye;
     button.addEventListener('click', (event) => {

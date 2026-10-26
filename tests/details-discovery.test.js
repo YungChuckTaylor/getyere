@@ -14,6 +14,7 @@ function harness() {
     esc: value => String(value).replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;'),
     openConfirmFromInput: () => { calls.capture++; }, showConfirmModal: () => { calls.show++; }, openModal: () => { calls.modal++; },
     editReminder: id => { calls.edit.push(id); }, toast() {} };
+  context.ui = value => value;
   vm.createContext(context); vm.runInContext(source, context);
   return { context, calls, get };
 }
@@ -51,7 +52,8 @@ test('existing-reminder shortcut includes real completed reminders and focuses t
   context.editReminderDetails('missing'); assert.equal(calls.edit.length, 1);
 });
 test('fourth tour slide describes the feature and teaches the same Home/editor shortcuts', () => {
-  const context = {}; vm.createContext(context);
+  const context = {}; context.ui = value => value;
+  vm.createContext(context);
   vm.runInContext(html.slice(html.indexOf('const TOUR_STEPS='), html.indexOf('let tourIndex=')) + '\nthis.steps=TOUR_STEPS;', context);
   assert.equal(context.steps.length, 5);
   assert.equal(context.steps[3].title, 'Add notes, photos & files to reminders.');

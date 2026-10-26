@@ -38,11 +38,11 @@
     },
     {
       "source": "/privacy-policy",
-      "destination": "/privacy.html"
+      "destination": "/privacy-fr.html"
     },
     {
       "source": "/termsofuse",
-      "destination": "/terms.html"
+      "destination": "/terms-fr.html"
     },
     {
       "source": "/admin-access",
@@ -59,6 +59,30 @@
     {
       "source": "/admin-api/:function",
       "destination": "/api/admin-proxy?function=:function"
+    },
+    {
+      "source": "/en/privacy-policy",
+      "destination": "/privacy.html"
+    },
+    {
+      "source": "/fr/privacy-policy",
+      "destination": "/privacy-fr.html"
+    },
+    {
+      "source": "/en/termsofuse",
+      "destination": "/terms.html"
+    },
+    {
+      "source": "/fr/termsofuse",
+      "destination": "/terms-fr.html"
+    },
+    {
+      "source": "/en/support.html",
+      "destination": "/support-en.html"
+    },
+    {
+      "source": "/fr/support.html",
+      "destination": "/support.html"
     }
   ],
   "functions": {

@@ -42,7 +42,7 @@ test('home groups all open reminders by day with no seven-day cutoff and retains
     reminder('undefined-approval', { requiresApproval: true, approved: undefined }), reminder('rejected', { rejected: true })];
   const groups = [];
   const context = { state: { lists: [], reminders: items }, view: 'today', searchQ: '',
-    document: { getElementById: get }, renderCustomListsNav() {}, greeting: () => 'Welcome',
+    uiText: (element,text) => { element.textContent=text; }, document: { getElementById: get }, renderCustomListsNav() {}, greeting: () => 'Welcome',
     filteredReminders: () => items, compareReminders: (a,b) => new Date(a.due)-new Date(b.due),
     renderHomeDashboard: () => '<summary>Metrics</summary>',
     renderByDay: list => { groups.push(list.map(item => item.id)); return 'day-groups'; },
@@ -66,7 +66,7 @@ function logoutHarness({ native = false, answer = false, error = null } = {}) {
     state: { reminders: [reminder('saved')], contacts: [], relationships: [], audit: [], lists: [], invites: [] },
     supabase: { auth: { signOut: async () => { calls.web++; return { error }; } }, from: () => { calls.tokens++; return { delete: () => ({ eq: () => ({ eq: async () => ({}) }) }) }; } },
     window: { YERE_NATIVE: { getPushRegistration: () => ({ token: 'device-token' }), unregisterPush: async () => {}, auth: { signOut: async () => { calls.native++; } } } },
-    isNativeApp: () => native, confirm: () => { calls.confirm++; return answer; }, closeProfileMenu() {},
+    t: value => value, isNativeApp: () => native, confirm: () => { calls.confirm++; return answer; }, closeProfileMenu() {},
     toast() {}, setAccountLabel: () => { calls.labels++; }, setAuthMode() {}
   };
   vm.createContext(context);
