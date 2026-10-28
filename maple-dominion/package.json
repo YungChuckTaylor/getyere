@@ -1,0 +1,22 @@
+{
+  "name": "maple-dominion-practical-tech-clinic",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "python3 server.py",
+    "test": "node --test tests/*.test.mjs",
+    "test:browser": "node tests/browser.mjs",
+    "docs:copy": "node scripts/export-copy.mjs",
+    "docs:blueprint": "node scripts/assemble-blueprint.mjs",
+    "build": "node scripts/build-static.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@sparticuz/chromium": "153.0.0",
+    "playwright-core": "1.64.1"
+  }
+}
