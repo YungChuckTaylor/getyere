@@ -108,7 +108,7 @@ Review provider-dependent instructions before publishing and when material featu
 
 **Cart Compare:** reserved equal visual slot; clearly labelled typographic placeholder; description focused on straightforward price comparison and informed everyday buying decisions. Detail/enquiry CTA works without a fabricated public URL. Replace the placeholder with a supplied approved logo, with meaningful alt text and `object-fit:contain`; keep aspect ratio. Confirm public URL, supported markets and feature wording before claiming availability or savings.
 
-**Maple identity:** supplied original full logo in footer; leaf cropped from that asset for compact horizontal header/favicon. No recolouring of the supplied art or synthetic replacement logo. Provide proper company text alongside the compact mark, empty alt for the redundant leaf and full-company alt for the original logo.
+**Maple identity:** supplied original full logo in both header and footer; leaf cropped from that asset for favicon only. No recolouring of the supplied art or synthetic replacement logo. Use full-company alt text for the original logo in both navigation locations.
 
 ## F. Verified Fix Log operations
 

@@ -87,8 +87,8 @@ npm run docs:blueprint
 - `engine.mjs`: deterministic logic, whitelist validation, PDF and email draft.
 - `app.mjs`: routes, page copy, composition and interactions.
 - `styles.css`: palette, local font faces, layout, responsive and print.
-- `assets/maple-dominion-logo.png`: unchanged supplied original, fully displayed in footer.
-- `assets/maple-mark.png`: cropped supplied leaf for header/favicon.
+- `assets/maple-dominion-logo.png`: unchanged supplied original, fully displayed in header and footer.
+- `assets/maple-mark.png`: cropped supplied leaf for favicon only.
 - `assets/yere-logo.png`: existing approved Yere logo.
 - `docs/`: planning deliverables, copy and QA.
 

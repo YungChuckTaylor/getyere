@@ -72,8 +72,8 @@ The mobile page is not a desktop page squeezed smaller. It keeps the same truthf
 
 ## Asset handoff
 
-1. Original supplied `assets/maple-dominion-logo.png`, unchanged, displayed fully in the footer.
-2. `assets/maple-mark.png`, leaf crop from the supplied original, used for compact header/favicon alongside accessible company text.
+1. Original supplied `assets/maple-dominion-logo.png`, unchanged, displayed fully in the header and footer.
+2. `assets/maple-mark.png`, leaf crop from the supplied original, used for the favicon only.
 3. Approved existing `assets/yere-logo.png`, contained without distortion.
 4. Cart Compare typography is explicitly a placeholder. Replace after the owner supplies its approved logo; do not commission an unrelated substitute without approval.
 5. Local font files and licences under `assets/fonts/`.

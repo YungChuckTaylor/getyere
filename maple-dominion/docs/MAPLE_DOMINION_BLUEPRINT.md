@@ -1328,7 +1328,7 @@ Review provider-dependent instructions before publishing and when material featu
 
 **Cart Compare:** reserved equal visual slot; clearly labelled typographic placeholder; description focused on straightforward price comparison and informed everyday buying decisions. Detail/enquiry CTA works without a fabricated public URL. Replace the placeholder with a supplied approved logo, with meaningful alt text and `object-fit:contain`; keep aspect ratio. Confirm public URL, supported markets and feature wording before claiming availability or savings.
 
-**Maple identity:** supplied original full logo in footer; leaf cropped from that asset for compact horizontal header/favicon. No recolouring of the supplied art or synthetic replacement logo. Provide proper company text alongside the compact mark, empty alt for the redundant leaf and full-company alt for the original logo.
+**Maple identity:** supplied original full logo in both header and footer; leaf cropped from that asset for favicon only. No recolouring of the supplied art or synthetic replacement logo. Use full-company alt text for the original logo in both navigation locations.
 
 ## F. Verified Fix Log operations
 
@@ -1437,8 +1437,8 @@ The mobile page is not a desktop page squeezed smaller. It keeps the same truthf
 
 ## Asset handoff
 
-1. Original supplied `assets/maple-dominion-logo.png`, unchanged, displayed fully in the footer.
-2. `assets/maple-mark.png`, leaf crop from the supplied original, used for compact header/favicon alongside accessible company text.
+1. Original supplied `assets/maple-dominion-logo.png`, unchanged, displayed fully in the header and footer.
+2. `assets/maple-mark.png`, leaf crop from the supplied original, used for the favicon only.
 3. Approved existing `assets/yere-logo.png`, contained without distortion.
 4. Cart Compare typography is explicitly a placeholder. Replace after the owner supplies its approved logo; do not commission an unrelated substitute without approval.
 5. Local font files and licences under `assets/fonts/`.

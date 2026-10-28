@@ -15,3 +15,9 @@
 @media print{body{background:#fff;font-size:11px;color:#000}.site-header,.preview-strip,.site-footer,.report-actions,.share-details,.result-followup,.score-method,.skip-link,.status-message,.report-next>aside,.report-heading .breadcrumb,#restart-check,.report-next .text-link,.win-card .text-link{display:none!important}.container{width:100%;max-width:none}.report-page{padding:0}.report-title h1{font-size:35px}.report-title{gap:30px}.score-card{padding:10px;min-width:130px}.score-card>strong{font-size:45px}.score-explainer{max-width:none;padding-block:15px}.quick-wins{margin-top:15px}.win-card{break-inside:avoid;display:grid;grid-template-columns:35px 1fr;gap:15px;padding:15px 20px;margin-bottom:12px}.win-card h2{font-size:23px}.win-card .eyebrow{margin-bottom:5px}.win-estimates{padding-block:8px;margin-bottom:12px}.interactive-checklist{margin-bottom:0}.interactive-checklist li{margin-bottom:7px}.interactive-checklist label{font-size:11px!important}.report-next{display:block;margin-top:20px}.picker-output{padding:20px;break-inside:avoid}.picker-output h2{font-size:27px}.picker-output .price{font-size:30px}.recommend-scope{grid-template-columns:1fr 1fr}.notice{break-inside:avoid}.report-heading,.win-card,.picker-output{box-shadow:none}.report-title p,.score-explainer p{font-size:11px}a{text-decoration:none;color:#000}h1,h2,h3{break-after:avoid}input[type=checkbox]{appearance:auto}.report-next .planning-window{padding-block:8px;margin-block:12px}@page{size:letter;margin:16mm}}
 
 .original-brand{display:inline-block;width:156px;margin-bottom:22px}.original-brand img{width:156px;height:auto;display:block}
+
+/* Preserve the supplied full logo in both header and footer. */
+.site-header .header-inner{padding-block:10px}
+.site-header .brand{flex-shrink:0}
+.site-header .brand img{display:block;width:112px;height:auto;object-fit:contain}
+@media(max-width:760px){.site-header .brand img{width:96px}}
