@@ -1,10 +1,12 @@
 # Maple Dominion — Practical Tech Clinic
 
-A **separate, working Phase 1 website** for Maple Dominion Consulting Inc. Nothing in this folder replaces or configures the Yere application. No production deployment or domain change has been made.
+A **separate, working Phase 1 website** for Maple Dominion Consulting Inc. Nothing in this folder replaces or configures the Yere application. The separate Vercel review site is now live; no existing domain or Yere deployment has been changed. See [deployment record](docs/DEPLOYMENT.md).
 
 ## Review the website
 
-The current Arena preview runs on **port 4190**. Use the live preview labelled **Maple Dominion website**.
+**Live review site: https://maple-dominion-clinic.vercel.app/**
+
+The Arena development preview also runs on **port 4190**, labelled **Maple Dominion website**.
 
 To run elsewhere (Python 3):
 
@@ -92,9 +94,9 @@ npm run docs:blueprint
 
 When changing copy in `app.mjs`, update the manual portions of `scripts/export-copy.mjs` too. Its library/pricing/question sections come directly from `data.mjs`; the narrative copy is intentionally editorial.
 
-## Deployment handoff — not performed
+## Deployment handoff — separate Vercel project live
 
-Host this folder as its **own** static project, with no Yere build command, environment secret or backend. An approved static host must serve `.mjs` as JavaScript, WOFF2 as fonts and HTTPS for reliable clipboard access. Do not point the existing Yere project at this folder. Do not overwrite the existing Maple site until approved, backed up and reversible.
+This folder is hosted as its **own** Vercel static project. `npm run build` copies only runtime files/assets into ignored `site/`; the nested `vercel.json` configures that output and the security/noindex headers. There is no Yere build command, environment secret or backend. See [confirmed deployment details](docs/DEPLOYMENT.md). An approved static host must serve `.mjs` as JavaScript, WOFF2 as fonts and HTTPS for reliable clipboard access. Do not point the existing Yere project at this folder. Do not overwrite the existing Maple site until approved, backed up and reversible.
 
 The preview is intentionally `noindex`. Before public cutover: approve prices/capacity and guide wording; confirm privacy/hosting/email-retention/insurance facts; supply or approve pending Cart Compare assets; verify the real inbox and supported browsers; decide real URLs/prerendering, canonical metadata, redirects and sitemap; then remove the preview status and change indexing only with approval.
 
