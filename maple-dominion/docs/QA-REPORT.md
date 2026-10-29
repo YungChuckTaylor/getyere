@@ -36,3 +36,11 @@ Reviewed the desktop homepage and results layout, phone hero/navigation and cont
 - Production privacy, retention, hosting, insurance, scope/prices and capacity require owner confirmation.
 
 **Verdict:** working Phase 1 review build with passing scoped automated checks; production approval and operational confirmations remain separate.
+
+## 29 October 2026 — supplied black-lettering logo replacement
+
+- Replaced the shared header/footer logo with the exact supplied `mapleleaf_logo_black.png`; no redrawing, recolouring, cropping or aspect-ratio change.
+- SHA-256: `da8f34554aa87f4b947d55dea31e4191ed083e64fdc1e2d2a44a4b241e41133b` (505 × 390 PNG).
+- 15 unit tests passed, including an exact-byte logo regression check.
+- The standalone production output passed 84 responsive checks and 29 Chromium/axe audits, with zero accessibility violations, browser exceptions or unexpected external requests. Mobile homepage screenshot visually inspected.
+- The separate Maple build output contains the same exact image bytes as the attachment. No Yere source, notification settings or hosting configuration changed.
