@@ -186,29 +186,56 @@ function resolvePushWaiters(value, error = null) {
   }
 }
 
+// Registration can be requested before the rest of native startup finishes.
+// Install exactly once, with a clean retry if setup fails part way through.
+let pushListenerSetup = null;
+async function installPushListeners() {
+  if (!enabled) return;
+  if (!pushListenerSetup) {
+    pushListenerSetup = (async () => {
+      const handles = [];
+      try {
+        handles.push(await PushNotifications.addListener('registration', async ({ value }) => {
+          if (typeof value !== 'string' || !value.trim()) {
+            resolvePushWaiters(null, new Error('The notification service returned an empty device token.'));
+            return;
+          }
+          pushToken = value;
+          const registration = nativeBridge.getPushRegistration();
+          // A failed/slow preferences write must not turn a valid APNs/FCM token into
+          // a 20-second registration timeout. The live token is already in memory.
+          resolvePushWaiters(registration);
+          emit('yere:native-push-token', registration);
+          await Preferences.set({ key: PUSH_TOKEN_KEY, value }).catch(() => undefined);
+        }));
+        handles.push(await PushNotifications.addListener('registrationError', (error) => {
+          const problem = new Error(error?.error || 'Native push registration failed.');
+          emit('yere:native-push-error', { message: problem.message });
+          resolvePushWaiters(null, problem);
+        }));
+        handles.push(await PushNotifications.addListener('pushNotificationReceived', (notification) => {
+          emit('yere:native-notification-received', normalizeNotification(notification, 'foreground'));
+        }));
+        handles.push(await PushNotifications.addListener('pushNotificationActionPerformed', ({ actionId, notification }) => {
+          rememberNotificationIntent(normalizeNotification(notification, actionId));
+        }));
+      } catch (error) {
+        await Promise.allSettled(handles.map((handle) => handle.remove()));
+        throw error;
+      }
+    })().catch((error) => {
+      pushListenerSetup = null;
+      throw error;
+    });
+  }
+  return pushListenerSetup;
+}
+
 async function installNativeListeners() {
   if (!enabled || listenersInstalled) return;
   listenersInstalled = true;
 
-  await PushNotifications.addListener('registration', async ({ value }) => {
-    pushToken = value;
-    await Preferences.set({ key: PUSH_TOKEN_KEY, value });
-    const registration = nativeBridge.getPushRegistration();
-    emit('yere:native-push-token', registration);
-    resolvePushWaiters(registration);
-  });
-  await PushNotifications.addListener('registrationError', (error) => {
-    const problem = new Error(error?.error || 'Native push registration failed.');
-    emit('yere:native-push-error', { message: problem.message });
-    resolvePushWaiters(null, problem);
-  });
-  await PushNotifications.addListener('pushNotificationReceived', (notification) => {
-    emit('yere:native-notification-received', normalizeNotification(notification, 'foreground'));
-  });
-  await PushNotifications.addListener('pushNotificationActionPerformed', ({ actionId, notification }) => {
-    rememberNotificationIntent(normalizeNotification(notification, actionId));
-  });
-
+  await installPushListeners();
   await Network.addListener('networkStatusChange', (status) => {
     const changed = nativeBridge.online !== status.connected;
     nativeBridge.online = status.connected;
@@ -361,6 +388,7 @@ const nativeBridge = {
   },
   async registerPush() {
     if (!enabled) throw new Error('Native push is only available in the installed app.');
+    await installPushListeners();
     let permission = await PushNotifications.checkPermissions();
     if (permission.receive === 'prompt' || permission.receive === 'prompt-with-rationale') {
       permission = await PushNotifications.requestPermissions();

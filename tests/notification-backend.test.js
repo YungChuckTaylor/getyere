@@ -156,3 +156,18 @@ test('real APNs JWT path explicitly uses HTTP/2, correct topic/environment, expi
   assert.equal(calls[0].init.headers['apns-topic'],'com.getyere.app'); assert.ok(Number(calls[0].init.headers['apns-expiration'])>Date.now()/1000);
   const payload=JSON.parse(calls[0].init.body); assert.equal(payload.aps.category,'YERE_REMINDER'); assert.equal(payload.title,undefined); assert.ok(Buffer.byteLength(calls[0].init.body)<4096);
 });
+
+test('APNs defaults to the production host required by TestFlight and App Store builds', async () => {
+  const key = await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify']);
+  const settings = {APNS_TEAM_ID:'TESTTEAM',APNS_KEY_ID:'TESTKEY',APNS_PRIVATE_KEY:pem(await crypto.subtle.exportKey('pkcs8',key.privateKey))};
+  const calls=[];
+  const sender=senderHarness(settings,async(url,init)=>{calls.push({url,init});return new Response(null,{status:200});});
+  await sender({platform:'ios',provider:'apns',device_token:'test-token'},{title:'Test',body:'Test'});
+  assert.match(calls[0].url,/^https:\/\/api\.push\.apple\.com\//);
+  assert.equal(calls[0].init.headers['apns-topic'],'com.getyere.app');
+});
+test('missing APNs credentials cannot send a request or retire a valid device registration', async () => {
+  const calls=[];const sender=senderHarness({},async(...args)=>{calls.push(args);return new Response(null,{status:200});});
+  await assert.rejects(()=>sender({platform:'ios',provider:'apns',device_token:'test-token'},{title:'Test'}),error=>/APNS_KEY_ID is not configured/.test(error.message)&&!isRetiredSubscription(error));
+  assert.equal(calls.length,0);
+});

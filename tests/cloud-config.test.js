@@ -311,7 +311,7 @@ test('verifyBundle refuses to pass when the build environment itself is not clou
 // ---------- 6. Firebase client config ----------
 
 test('google-services.json validation accepts only the Android client config for com.getyere.app', () => {
-  const good = JSON.stringify({ project_info: { project_id: 'yere' }, client: [{ client_info: { android_client_info: { package_name: 'com.getyere.app' } } }] });
+  const good = JSON.stringify({ project_info: { project_id: 'yere', project_number: '123456789' }, client: [{ client_info: { mobilesdk_app_id: '1:123456789:android:abcdef', android_client_info: { package_name: 'com.getyere.app' } }, api_key: [{ current_key: 'test-client-api-key' }] }] });
   assert.deepEqual(validateGoogleServices(good), []);
   const wrongPackage = JSON.stringify({ project_info: { project_id: 'yere' }, client: [{ client_info: { android_client_info: { package_name: 'com.example' } } }] });
   assert.ok(validateGoogleServices(wrongPackage).some(m => /com\.getyere\.app/.test(m)));
@@ -328,4 +328,18 @@ test('Firebase and Supabase server secrets are documented as server-only, never 
   assert.match(deployment, /GOOGLE_SERVICES_JSON_B64/);
   assert.match(deployment, /VITE_SUPABASE_URL/);
   assert.match(deployment, /build:native/);
+});
+
+test('store AAB/IPA web assets are checked against the intended backend (synthetic ZIP fixtures, not native builds)', async () => {
+  const dir = await mkdtemp(path.join(tmpdir(), 'yere-store-assets-'));
+  try {
+    const env = { VITE_SUPABASE_URL: URL_OK, VITE_SUPABASE_ANON_KEY: ANON_KEY };
+    for (const [ext,entry] of [['apk','assets/public/assets/main.js'],['aab','base/assets/public/assets/main.js'],['ipa','Payload/App.app/public/assets/main.js']]) {
+      const fixture=path.join(dir,ext), file=path.join(fixture,entry), archive=path.join(dir,`fixture.${ext}`);
+      await mkdir(path.dirname(file),{recursive:true});await writeFile(file,`const cfg={url:${JSON.stringify(URL_OK)},key:${JSON.stringify(ANON_KEY)}};`);
+      const zipped=spawnSync('zip',['-q','-r',archive,'.'],{cwd:fixture});assert.equal(zipped.status,0,zipped.stderr?.toString());
+      assert.equal(verifyBundle(archive,env).ok,true,ext);
+      assert.equal(verifyBundle(archive,{...env,VITE_SUPABASE_URL:'https://zyxwvutsrqponmlkjihg.supabase.co'}).ok,false,ext);
+    }
+  } finally { await rm(dir,{recursive:true,force:true}); }
 });

@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// Proves a built artifact talks to the real Supabase project and is not a demo build.
-// Accepts a directory (for example dist/ or the Capacitor web assets) or an .apk file.
+// Checks that bundled web assets embed the expected public Supabase configuration.
+// Static verification does not prove live connectivity, native push setup or device delivery.
+// Accepts a directory (for example dist/ or the Capacitor web assets) or an .apk, .aab or .ipa archive.
 //
-// Usage: VITE_SUPABASE_URL=... VITE_SUPABASE_ANON_KEY=... node scripts/verify-bundle.mjs <dist-dir|app.apk>
+// Usage: VITE_SUPABASE_URL=... VITE_SUPABASE_ANON_KEY=... node scripts/verify-bundle.mjs <dist-dir|app.apk|app.aab|app.ipa>
 // The key is read from the environment and is never printed.
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -17,9 +18,10 @@ const FORBIDDEN = [
 ];
 
 function listFiles(target) {
-  if (target.toLowerCase().endsWith('.apk')) {
+  if (/\.(apk|aab|ipa)$/i.test(target)) {
+    const isIos = /\.ipa$/i.test(target);
     const names = execFileSync('unzip', ['-Z1', target], { encoding: 'utf8' }).split('\n');
-    return names.filter((name) => /\.(js|html)$/.test(name) && name.includes('assets/')).map((name) => ({
+    return names.filter((name) => /\.(js|html)$/.test(name) && (isIos ? /^Payload\/[^/]+\.app\/public\//.test(name) : /^(?:base\/)?assets\//.test(name))).map((name) => ({
       name,
       read: () => execFileSync('unzip', ['-p', target, name], { maxBuffer: 256 * 1024 * 1024 })
     }));
@@ -67,7 +69,7 @@ const isMain = process.argv[1]?.endsWith('verify-bundle.mjs');
 if (isMain) {
   const target = process.argv[2];
   if (!target) {
-    console.error('Usage: node scripts/verify-bundle.mjs <dist-dir|app.apk>');
+    console.error('Usage: node scripts/verify-bundle.mjs <dist-dir|app.apk|app.aab|app.ipa>');
     process.exit(2);
   }
   const result = verifyBundle(target);

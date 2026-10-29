@@ -45,11 +45,40 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
+// Missing Firebase configuration must never silently produce a store release.
+// The client file remains ignored; CI installs it from GOOGLE_SERVICES_JSON_B64.
+def servicesJSON = file('google-services.json')
+if (servicesJSON.isFile()) {
+    apply plugin: 'com.google.gms.google-services'
+}
+
+def verifyReleasePushConfiguration = tasks.register('verifyReleasePushConfiguration') {
+    doLast {
+        if (!servicesJSON.isFile()) {
+            throw new GradleException('Release blocked: android/app/google-services.json is missing. Install the Firebase Android CLIENT config from GOOGLE_SERVICES_JSON_B64; never use a service-account key.')
+        }
+        def data
+        try {
+            data = new groovy.json.JsonSlurper().parse(servicesJSON)
+        } catch (Exception ignored) {
+            throw new GradleException('Release blocked: invalid Firebase Android client JSON. Run scripts/validate-google-services.mjs before building.')
+        }
+        def client = data.client?.find { it.client_info?.android_client_info?.package_name == android.defaultConfig.applicationId }
+        def number = data.project_info?.project_number?.toString()
+        def appId = client?.client_info?.mobilesdk_app_id
+        if (data.type == 'service_account' || data.private_key || data.private_key_id || data.client_email
+            || !(data.project_info?.project_id instanceof String) || !data.project_info.project_id.trim()
+            || !number || !(number ==~ /[0-9]+/)
+            || !appId || !(appId ==~ /1:[0-9]+:android:[a-fA-F0-9]+/)
+            || appId.split(':')[1] != number
+            || !client?.api_key?.any { it.current_key?.trim() }) {
+            throw new GradleException('Release blocked: incomplete or wrong-package Firebase Android client config. Run scripts/validate-google-services.mjs; project number, mobile app ID and client API key must match com.getyere.app.')
+        }
     }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+tasks.configureEach { task ->
+    if (task.name == 'preReleaseBuild' || task.name ==~ /pre.+ReleaseBuild/) {
+        task.dependsOn(verifyReleasePushConfiguration)
+    }
 }
