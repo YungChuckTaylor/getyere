@@ -1,3 +1,5 @@
+import { createNativePushController, resolveDevicePushPreference } from './native-push-controller.js';
+window.YERE_PUSH = { createNativePushController, resolveDevicePushPreference };
 import { createNotificationIntentQueue } from './notification-intents.js';
 window.YERE_NOTIFICATION_INTENTS = { createNotificationIntentQueue };
 import './style.css';

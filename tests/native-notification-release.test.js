@@ -120,3 +120,15 @@ test('Android CI shell blocks parse, and Firebase setup cannot continue without 
  const firebase=workflow.slice(workflow.indexOf('- name: Install required Firebase'),workflow.indexOf('- name: Build native web bundle'));
  assert.match(firebase,/exit 1/);assert.doesNotMatch(firebase,/exit 0|REQUIRE_ANDROID_PUSH|::warning/);
 });
+
+test('manual release-only verification cannot assemble or upload a debug APK',async()=>{
+ const workflow=await read('.github/workflows/build-android.yml');
+ assert.match(workflow,/release_check_only:[\s\S]*?default: true/);
+ for(const title of ['Assemble debug APK','Verify APK contents are cloud-configured','Verify the APK bundles native voice capture','Create checksum','Write run summary','Upload debug APK']){
+  const start=workflow.indexOf(`- name: ${title}\n`);assert.ok(start>=0,title);
+  const next=workflow.indexOf('\n      - name:',start+1);
+  assert.match(workflow.slice(start,next<0?undefined:next),/if: \$\{\{ !inputs\.release_check_only \}\}/,title);
+ }
+ assert.match(workflow,/:app:compileReleaseJavaWithJavac :app:processReleaseResources :app:testReleaseUnitTest/);
+ assert.match(workflow,/grep -q 'Release blocked: android\/app\/google-services\.json is missing'/);
+});

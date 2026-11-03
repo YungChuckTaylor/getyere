@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
-import { PushDeliveryError, isRetiredSubscription, fcmErrorCode, safePushError } from '../supabase/functions/_shared/push-errors.js';
+import { PushDeliveryError, isRetiredSubscription, fcmErrorCode, safePushError, pushFailureDetails } from '../supabase/functions/_shared/push-errors.js';
 const read = path => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 const executable = source => ts.transpileModule(source.replace(/^import .*;\n/gm, ''), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
 const testSource = executable(await read('supabase/functions/test-notification/index.ts'));
@@ -52,7 +52,7 @@ function harness({ subscriptions = [], claim = [], sendError = {}, auth = true, 
     jsonResponse: (body, status = 200) => new Response(JSON.stringify(body), { status }),
     sendPush: async (subscription, payload) => { calls.sends.push({ id: subscription.id, payload }); if (sendError[subscription.id]) throw sendError[subscription.id]; return { provider: subscription.provider, reference: 'receipt' }; },
     sendYereEmail: async (...args) => { calls.emails.push(args); return { id: 'email-receipt' }; },
-    isRetiredSubscription, safePushError
+    isRetiredSubscription, safePushError, pushFailureDetails
   };
   return {
     calls, state, run: async (type, body = {}, headers = {}, method = 'POST') => {
@@ -168,6 +168,17 @@ test('APNs defaults to the production host required by TestFlight and App Store 
 });
 test('missing APNs credentials cannot send a request or retire a valid device registration', async () => {
   const calls=[];const sender=senderHarness({},async(...args)=>{calls.push(args);return new Response(null,{status:200});});
-  await assert.rejects(()=>sender({platform:'ios',provider:'apns',device_token:'test-token'},{title:'Test'}),error=>/APNS_KEY_ID is not configured/.test(error.message)&&!isRetiredSubscription(error));
+  await assert.rejects(()=>sender({platform:'ios',provider:'apns',device_token:'test-token'},{title:'Test'}),error=>error.provider==='apns'&&error.code==='CONFIGURATION_MISSING'&&!isRetiredSubscription(error));
   assert.equal(calls.length,0);
+});
+
+test('missing APNs configuration is actionable, redacted and never retires a device',async()=>{
+ const h=harness({subscriptions,sendError:{b:new PushDeliveryError('apns','CONFIGURATION_MISSING')}});
+ const result=await h.run('test',{platform:'ios',deviceToken:'token-b'});
+ assert.equal(result.status,502);assert.equal(result.body.code,'APNS_CONFIGURATION_MISSING');assert.equal(result.body.retryable,false);assert.match(result.body.error,/not configured on the Yere server/);assert.equal(result.body.registrationExpired,false);assert.deepEqual(h.calls.deletes,[]);
+ assert.doesNotMatch(JSON.stringify(result),/token-b|PRIVATE KEY|APNS_PRIVATE_KEY/);
+});
+test('invalid APNs signing material is distinguished from missing configuration without exposing its content',async()=>{
+ const sender=senderHarness({APNS_TEAM_ID:'TESTTEAM',APNS_KEY_ID:'TESTKEY',APNS_PRIVATE_KEY:'private-not-valid-pem'},()=>{throw new Error('network must not be called');});
+ await assert.rejects(()=>sender({platform:'ios',provider:'apns',device_token:'test-token'},{title:'Test'}),error=>error.code==='CREDENTIALS_INVALID'&&!safePushError(error).includes('private-not-valid-pem'));
 });

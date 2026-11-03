@@ -1,6 +1,6 @@
 import { adminClient, authenticatedUser, jsonResponse, preflight, readJson, consumeRateLimit } from '../_shared/http.ts';
 import { sendPush } from '../_shared/push.ts';
-import { isRetiredSubscription, safePushError } from '../_shared/push-errors.js';
+import { isRetiredSubscription, pushFailureDetails } from '../_shared/push-errors.js';
 
 Deno.serve(async (req) => {
   const options = preflight(req);
@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
         deliveryVerified: false, message: 'The push provider accepted this device’s test. Confirm it appeared on the phone.' });
     } catch (error) {
       if (isRetiredSubscription(error)) await admin.from('push_subscriptions').delete().eq('id', subscription.id).eq('owner_id', user.id);
-      return jsonResponse({ error: safePushError(error), accepted: false, platform: subscription.platform, provider: subscription.provider }, 502);
+      return jsonResponse({ ...pushFailureDetails(error), accepted: false, platform: subscription.platform, provider: subscription.provider }, 502);
     }
   } catch {
     return jsonResponse({ error: 'Notification test failed. Check the request and server configuration.' }, 400);

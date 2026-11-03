@@ -19,7 +19,7 @@ let apnsAccess: { token: string; expiresAt: number } | null = null;
 
 function required(name: string) {
   const value = Deno.env.get(name)?.trim();
-  if (!value) throw new Error(`${name} is not configured.`);
+  if (!value) throw new PushDeliveryError(name.startsWith('APNS_') ? 'apns' : 'fcm', 'CONFIGURATION_MISSING');
   return value;
 }
 
@@ -47,6 +47,11 @@ async function signedJwt(
   const key = await crypto.subtle.importKey('pkcs8', pemBytes(privateKey), algorithm, false, ['sign']);
   const signature = await crypto.subtle.sign(signAlgorithm, key, encoder.encode(unsigned));
   return `${unsigned}.${base64Url(new Uint8Array(signature))}`;
+}
+
+async function providerJwt(provider: string, ...args: Parameters<typeof signedJwt>) {
+  try { return await signedJwt(...args); }
+  catch { throw new PushDeliveryError(provider, 'CREDENTIALS_INVALID'); }
 }
 
 function prepareVapid() {
@@ -79,7 +84,7 @@ async function firebaseAccessToken() {
   const clientEmail = required('FIREBASE_CLIENT_EMAIL');
   const privateKey = required('FIREBASE_PRIVATE_KEY');
   const now = Math.floor(Date.now() / 1000);
-  const assertion = await signedJwt(
+  const assertion = await providerJwt('fcm',
     { alg: 'RS256', typ: 'JWT' },
     {
       iss: clientEmail,
@@ -141,7 +146,7 @@ async function sendFcm(subscription: PushRow, payload: Record<string, unknown>) 
 async function apnsAccessToken() {
   if (apnsAccess && apnsAccess.expiresAt > Date.now() + 60_000) return apnsAccess.token;
   const now = Math.floor(Date.now() / 1000);
-  const token = await signedJwt(
+  const token = await providerJwt('apns',
     { alg: 'ES256', kid: required('APNS_KEY_ID') },
     { iss: required('APNS_TEAM_ID'), iat: now },
     required('APNS_PRIVATE_KEY'),
@@ -158,7 +163,8 @@ async function sendApns(subscription: PushRow, payload: Record<string, unknown>)
   const sandbox = /^true$/i.test(Deno.env.get('APNS_USE_SANDBOX') || '');
   const host = sandbox ? 'https://api.sandbox.push.apple.com' : 'https://api.push.apple.com';
   // APNs is HTTP/2-only; do not depend on the runtime's default HTTP/1 client.
-  apnsHttpClient ||= Deno.createHttpClient({ http2: true });
+  try { apnsHttpClient ||= Deno.createHttpClient({ http2: true }); }
+  catch { throw new PushDeliveryError('apns', 'TRANSPORT_UNAVAILABLE'); }
   const { title, body, ...data } = payload;
   const response = await fetch(`${host}/3/device/${encodeURIComponent(subscription.device_token)}`, {
     method: 'POST',

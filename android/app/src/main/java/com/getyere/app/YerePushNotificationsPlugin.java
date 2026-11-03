@@ -1,6 +1,9 @@
 package com.getyere.app;
 
 import android.Manifest;
+import android.os.Build;
+import androidx.core.app.NotificationManagerCompat;
+import com.getcapacitor.JSObject;
 import com.capacitorjs.plugins.pushnotifications.PushNotificationsPlugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -22,6 +25,43 @@ import com.google.firebase.messaging.FirebaseMessaging;
     permissions = @Permission(strings = { Manifest.permission.POST_NOTIFICATIONS }, alias = "receive")
 )
 public class YerePushNotificationsPlugin extends PushNotificationsPlugin {
+    @Override
+    @PluginMethod
+    public void checkPermissions(PluginCall call) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                JSObject result = new JSObject();
+                result.put("receive", NotificationManagerCompat.from(getContext()).areNotificationsEnabled() ? "granted" : "denied");
+                call.resolve(result);
+            } else {
+                super.checkPermissions(call);
+            }
+        } catch (RuntimeException error) {
+            call.reject("Could not check notification permission. Reopen Yere and try again.", "YERE_PUSH_PERMISSION");
+        }
+    }
+
+    @Override
+    @PluginMethod
+    public void requestPermissions(PluginCall call) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) checkPermissions(call);
+            else super.requestPermissions(call);
+        } catch (RuntimeException error) {
+            call.reject("Could not request notification permission. Reopen Yere and try again.", "YERE_PUSH_PERMISSION");
+        }
+    }
+
+    @Override
+    @PluginMethod
+    public void createChannel(PluginCall call) {
+        try {
+            super.createChannel(call);
+        } catch (RuntimeException error) {
+            call.reject("Could not set up the reminder notification channel. Reopen Yere and retry setup.", "YERE_PUSH_CHANNEL");
+        }
+    }
+
     @Override
     @PluginMethod
     public void register(PluginCall call) {

@@ -59,9 +59,10 @@ test('home groups all open reminders by day with no seven-day cutoff and retains
 });
 
 function logoutHarness({ native = false, answer = false, error = null } = {}) {
-  const calls = { confirm: 0, web: 0, native: 0, tokens: 0, labels: 0 };
+  const calls = { confirm: 0, web: 0, native: 0, tokens: 0, labels: 0, cancelledSetup: 0 };
   const session = { user: { id: 'user-1' } };
   const context = {
+    nativePushController: { reset: () => { calls.cancelledSetup++; } },
     notificationIntentQueue: null, removeNativePushSubscription: async () => { calls.tokens++; }, currentSession: session, cloudReady: true, cloudPending: true, realtimeChannel: null,
     state: { reminders: [reminder('saved')], contacts: [], relationships: [], audit: [], lists: [], invites: [] },
     supabase: { auth: { signOut: async () => { calls.web++; return { error }; } }, from: () => { calls.tokens++; return { delete: () => ({ eq: () => ({ eq: async () => ({}) }) }) }; } },
@@ -77,13 +78,13 @@ for (const native of [false, true]) {
   test(`logout cancellation leaves the ${native?'native':'web'} session, tokens and data untouched`, async () => {
     const { context, calls, session } = logoutHarness({ native });
     await context.signOut();
-    assert.equal(calls.confirm, 1); assert.equal(calls.web+calls.native+calls.tokens, 0);
+    assert.equal(calls.confirm, 1); assert.equal(calls.web+calls.native+calls.tokens+calls.cancelledSetup, 0);
     assert.equal(context.currentSession, session); assert.equal(context.state.reminders.length, 1);
   });
   test(`confirmed ${native?'native':'web'} logout uses the correct auth path`, async () => {
     const { context, calls } = logoutHarness({ native, answer: true });
     await context.signOut();
-    assert.equal(calls.confirm, 1); assert.equal(native?calls.native:calls.web, 1);
+    assert.equal(calls.confirm, 1); assert.equal(native?calls.native:calls.web, 1);assert.equal(calls.cancelledSetup,1);
     assert.equal(context.currentSession, null); assert.equal(context.state.reminders.length, 0);
   });
 }

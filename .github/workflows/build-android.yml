@@ -3,6 +3,11 @@ name: Build Android APK
 on:
   # Native debug artifacts are manual-only; never rebuild/upload one on an unrelated push.
   workflow_dispatch:
+    inputs:
+      release_check_only:
+        description: Compile/test Release and check Firebase resources only (no APK or upload)
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -104,20 +109,57 @@ jobs:
       - name: Verify the native speech recognizer is registered
         run: node scripts/verify-native-voice.mjs android/app/src/main/assets/capacitor.plugins.json
 
+      - name: Compile and test release notification integration (no APK)
+        if: ${{ inputs.release_check_only }}
+        working-directory: android
+        run: ./gradlew --no-daemon --stacktrace :app:compileReleaseJavaWithJavac :app:processReleaseResources :app:testReleaseUnitTest
+
+      - name: Verify release gate rejects missing Firebase client config
+        if: ${{ inputs.release_check_only }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          client="$(mktemp)"
+          cp android/app/google-services.json "$client"
+          trap 'cp "$client" android/app/google-services.json; rm -f "$client"' EXIT
+          rm android/app/google-services.json
+          if (cd android && ./gradlew --no-daemon :app:preReleaseBuild > /tmp/yere-release-gate.log 2>&1); then
+            echo "::error::Release gate incorrectly allowed missing Firebase config."
+            exit 1
+          fi
+          grep -q 'Release blocked: android/app/google-services.json is missing' /tmp/yere-release-gate.log
+          echo "Missing-config negative release check passed."
+
+      - name: Release verification summary
+        if: ${{ inputs.release_check_only }}
+        run: |
+          {
+            echo "### Release notification verification (no APK)"
+            echo "- Source: ${{ github.sha }}"
+            echo "- Firebase client validated; release Java/resources compiled; unit tests passed."
+            echo "- Negative check: missing Firebase configuration blocks release."
+            echo "- No APK built or uploaded; no signing, store submission or physical-device delivery claimed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Assemble debug APK
+        if: ${{ !inputs.release_check_only }}
         working-directory: android
         run: ./gradlew --no-daemon --stacktrace assembleDebug
 
       - name: Verify APK contents are cloud-configured
+        if: ${{ !inputs.release_check_only }}
         run: node scripts/verify-bundle.mjs android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Verify the APK bundles native voice capture
+        if: ${{ !inputs.release_check_only }}
         run: node scripts/verify-native-voice.mjs android/app/build/outputs/apk/debug/app-debug.apk --aapt2 "${ANDROID_SDK_ROOT}/build-tools/36.0.0/aapt2"
 
       - name: Create checksum
+        if: ${{ !inputs.release_check_only }}
         run: sha256sum android/app/build/outputs/apk/debug/app-debug.apk > android/app/build/outputs/apk/debug/app-debug.apk.sha256
 
       - name: Write run summary
+        if: ${{ !inputs.release_check_only }}
         run: |
           {
             echo "### Yere Android build"
@@ -129,6 +171,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload debug APK
+        if: ${{ !inputs.release_check_only }}
         uses: actions/upload-artifact@v7
         with:
           name: yere-android-debug-${{ github.sha }}

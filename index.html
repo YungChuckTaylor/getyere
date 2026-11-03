@@ -718,14 +718,17 @@ function activeStorageKey(){ return currentSession ? `${KEY}.${currentSession.us
 function isNativeApp(){return Boolean(window.YERE_NATIVE?.enabled);}
 function isOnline(){return isNativeApp()?window.YERE_NATIVE.isOnline():navigator.onLine;}
 function deviceNotificationKey(){return `Yere.deviceNotifications.${currentSession?.user?.id||'local'}`;}
+const deviceNotificationChoices=new Map();
 function saveDeviceNotificationSettings(){
-  try{localStorage.setItem(deviceNotificationKey(),state.settings.pushEnabled?'1':'0');}catch(_){}
+  const key=deviceNotificationKey(),value=state.settings.pushEnabled?'1':'0';
+  deviceNotificationChoices.set(key,value);
+  try{localStorage.setItem(key,value);}catch(_){}
 }
 function restoreDeviceNotificationSettings(){
-  let enabled=false;
-  try{enabled=localStorage.getItem(deviceNotificationKey())==='1';}catch(_){}
-  state.settings.pushEnabled=enabled;
-  state.settings.notif=isNativeApp()?enabled:('Notification' in window&&Notification.permission==='granted');
+  const key=deviceNotificationKey();let stored=deviceNotificationChoices.get(key)??null;
+  if(!deviceNotificationChoices.has(key)){try{stored=localStorage.getItem(key);}catch(_){}}
+  state.settings.pushEnabled=window.YERE_PUSH.resolveDevicePushPreference(stored,isNativeApp());
+  state.settings.notif=isNativeApp()?Boolean(nativePushState.ownerId===currentSession?.user?.id&&nativePushState.permission==='granted'&&state.settings.pushEnabled):('Notification' in window&&Notification.permission==='granted');
 }
 function accountSettingsForCloud(){
   const settings={...state.settings};
@@ -924,6 +927,7 @@ async function signOut() {
   const warning=cloudPending?' You have changes waiting to sync. Stay signed in and reconnect first to avoid losing unsynced changes.':'';
   if(!confirm(t('Are you sure you want to log out of Yere?')+t(warning)))return;
   signOutInProgress=true;
+  nativePushController?.reset();
   closeProfileMenu();
   try{
     if(isNativeApp()){
@@ -1141,7 +1145,7 @@ async function startCloudWorkspace(session) {
     cloudSnapshot={reminders:new Set(),contacts:new Set(),lists:new Set()};cloudPending=false;
     state.settings={...DEFAULT_SETTINGS,rate:{invites:[],fails:[]}};
     state.user={id:session.user.id,name:session.user.user_metadata?.display_name||session.user.email?.split('@')[0]||'Yere member',email:session.user.email||''};
-    load(false);
+    load(false);restoreDeviceNotificationSettings();
     state.user={id:session.user.id,name:session.user.user_metadata?.display_name||state.user.name,email:session.user.email||''};
     setAccountLabel();
     document.getElementById('content').innerHTML='<div class="space-y-3"><div class="skeleton h-20 rounded-2xl"></div><div class="skeleton h-20 rounded-2xl"></div><div class="skeleton h-20 rounded-2xl"></div></div>';
@@ -1156,7 +1160,7 @@ async function startCloudWorkspace(session) {
     document.getElementById('authGate').classList.add('hidden');
     setAccountLabel();render();startRealtimeSync();
     if(!loaded)toast((!isOnline()||cloudPending)?'Cloud is unavailable. Your saved changes will sync when the connection is restored.':'Yere is open, but Supabase needs its migrations and security policies.');
-    if(isNativeApp()&&state.settings.pushEnabled)ensureNativePushRegistration().catch(error=>console.warn('Native push will retry when it is enabled again.',error));
+    if(isNativeApp()&&state.settings.pushEnabled)ensureNativePushRegistration().catch(()=>toast('Notifications need attention. Open Settings to review setup.'));
     await handleInviteLink();handleNotificationIntent();maybeStartTour();
   }finally{if(cloudWorkspaceUserId===session.user.id){cloudWorkspaceLoading=false;flushNotificationIntents();}}
 }
@@ -1693,10 +1697,10 @@ function renderSettings() {
       <label class="block text-sm"><span data-i18n="maa522d9505">Adaptive recurrence default</span><select onchange="state.settings.adaptiveDefault=this.value;persist()" class="mt-1 w-full rounded-xl bg-slate-100 dark:bg-ink-800 px-3 py-2 outline-none"><option value="original" ${s.adaptiveDefault==='original'?'selected':''} data-i18n="m0c9637a2c8">From original due date</option><option value="completion" ${s.adaptiveDefault==='completion'?'selected':''} data-i18n="m3fd52daea9">From completion date</option></select></label>
     </div>
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-3">
-      <div><h3 class="font-bold" data-i18n="m753a22b2eb">Notifications</h3><p class="text-sm text-slate-500 mt-1">${ui(isNativeApp()?'Native push can reach this device even when Yere is closed.':'Web Push works in supported browsers. iPhone users can install Yere from Safari’s Share menu first.')}</p></div>
-      <div class="flex flex-wrap gap-2"><button onclick="togglePushNotifications()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">${ui(s.pushEnabled?'Turn off push':'Turn on push')}</button><button onclick="sendTestNotification()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold" data-i18n="m75c42cd1d8">Send a test notification</button>${isNativeApp()?'':`<button onclick="installYere()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold" data-i18n="m957624a6de">Install Yere</button>`}</div>
+      <div><h3 class="font-bold" data-i18n="m753a22b2eb">Notifications</h3><p class="text-sm text-slate-500 mt-1">${ui(isNativeApp()?'Notifications default to on for new native installs. Allow access when your phone asks. Background delivery also needs a registered device and a configured push service.':'Web Push works in supported browsers. iPhone users can install Yere from Safari’s Share menu first.')}</p></div>
+      <div class="flex flex-wrap gap-2"><button onclick="togglePushNotifications()" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">${ui(s.pushEnabled?'Turn off push':'Turn on push')}</button><button id="nativePushTest" onclick="sendTestNotification()" ${isNativeApp()&&nativeNotificationTestPending?'disabled':''} class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold disabled:opacity-50">${isNativeApp()&&nativeNotificationTestPending?'Testing…':'Send a test notification'}</button>${isNativeApp()?'':`<button onclick="installYere()" class="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-semibold" data-i18n="m957624a6de">Install Yere</button>`}</div>
       <label class="flex items-center gap-2 text-sm"><input type="checkbox" ${s.emailReminders?'checked':''} onchange="state.settings.emailReminders=this.checked;persist()"> <span data-i18n="ma1ea122452">Use email for reminders when available</span></label>
-      <p class="text-xs text-slate-400"><span data-i18n="mdf100406d8">Permission status:</span> ${notificationPermissionLabel()} · Delivery can also be selected on each reminder.</p>
+      ${isNativeApp()?`<div id="nativePushStatus" aria-live="polite">${nativePushStatusHTML()}</div>`:`<p class="text-xs text-slate-400">Permission status: ${notificationPermissionLabel()} · Delivery can also be selected on each reminder.</p>`}
     </div>
     <div class="bg-white dark:bg-ink-900 rounded-2xl border border-slate-200/80 dark:border-white/5 p-5 space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="font-bold" data-i18n="mc9afb21889">Trusted-contact reminders</h3><button type="button" onclick="openInviteModal()" class="rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white" data-i18n="m1267178058">Add trusted contact</button></div><p class="text-sm text-slate-500" data-i18n="ma1d8a1c193">Accepting an invitation connects the trusted contact automatically. Choose whether their reminders are added immediately or wait for your review:</p>
@@ -2546,7 +2550,7 @@ function toggleTheme(){
 }
 
 function notificationPermissionLabel(){
-  if(isNativeApp())return state.settings.pushEnabled?'granted':'not enabled';
+  if(isNativeApp())return esc(nativePushState.ownerId===currentSession?.user?.id?nativePushState.permission:'unknown');
   return 'Notification' in window?esc(Notification.permission):'not supported';
 }
 function urlBase64ToUint8Array(value){
@@ -2578,29 +2582,55 @@ async function registerNativePushSubscription(registration){
     return true;
   });
 }
-async function ensureNativePushRegistration(){
+let nativePushController=null;
+let nativePushState={ownerId:null,phase:'idle',permission:'unknown',registered:false,error:''};
+let nativeNotificationTestPending=false;
+let nativeNotificationSetupPending=false;
+function nativePushStatusHTML(){
+  const status=nativePushState.ownerId===currentSession?.user?.id?nativePushState:{permission:'unknown',phase:'idle',registered:false,error:''};
+  const registration=status.phase==='registering'||status.phase==='saving'?'setting up':status.registered?'saved':'not ready';
+  return `<p class="text-xs text-slate-400">Preference: ${state.settings.pushEnabled?'On':'Off'} · Permission status: ${notificationPermissionLabel()} · Device registration: ${registration}. Delivery has not been verified by permission alone.</p>${status.error?`<p role="status" class="text-sm text-amber-700 dark:text-amber-300">${esc(status.error)}</p>`:''}${state.settings.pushEnabled&&status.phase!=='registering'&&status.phase!=='saving'&&!status.registered?'<button onclick="requestNotif()" class="text-sm font-semibold underline">Retry notification setup</button>':''}`;
+}
+function refreshNativePushStatus(){
+  if(view!=='settings')return;
+  const status=document.getElementById('nativePushStatus');if(status)status.innerHTML=nativePushStatusHTML();
+  const button=document.getElementById('nativePushTest');if(button){button.disabled=nativeNotificationTestPending;button.textContent=nativeNotificationTestPending?'Testing…':'Send a test notification';}
+}
+function getNativePushController(){
+  if(!nativePushController)nativePushController=window.YERE_PUSH.createNativePushController({
+    getContext:()=>({ownerId:currentSession?.user?.id,enabled:state.settings.pushEnabled,signingOut:signOutInProgress}),
+    getBridge:()=>window.YERE_NATIVE,
+    register:registerNativePushSubscription,
+    hasPrompted:ownerId=>{try{return localStorage.getItem(`Yere.notificationPrompt.${ownerId}`)==='1';}catch(_){return false;}},
+    markPrompted:ownerId=>{try{localStorage.setItem(`Yere.notificationPrompt.${ownerId}`,'1');}catch(_){}},
+    onState:status=>{if(status.ownerId!==currentSession?.user?.id)return;nativePushState=status;state.settings.notif=state.settings.pushEnabled&&status.permission==='granted';saveLocalCache();refreshNativePushStatus();}
+  });
+  return nativePushController;
+}
+async function ensureNativePushRegistration(options){
   if(!isNativeApp()||!supabase||!currentSession||!state.settings.pushEnabled)return false;
   const ownerId=currentSession.user.id;
-  const registration=await window.YERE_NATIVE.registerPush();
-  if(currentSession?.user?.id!==ownerId||signOutInProgress)return false;
-  if(!registration.granted){state.settings.pushEnabled=false;state.settings.notif=false;saveDeviceNotificationSettings();saveLocalCache();render();return false;}
-  if(currentSession?.user?.id!==ownerId||!state.settings.pushEnabled||signOutInProgress)return false;
-  await registerNativePushSubscription(registration);
-  return true;
+  const registration=await getNativePushController().ensure(options);
+  if(!registration||currentSession?.user?.id!==ownerId||signOutInProgress||!state.settings.pushEnabled)return false;
+  saveDeviceNotificationSettings();saveLocalCache();return registration;
 }
-async function requestNotif(){
+async function requestNotif({quiet=false}={}){
   if(isNativeApp()){
     if(!supabase||!currentSession){toast('Sign in to receive native push reminders.');return;}
+    if(nativeNotificationSetupPending)return;
+    nativeNotificationSetupPending=true;
     const ownerId=currentSession.user.id;
+    if(!state.settings.pushEnabled)getNativePushController().reset();
+    state.settings.pushEnabled=true;saveDeviceNotificationSettings();
     try{
-      const registration=await window.YERE_NATIVE.registerPush();
-      if(currentSession?.user?.id!==ownerId||signOutInProgress)return;
-      state.settings.notif=Boolean(registration.granted);
-      state.settings.pushEnabled=Boolean(registration.granted&&registration.token);
-      if(!registration.granted){saveDeviceNotificationSettings();persist();render();toast('Enable notifications in your device settings.');return;}
-      await registerNativePushSubscription(registration);
-      saveDeviceNotificationSettings();persist();render();toast('Native push reminders are on.');
-    }catch(error){if(currentSession?.user?.id!==ownerId||signOutInProgress)return;state.settings.pushEnabled=false;state.settings.notif=false;saveDeviceNotificationSettings();persist();render();toast(error?.message||'Could not enable native notifications.');}
+      const registration=await ensureNativePushRegistration({interactive:true});
+      if(currentSession?.user?.id!==ownerId||signOutInProgress||!state.settings.pushEnabled)return;
+      persist();render();
+      if(registration){if(!quiet)toast('This device is registered for push. Send a test to check delivery.');return registration;}
+      else if(nativePushState.error)toast(nativePushState.error);
+      return false;
+    }catch(error){if(currentSession?.user?.id!==ownerId||signOutInProgress)return;saveLocalCache();render();toast(error?.message||'Could not enable native notifications. Retry setup in Settings.');}
+    finally{nativeNotificationSetupPending=false;}
     return;
   }
   if(!('Notification' in window)){toast('Notifications are not supported in this browser.');return;}
@@ -2646,9 +2676,12 @@ async function togglePushNotifications(){
       if(isNativeApp()){
         const registration=window.YERE_NATIVE.getPushRegistration();
         state.settings.pushEnabled=false;state.settings.notif=false;
-        try{await removeNativePushSubscription(registration);}catch(error){state.settings.pushEnabled=true;state.settings.notif=true;throw error;}
-        saveDeviceNotificationSettings();
-        await window.YERE_NATIVE.unregisterPush();
+        getNativePushController().reset();saveDeviceNotificationSettings();saveLocalCache();render();
+        const cleanup=await Promise.allSettled([removeNativePushSubscription(registration),window.YERE_NATIVE.unregisterPush()]);
+        if(cleanup.some(result=>result.status==='rejected')){
+          nativePushState.error='Notifications are set to off, but cleanup was incomplete. Turn off Yere notifications in your phone’s settings and retry when connected.';
+          refreshNativePushStatus();throw new Error(nativePushState.error);
+        }
       }else{
         const registration=await navigator.serviceWorker.ready;
         const subscription=await registration.pushManager.getSubscription();
@@ -2660,12 +2693,28 @@ async function togglePushNotifications(){
 }
 async function sendTestNotification(){
   if(isNativeApp()){
+    if(nativeNotificationTestPending)return;
     if(!supabase||!currentSession){toast('Sign in to test native push.');return;}
-    if(!state.settings.pushEnabled){await requestNotif();if(!state.settings.pushEnabled)return;}
-    const registration=window.YERE_NATIVE.getPushRegistration();
-    const {data,error}=await supabase.functions.invoke('test-notification',{body:{platform:registration.platform,deviceToken:registration.token}});
-    if(error){const problem=await error.context?.json?.().catch(()=>null);toast(problem?.error||error.message||'Test push could not be sent.');return;}
-    toast(data?.accepted?'Push service accepted this device’s test. Check for its notification.':'Test push was not accepted.');return;
+    const ownerId=currentSession.user.id;
+    nativeNotificationTestPending=true;refreshNativePushStatus();
+    try{
+      const registration=state.settings.pushEnabled?await ensureNativePushRegistration({interactive:true}):await requestNotif({quiet:true});
+      if(currentSession?.user?.id!==ownerId||signOutInProgress||!state.settings.pushEnabled||!registration)return;
+      const {data,error}=await supabase.functions.invoke('test-notification',{body:{platform:registration.platform,deviceToken:registration.token}});
+      if(currentSession?.user?.id!==ownerId||signOutInProgress||!state.settings.pushEnabled)return;
+      if(error){
+        let problem=null;try{problem=await error.context?.json?.();}catch(_){}
+        const message=problem?.error||'The test could not reach the notification service. Check your connection and retry.';
+        getNativePushController().deliveryError(message);toast(message);return;
+      }
+      if(data?.accepted)toast('Push service accepted this device’s test. Confirm the notification appeared.');
+      else{const message=data?.error||'The push service did not accept this test.';getNativePushController().deliveryError(message);toast(message);}
+    }catch(error){
+      if(currentSession?.user?.id!==ownerId||signOutInProgress||!state.settings.pushEnabled)return;
+      const message=error?.message||'Notification setup or testing failed. Please retry.';
+      getNativePushController().deliveryError(message);toast(message);
+    }finally{nativeNotificationTestPending=false;refreshNativePushStatus();}
+    return;
   }
   if(!('Notification' in window)){toast('Notifications are not supported.');return;}
   if(Notification.permission!=='granted'){await requestNotif();if(Notification.permission!=='granted')return;}
@@ -2905,6 +2954,7 @@ function maybeStartTour(){
 }
 
 function syncAfterReconnect(){
+  if(isNativeApp()&&cloudReady&&state.settings.pushEnabled)ensureNativePushRegistration().catch(()=>undefined);
   if(cloudReady){toast('Back online · syncing your reminders.');syncCloudSnapshot().then(()=>pullCloudSnapshot(false));}
 }
 function handleNativeBack(){
@@ -2924,7 +2974,7 @@ function handleNativeBack(){
 function installNativeAppHandlers(){
   if(!isNativeApp())return;
   window.addEventListener('yere:native-network',event=>event.detail?.connected?syncAfterReconnect():toast('You’re offline. This device will keep your changes for now.'));
-  window.addEventListener('yere:native-resume',event=>{if(event.detail?.connected&&cloudReady)syncCloudSnapshot().then(()=>pullCloudSnapshot(false));});
+  window.addEventListener('yere:native-resume',event=>{if(event.detail?.connected&&cloudReady){syncCloudSnapshot().then(()=>pullCloudSnapshot(false));if(state.settings.pushEnabled)ensureNativePushRegistration().catch(()=>undefined);}});
   window.addEventListener('yere:native-back',handleNativeBack);
   window.addEventListener('yere:native-url',event=>{window.YERE_NATIVE.consumeLaunchUrl();handleNativeUrl(event.detail?.url);});
   window.addEventListener('yere:native-notification-action',()=>{let intent;while((intent=window.YERE_NATIVE.consumeNotificationIntent()))handleNativeNotificationIntent(intent);});
