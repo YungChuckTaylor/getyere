@@ -963,7 +963,7 @@ async function deleteAccount(){
       await window.YERE_NATIVE.removeOfflineSnapshot(`${KEY}.${userId}`).catch(()=>undefined);
       await window.YERE_NATIVE.auth.signOut().catch(()=>undefined);
     }else await supabase.auth.signOut({scope:'local'});
-    try{localStorage.removeItem(`${KEY}.${userId}`);localStorage.removeItem(`Yere.theme.${userId}`);localStorage.removeItem(`Yere.deviceNotifications.${userId}`);}catch(_){}
+    try{localStorage.removeItem(`${KEY}.${userId}`);localStorage.removeItem(`Yere.theme.${userId}`);localStorage.removeItem(`Yere.deviceNotifications.${userId}`);localStorage.removeItem(`Yere.notificationPrompt.${userId}`);deviceNotificationChoices.delete(`Yere.deviceNotifications.${userId}`);}catch(_){}
     cloudReady=false;currentSession=null;
     state.reminders=[];state.contacts=[];state.relationships=[];state.invites=[];state.audit=[];state.lists=[];
     setAuthMode('signup','Your Yere account and cloud data were permanently deleted.');
@@ -2564,9 +2564,10 @@ function withNativePushTask(job){
   const next=nativePushTask.catch(()=>undefined).then(job);nativePushTask=next;return next;
 }
 async function removeNativePushSubscription(registration){
+  const ownerId=currentSession?.user?.id;
   return withNativePushTask(async()=>{
-    if(!registration.token||!supabase||!currentSession)return;
-    const {error}=await supabase.from('push_subscriptions').delete().eq('owner_id',currentSession.user.id).eq('device_token',registration.token);
+    if(!registration.token||!supabase||!ownerId||currentSession?.user?.id!==ownerId)return;
+    const {error}=await supabase.from('push_subscriptions').delete().eq('owner_id',ownerId).eq('device_token',registration.token);
     if(error)throw error;
   });
 }
@@ -2606,6 +2607,15 @@ function getNativePushController(){
     onState:status=>{if(status.ownerId!==currentSession?.user?.id)return;nativePushState=status;state.settings.notif=state.settings.pushEnabled&&status.permission==='granted';saveLocalCache();refreshNativePushStatus();}
   });
   return nativePushController;
+}
+async function refreshNativePushSubscription(registration){
+  const ownerId=currentSession?.user?.id;
+  if(!ownerId||!cloudReady||!state.settings.pushEnabled||signOutInProgress)return false;
+  // A default-on preference is not OS consent. Refresh callbacks can occur
+  // before the initial permission dialog or after permission is revoked.
+  const permission=await window.YERE_NATIVE.getPushPermission();
+  if(permission!=='granted'||currentSession?.user?.id!==ownerId||!state.settings.pushEnabled||signOutInProgress)return false;
+  return registerNativePushSubscription(registration);
 }
 async function ensureNativePushRegistration(options){
   if(!isNativeApp()||!supabase||!currentSession||!state.settings.pushEnabled)return false;
@@ -2671,6 +2681,7 @@ async function subscribeToPush(){
   return true;
 }
 async function togglePushNotifications(){
+  const ownerId=currentSession?.user?.id;
   if(state.settings.pushEnabled){
     try{
       if(isNativeApp()){
@@ -2678,6 +2689,7 @@ async function togglePushNotifications(){
         state.settings.pushEnabled=false;state.settings.notif=false;
         getNativePushController().reset();saveDeviceNotificationSettings();saveLocalCache();render();
         const cleanup=await Promise.allSettled([removeNativePushSubscription(registration),window.YERE_NATIVE.unregisterPush()]);
+        if(currentSession?.user?.id!==ownerId||signOutInProgress)return;
         if(cleanup.some(result=>result.status==='rejected')){
           nativePushState.error='Notifications are set to off, but cleanup was incomplete. Turn off Yere notifications in your phone’s settings and retry when connected.';
           refreshNativePushStatus();throw new Error(nativePushState.error);
@@ -2685,8 +2697,10 @@ async function togglePushNotifications(){
       }else{
         const registration=await navigator.serviceWorker.ready;
         const subscription=await registration.pushManager.getSubscription();
+        if(currentSession?.user?.id!==ownerId||signOutInProgress)return;
         if(subscription){if(supabase&&currentSession)await supabase.from('push_subscriptions').delete().eq('endpoint',subscription.endpoint);await subscription.unsubscribe();}
       }
+      if(currentSession?.user?.id!==ownerId||signOutInProgress)return;
       state.settings.pushEnabled=false;state.settings.notif=false;saveDeviceNotificationSettings();persist();render();toast('Push reminders are off.');
     }catch(error){toast(error?.message||'Could not turn push off.');}
   }else await requestNotif();
@@ -2704,6 +2718,7 @@ async function sendTestNotification(){
       if(currentSession?.user?.id!==ownerId||signOutInProgress||!state.settings.pushEnabled)return;
       if(error){
         let problem=null;try{problem=await error.context?.json?.();}catch(_){}
+        if(currentSession?.user?.id!==ownerId||signOutInProgress||!state.settings.pushEnabled)return;
         const message=problem?.error||'The test could not reach the notification service. Check your connection and retry.';
         getNativePushController().deliveryError(message);toast(message);return;
       }
@@ -2979,7 +2994,7 @@ function installNativeAppHandlers(){
   window.addEventListener('yere:native-url',event=>{window.YERE_NATIVE.consumeLaunchUrl();handleNativeUrl(event.detail?.url);});
   window.addEventListener('yere:native-notification-action',()=>{let intent;while((intent=window.YERE_NATIVE.consumeNotificationIntent()))handleNativeNotificationIntent(intent);});
   window.addEventListener('yere:native-notification-received',event=>{if(event.detail?.title)toast(event.detail.title);});
-  window.addEventListener('yere:native-push-token',event=>{if(currentSession&&cloudReady&&state.settings.pushEnabled&&!signOutInProgress)registerNativePushSubscription(event.detail).catch(error=>console.warn('The refreshed device token could not be saved.',error));});
+  window.addEventListener('yere:native-push-token',event=>{if(currentSession&&cloudReady&&state.settings.pushEnabled&&!signOutInProgress)refreshNativePushSubscription(event.detail).catch(()=>console.warn('The refreshed device token could not be saved.'));});
 }
 
 document.addEventListener('keydown', (e) => {

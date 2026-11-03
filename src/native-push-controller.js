@@ -130,7 +130,11 @@ export function createNativePushController({
           );
         report(ownerId, { phase: "saving" });
         const saved = await register(registration);
-        if (!valid(ownerId, version) || saved === false) return false;
+        if (!valid(ownerId, version)) return false;
+        if (saved === false)
+          throw new Error(
+            "This device’s notification registration was not saved. Retry setup.",
+          );
         report(ownerId, { phase: "ready", registered: true, error: "" });
         return registration;
       })

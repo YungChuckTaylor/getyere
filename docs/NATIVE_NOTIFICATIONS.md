@@ -3,6 +3,15 @@
 Package/bundle: **`com.getyere.app`**. Reuse the existing Firebase project, Apple Developer account,
 Supabase project and shared Capacitor application. No new backend or demo build is needed.
 
+## Latest follow-up — 3 November 2026
+
+See [the native default-on/release follow-up](NOTIFICATION_RELEASE_FIX_2026-11-03.md).
+Native installs/accounts without a saved choice now default on after sign-in, subject to OS consent;
+existing off choices remain off. Production has an iOS registration but still lacks APNs credentials.
+`test-notification` is now ACTIVE v19 with clearer errors; dispatcher remains v18. The new manual
+release-only compilation check creates/uploads no APK, but its attempted dispatch was blocked by
+GitHub Actions permissions. Signed store builds and physical-device acceptance are still pending.
+
 ## Code changes and limits
 
 - iOS AppDelegate forwards APNs registration success/failure to Capacitor. Done/Snooze/View

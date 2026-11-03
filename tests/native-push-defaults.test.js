@@ -321,3 +321,104 @@ test("explicit opt-out persists, cancels setup and is not re-enabled by a backgr
   assert.equal(await h.context.ensureNativePushRegistration(), false);
   assert.equal(h.context.state.settings.pushEnabled, false);
 });
+
+test("a slow structured-error body never posts feedback into the next account", async () => {
+  const h = appHarness();
+  let finish;
+  h.context.supabase.functions.invoke = async () => ({
+    error: {
+      context: {
+        json: () =>
+          new Promise((resolve) => {
+            finish = resolve;
+          }),
+      },
+    },
+  });
+  const pending = h.context.sendTestNotification();
+  await pause();
+  h.context.currentSession = { user: { id: "bob" } };
+  finish({ error: "Synthetic server failure" });
+  await pending;
+  assert.equal(h.calls.toasts.length, 0);
+});
+
+test("failed opt-out cleanup still preserves off and attempts native token deletion", async () => {
+  const h = appHarness();
+  h.bridge.getPushRegistration = () => ({ token: "" });
+  let unregistered = 0;
+  h.bridge.unregisterPush = async () => {
+    unregistered++;
+    throw new Error("Synthetic offline error");
+  };
+  await h.context.togglePushNotifications();
+  assert.equal(unregistered, 1);
+  assert.equal(h.context.state.settings.pushEnabled, false);
+  assert.equal(h.storage.get("Yere.deviceNotifications.alice"), "0");
+  assert.match(h.calls.toasts[0], /cleanup was incomplete/);
+  assert.equal(await h.context.ensureNativePushRegistration(), false);
+});
+
+test("late opt-out cleanup cannot switch off the next account", async () => {
+  const h = appHarness();
+  let finish;
+  h.bridge.getPushRegistration = () => ({ token: "" });
+  h.bridge.unregisterPush = async () =>
+    new Promise((resolve) => {
+      finish = resolve;
+    });
+  const pending = h.context.togglePushNotifications();
+  await pause();
+  h.context.currentSession = { user: { id: "bob" } };
+  h.context.state.settings.pushEnabled = true;
+  finish();
+  await pending;
+  assert.equal(h.context.state.settings.pushEnabled, true);
+  assert.equal(h.calls.toasts.length, 0);
+});
+
+test("a declined registration save produces a retryable setup error rather than an endless saving state", async () => {
+  const controller = createNativePushController({
+    getContext: () => ({ ownerId: "alice", enabled: true }),
+    getBridge: () => ({
+      getPushPermission: async () => "granted",
+      registerPush: async () => ({ granted: true, token: "test-token" }),
+    }),
+    register: async () => false,
+  });
+  await assert.rejects(controller.ensure(), /registration was not saved/);
+  assert.equal(controller.getState().registered, false);
+  assert.equal(controller.getState().phase, "error");
+});
+
+test("token refresh rechecks actual OS permission instead of treating default on as consent", async () => {
+  for (const permission of ["granted", "denied", "prompt"]) {
+    const h = appHarness({ permission });
+    h.context.cloudReady = true;
+    await h.context.refreshNativePushSubscription({
+      token: "new-token",
+      platform: "ios",
+      provider: "apns",
+    });
+    assert.equal(h.calls.rpc.length, permission === "granted" ? 1 : 0);
+  }
+});
+
+test("token refresh cannot register into a different account while the permission check is pending", async () => {
+  const h = appHarness();
+  h.context.cloudReady = true;
+  let finish;
+  h.bridge.getPushPermission = () =>
+    new Promise((resolve) => {
+      finish = resolve;
+    });
+  const pending = h.context.refreshNativePushSubscription({
+    token: "new-token",
+    platform: "ios",
+    provider: "apns",
+  });
+  h.context.currentSession = { user: { id: "bob" } };
+  finish("granted");
+  assert.equal(await pending, false);
+  assert.equal(h.calls.rpc.length, 0);
+});
