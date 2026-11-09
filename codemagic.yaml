@@ -1,0 +1,75 @@
+workflows:
+  ios-testflight:
+    name: Yere iOS to TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    integrations:
+      app_store_connect: Yere ASC Key
+
+    environment:
+      groups:
+        - yere_public
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.getyere.app
+      vars:
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+        APP_STORE_APPLE_ID: 6826483998
+      node: 22
+      xcode: latest
+
+    scripts:
+      - name: Install web dependencies
+        script: npm ci
+
+      - name: Run tests
+        script: npm test
+
+      - name: Build the web app for native
+        script: npm run build:native
+
+      - name: Copy the web build and plugins into the iOS project
+        script: npx cap sync ios
+
+      - name: Keep iOS minimum at 16
+        script: |
+          sed -i '' 's/.iOS(.v15)/.iOS(.v16)/' ios/App/CapApp-SPM/Package.swift
+          grep -n "platforms" ios/App/CapApp-SPM/Package.swift
+
+      - name: Apply code signing to the Xcode project
+        script: xcode-project use-profiles
+
+      - name: Set a new build number
+        script: |
+          set -euo pipefail
+
+          LATEST="$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID")"
+
+          if [[ ! "$LATEST" =~ ^[0-9]+$ ]]; then
+            echo "Could not obtain a valid latest TestFlight build number."
+            exit 1
+          fi
+
+          NEW=$((10#$LATEST + 1))
+          echo "Latest TestFlight build: $LATEST, using: $NEW"
+
+          perl -pi -e "s/CURRENT_PROJECT_VERSION = [0-9]+;/CURRENT_PROJECT_VERSION = $NEW;/g" "$XCODE_PROJECT/project.pbxproj"
+
+      - name: Build the signed IPA
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+            --config Release
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
