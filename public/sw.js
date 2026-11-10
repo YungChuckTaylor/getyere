@@ -1,5 +1,5 @@
 const CACHE_PREFIX = 'yere-shell-';
-const CACHE_NAME = `${CACHE_PREFIX}v4-language-scope`;
+const CACHE_NAME = `${CACHE_PREFIX}v5-app-links`;
 const APP_URL = new URL(self.registration.scope);
 
 async function precacheShell() {
@@ -47,6 +47,8 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== APP_URL.origin || url.pathname.endsWith('/sw.js')) return;
+  // Association endpoints must always reach the server, never the offline HTML shell.
+  if (url.pathname === '/.well-known/apple-app-site-association' || url.pathname === '/apple-app-site-association') return;
   // Never serve a cached public shell for the protected server-guarded admin routes.
   if (url.pathname === '/admin' || url.pathname.startsWith('/admin/') || url.pathname === '/admin-access' || url.pathname.startsWith('/admin-api/')) return;
 

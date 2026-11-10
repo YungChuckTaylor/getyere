@@ -39,7 +39,9 @@ export function aalFromVerifiedToken(token: string) {
 }
 
 export function mfaRequired(role: AdminRole) {
-  return role === 'admin' || role === 'super_admin';
+  // Owner-approved policy: super admins use password sign-in; regular admins retain MFA.
+  // The role is always loaded server-side from an active admin_users record.
+  return role === 'admin';
 }
 
 export function isRoleAtLeast(actual: AdminRole, required: AdminRole) {
@@ -63,6 +65,7 @@ export async function validateAdminIdentity(req: Request, requireMfa = true) {
   if (adminError || !adminUser?.is_active || !Object.hasOwn(ROLE_RANK, adminUser.role)) return { response: genericNotFound() } as const;
   const role = adminUser.role as AdminRole;
   const aal = aalFromVerifiedToken(token);
+  if (aal !== 'aal1' && aal !== 'aal2') return { response: genericNotFound() } as const;
   if (requireMfa && mfaRequired(role) && aal !== 'aal2') {
     return { response: jsonResponse({ error: 'Additional authentication is required.', code: 'mfa_required' }, 403) } as const;
   }

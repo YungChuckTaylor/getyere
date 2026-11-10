@@ -84,7 +84,9 @@ Deno.serve(async (req) => {
           try {
             const { data: authUser, error: userError } = await admin.auth.admin.getUserById(reminder.owner_id);
             if (userError || !authUser?.user?.email) throw new Error('No email address.');
-            const url = `${appOrigin}/?reminder=${encodeURIComponent(reminder.id)}`;
+            // Use the directly served associated host, not the apex-to-www redirect.
+            const linkOrigin = ['getyere.com', 'www.getyere.com'].includes(new URL(appOrigin).hostname) ? 'https://www.getyere.com' : appOrigin;
+            const url = `${linkOrigin}/?reminder=${encodeURIComponent(reminder.id)}`;
             await checkpoint({ lease_until: new Date(Date.now() + 300000).toISOString() });
             const response = await sendYereEmail(authUser.user.email, `Yere reminder: ${reminder.title}`,
               `<div style="font-family:Arial,sans-serif;padding:28px"><h1>${escapeHtml(reminder.title)}</h1><p>${escapeHtml(reminder.notes || 'A reminder you wanted to keep is due now.')}</p><a href="${url}">Open Yere</a></div>`,

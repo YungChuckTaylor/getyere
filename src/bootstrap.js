@@ -1,3 +1,5 @@
+import { reminderFromAppLink } from './app-links.js';
+window.YERE_APP_LINKS = { reminderFromAppLink };
 import { createNativePushController, resolveDevicePushPreference } from './native-push-controller.js';
 window.YERE_PUSH = { createNativePushController, resolveDevicePushPreference };
 import { createNotificationIntentQueue } from './notification-intents.js';

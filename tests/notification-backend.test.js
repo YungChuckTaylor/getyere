@@ -44,7 +44,7 @@ function harness({ subscriptions = [], claim = [], sendError = {}, auth = true, 
   }
   const admin = { from: query, rpc: async () => { calls.claims++; return { data: state.fire ? [structuredClone(state.fire)] : [], error: null }; }, auth: { admin: { getUserById: async () => ({ data: { user: { email: 'test@example.test' } }, error: null }) } } };
   const sandbox = {
-    exports: {}, Deno: { serve: f => { sandbox.handler = f; } }, Date,
+    exports: {}, Deno: { serve: f => { sandbox.handler = f; } }, Date, URL,
     console: { error: (...v) => calls.errors.push(v) },
     preflight: req => req.method === 'OPTIONS' ? new Response('ok') : null,
     authenticatedUser: async () => ({ user: auth ? { id: 'alice' } : null }), adminClient: () => admin,
@@ -104,6 +104,8 @@ test('partial dispatch checkpoints each accepted target and email; retries only 
   assert.equal(h.state.fire.delivery_state['push:a'],true); assert.equal(h.state.fire.delivery_state.email,true);
   assert.deepEqual(h.calls.sends.map(s=>s.id),['a','b','web']); assert.equal(h.calls.emails.length,1);
   assert.equal(h.calls.emails[0][4],'yere-reminder-fire');
+  assert.match(h.calls.emails[0][2], /href="https:\/\/www\.getyere\.com\/\?reminder=/);
+  assert.match(h.calls.emails[0][3], /Open Yere: https:\/\/www\.getyere\.com\//);
   delete errors.b; h.state.fire.attempt_count=2; h.state.fire.lease_id='retry'; h.state.fire.lease_until=new Date(Date.now()+300000).toISOString();
   await h.run('dispatch');
   assert.deepEqual(h.calls.sends.map(s=>s.id),['a','b','web','b']); assert.equal(h.calls.emails.length,1); assert.equal(h.state.fire.delivery_status,'sent'); assert.equal(h.state.fire.next_attempt_at,null);

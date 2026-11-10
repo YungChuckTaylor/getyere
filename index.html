@@ -2814,14 +2814,17 @@ async function handleNativeUrl(rawUrl){
     const url=new URL(rawUrl);
     const params=url.searchParams;
     const route=url.protocol==='yere:'?url.hostname:'';
-    const reminderId=params.get('reminder')||(route==='reminder'?url.pathname.replace(/^\//,''):'');
-    if(reminderId){
-      handleNativeNotificationIntent({reminderId,action:params.get('action')||params.get('notificationAction')||'view',direct:params.get('direct')==='1',minutes:Number(params.get('minutes'))||0,ownerId:params.get('ownerId')||'',dueAt:params.get('dueAt')||'',eventId:params.get('eventId')||''});
-      return;
-    }
+    const reminderIntent=window.YERE_APP_LINKS.reminderFromAppLink(rawUrl);
+    if(reminderIntent){handleNativeNotificationIntent(reminderIntent);return;}
+    // Reject unrelated origins and browser-only paths before handling invite/auth tokens.
+    const trustedWeb=url.protocol==='https:'&&['getyere.com','www.getyere.com'].includes(url.hostname)&&!url.port;
+    const trustedCustom=url.protocol==='yere:'&&['app','auth'].includes(route);
+    if(url.username||url.password||(!trustedWeb&&!trustedCustom))return;
+    if(trustedWeb&&!['/','/auth/callback'].includes(url.pathname))return;
+    if(params.has('reminder'))return;
     const invite=params.get('invite');
     if(invite){history.replaceState({},'',`/?invite=${encodeURIComponent(invite)}`);await handleInviteLink();return;}
-    const authCallback=route==='auth'&&url.pathname==='/callback';
+    const authCallback=(route==='auth'&&url.pathname==='/callback')||(trustedWeb&&url.pathname==='/auth/callback');
     if(authCallback&&params.has('error')){
       await window.YERE_NATIVE.auth.closeOAuthBrowser();
       setAuthMode('signin','Sign-in was cancelled or could not be completed. Please try again.');

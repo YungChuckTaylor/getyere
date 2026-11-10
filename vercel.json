@@ -29,6 +29,14 @@
   ],
   "rewrites": [
     {
+      "source": "/.well-known/apple-app-site-association",
+      "destination": "/api/apple-app-site-association"
+    },
+    {
+      "source": "/apple-app-site-association",
+      "destination": "/api/apple-app-site-association"
+    },
+    {
       "source": "/ios-guide.html",
       "destination": "/ios-release-guide.html"
     },

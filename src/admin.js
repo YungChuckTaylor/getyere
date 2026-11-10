@@ -46,7 +46,7 @@ function renderLogin(message = '') {
 function completeAdminPasswordSetup(supabase, isRecovery = false) {
   return new Promise((resolve) => {
     const heading = isRecovery ? 'Choose a new password' : 'Choose your password';
-    const description = 'Use at least 12 characters. Admin roles will next require an authenticator app.';
+    const description = 'Use at least 12 characters. Super admins sign in with email and password; regular admins also verify an authenticator code.';
     const cancelLabel = isRecovery ? 'Cancel password reset' : 'Cancel invitation setup';
     const cancelledMessage = isRecovery ? 'Password reset cancelled. Sign in when ready.' : 'Invitation setup cancelled. Sign in with an active administrator account when ready.';
     const expiredMessage = isRecovery ? 'The password reset session expired. Request a fresh reset link.' : 'The invitation session expired. Request a fresh invitation.';
@@ -188,7 +188,7 @@ function mountLogin(supabase, initialMessage = '') {
         data.session = await completeTotp(supabase);
         result = await saveAdminSession(data.session);
       }
-      if (!result.response.ok) throw new Error('Could not verify admin access. Check your invited admin account and authenticator.');
+      if (!result.response.ok) throw new Error('Could not verify admin access. Check that this is an active invited administrator account.');
       window.location.replace('/admin');
     } catch (error) {
       const text = error?.message || 'Could not sign in. Please try again.';
